@@ -1,0 +1,17 @@
+<VSTemplate Version="3.0.0" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" Type="Item">
+  <TemplateData>
+    <DefaultName>Window</DefaultName>
+    <Name>Perspex Window</Name>
+    <Description>A Perspex window with XAML markup.</Description>
+    <ProjectType>CSharp</ProjectType>
+    <Icon>icon.png</Icon>
+    <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
+    <TemplateID>07b7f2bb-f98e-45f5-82ab-e16d67304600</TemplateID>
+    <SortOrder>1000</SortOrder>
+  </TemplateData>
+  <TemplateContent>
+    <References />
+    <ProjectItem SubType="Designer" TargetFileName="$fileinputname$.xaml" ReplaceParameters="true">Window.xaml</ProjectItem>
+    <ProjectItem SubType="" TargetFileName="$fileinputname$.xaml.cs" ReplaceParameters="true">Window.xaml.cs</ProjectItem>
+  </TemplateContent>
+</VSTemplate>

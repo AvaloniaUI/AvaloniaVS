@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Project Templates", "Project Templates", "{CDB4EE3B-2786-403E-A6D9-B8DEB5D87C7F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerspexApplication", "src\Project Templates\PerspexApplication\PerspexApplication.csproj", "{B7F1F127-B07B-457B-8E1C-ABDB61111FCB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerspexVS", "src\PerspexVS\PerspexVS.csproj", "{380076DC-F4FC-4A0D-ADEA-6E3EA1EA6881}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B7F1F127-B07B-457B-8E1C-ABDB61111FCB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7F1F127-B07B-457B-8E1C-ABDB61111FCB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7F1F127-B07B-457B-8E1C-ABDB61111FCB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7F1F127-B07B-457B-8E1C-ABDB61111FCB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{380076DC-F4FC-4A0D-ADEA-6E3EA1EA6881}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{380076DC-F4FC-4A0D-ADEA-6E3EA1EA6881}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{380076DC-F4FC-4A0D-ADEA-6E3EA1EA6881}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{380076DC-F4FC-4A0D-ADEA-6E3EA1EA6881}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B7F1F127-B07B-457B-8E1C-ABDB61111FCB} = {CDB4EE3B-2786-403E-A6D9-B8DEB5D87C7F}
+	EndGlobalSection
+EndGlobal

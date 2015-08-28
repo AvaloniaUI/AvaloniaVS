@@ -1,0 +1,5 @@
+﻿<Window x:Class="XamlTestApplication.MainWindow"
+        xmlns="https://github.com/grokys/Perspex"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Window">
+</Window>
