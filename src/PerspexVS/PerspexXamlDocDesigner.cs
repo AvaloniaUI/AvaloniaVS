@@ -1,10 +1,4 @@
-﻿//------------------------------------------------------------------------------
-// <copyright file="XamlDocListener.cs" company="Company">
-//     Copyright (c) Company.  All rights reserved.
-// </copyright>
-//------------------------------------------------------------------------------
-
-using System;
+﻿using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -20,7 +14,7 @@ using Perspex.Designer;
 namespace PerspexVS
 {
     /// <summary>
-    /// XamlDocListener places red boxes behind all the "a"s in the editor window
+    /// Include the necessary logic to inject the Perspex Designer above the default Xaml Designer
     /// </summary>
     internal sealed class PerspexXamlDocDesigner
     {

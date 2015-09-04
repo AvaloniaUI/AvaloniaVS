@@ -12,6 +12,9 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace PerspexVS
 {
+    /// <summary>
+    /// Listens to the creation of all textview, but only 
+    /// </summary>
     [Export(typeof(IWpfTextViewCreationListener))]
     [ContentType("text")]
     [TextViewRole(PredefinedTextViewRoles.Document)]
