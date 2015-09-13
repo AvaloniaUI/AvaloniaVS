@@ -2,10 +2,12 @@
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 
-namespace PerspexVS
+namespace PerspexVS.Infrastructure
 {
     internal sealed class PerspexBuildEvents
     {
+
+        public static PerspexBuildEvents Instance { get; } = new PerspexBuildEvents();
         /// <summary>
         /// Raised when a build operation is started
         /// </summary>
@@ -19,7 +21,7 @@ namespace PerspexVS
         private void OnBuildEnd() { BuildEnd.Raise(); }
          
 
-        public PerspexBuildEvents()
+        private PerspexBuildEvents()
         {
             var dte = (DTE) Package.GetGlobalService(typeof (DTE));
             dte.Events.BuildEvents.OnBuildBegin += PdbeBuildBegin;
