@@ -29,6 +29,8 @@ namespace PerspexVS
             
         }
 
+        public PerspexDesigner Designer => _designer;
+
         private void EventsOnBuildEnd()
         {
             _designer?.RestartProcess();

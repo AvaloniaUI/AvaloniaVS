@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
+using Perspex.Designer;
 
 namespace PerspexVS
 {
@@ -34,7 +35,11 @@ namespace PerspexVS
                 edit = Utils.CheckPerspexRoot(File.ReadAllText(file));
             }
             if (edit)
-                return new PerspexEditorMargin(wpfTextViewHost.TextView);
+            {
+                var editor = new PerspexEditorMargin(wpfTextViewHost.TextView);
+                wpfTextViewHost.TextView.TextBuffer.Properties[typeof (PerspexDesigner)] = editor.Designer;
+                return editor;
+            }
             return null;
         }
     }

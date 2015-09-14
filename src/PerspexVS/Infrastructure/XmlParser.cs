@@ -16,7 +16,7 @@ namespace Sandbox
             InsideComment,
             InsideCdata,
             StartElement,
-            InsideLement,
+            InsideElement,
             StartAttribute,
             BeforeAttributeValue,
             AttributeValue,
@@ -104,14 +104,15 @@ namespace Sandbox
                 }
                 else if (State == ParserState.StartElement && char.IsWhiteSpace(c))
                 {
-                    State = ParserState.InsideLement;
+                    State = ParserState.InsideElement;
+                    _attributeNameStart = i;
                     _elementNameEnd = i - 1;
                 }
-                else if ((State == ParserState.InsideLement || State == ParserState.StartElement) && c == '>')
+                else if ((State == ParserState.InsideElement || State == ParserState.StartElement) && c == '>')
                 {
                     State = ParserState.None;
                 }
-                else if (State == ParserState.InsideLement && !char.IsWhiteSpace(c))
+                else if (State == ParserState.InsideElement && (char.IsLetter(c) || c=='_' || c==':'))
                 {
                     State = ParserState.StartAttribute;
                     _attributeNameStart = i;
@@ -129,7 +130,7 @@ namespace Sandbox
                 }
                 else if (State == ParserState.AttributeValue && c == '"')
                 {
-                    State = ParserState.InsideLement;
+                    State = ParserState.InsideElement;
                 }
             }
         }
