@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerspexApplication", "src\P
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerspexVS", "src\PerspexVS\PerspexVS.csproj", "{378D99A6-57BF-432D-A5A2-82CC4153736A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sandbox", "Sandbox\Sandbox.csproj", "{6011E45F-2DE0-472C-817C-5E310AC00606}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,6 +25,10 @@ Global
 		{378D99A6-57BF-432D-A5A2-82CC4153736A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{378D99A6-57BF-432D-A5A2-82CC4153736A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{378D99A6-57BF-432D-A5A2-82CC4153736A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6011E45F-2DE0-472C-817C-5E310AC00606}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6011E45F-2DE0-472C-817C-5E310AC00606}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6011E45F-2DE0-472C-817C-5E310AC00606}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6011E45F-2DE0-472C-817C-5E310AC00606}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
