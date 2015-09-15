@@ -54,7 +54,7 @@ namespace PerspexVS.IntelliSense
                 _oldMetadata = metadata;
 
                 
-                var rootNs = "https://github.com/grokys/Perspex";
+                var rootNs = Utils.PerspexNamespace;
                 _rootNamespaces =
                     metadata.NamespaceAliases.Where(n => n.XmlNamespace == rootNs).Select(x => x.Namespace).ToList();
                 _rootNsTypes = metadata.Types.Where(t => _rootNamespaces.Contains(t.Namespace)).ToDictionary(t => t.Name);

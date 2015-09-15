@@ -27,14 +27,7 @@ namespace PerspexVS
     {
         public IWpfTextViewMargin CreateMargin(IWpfTextViewHost wpfTextViewHost, IWpfTextViewMargin marginContainer)
         {
-            
-            var file = wpfTextViewHost.TextView.GetFilePath()?.ToLower();
-            bool edit = file?.EndsWith(".paml") == true;
-            if (!edit && file?.EndsWith(".xaml") == true)
-            {
-                edit = Utils.CheckPerspexRoot(File.ReadAllText(file));
-            }
-            if (edit)
+            if (Utils.IsPerspexMarkup(wpfTextViewHost.TextView))
             {
                 var editor = new PerspexEditorMargin(wpfTextViewHost.TextView);
                 wpfTextViewHost.TextView.TextBuffer.Properties[typeof (PerspexDesigner)] = editor.Designer;

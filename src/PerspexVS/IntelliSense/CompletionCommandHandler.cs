@@ -36,9 +36,9 @@ namespace PerspexVS.IntelliSense
         public void VsTextViewCreated(IVsTextView textViewAdapter)
         {
             ITextView textView = AdapterService.GetWpfTextView(textViewAdapter);
-            if (textView == null)
+            if (textView == null || !Utils.IsPerspexMarkup(textView))
                 return;
-
+            
             Func<CompletionCommandHandler> createCommandHandler =
                 () => new CompletionCommandHandler(textViewAdapter, textView, this);
             textView.Properties.GetOrCreateSingletonProperty(createCommandHandler);

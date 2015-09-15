@@ -16,12 +16,23 @@ namespace PerspexVS
 {
     static class Utils
     {
-        public static string GetFilePath(this IWpfTextView textView)
+        public static string GetFilePath(this ITextView textView)
         {
             ITextDocument document;
             return !textView.TextBuffer.Properties.TryGetProperty(typeof (ITextDocument), out document)
                 ? null
                 : document.FilePath;
+        }
+
+        public static bool IsPerspexMarkup(ITextView textView)
+        {
+            var file = textView.GetFilePath()?.ToLower();
+            bool edit = file?.EndsWith(".paml") == true;
+            if (!edit && file?.EndsWith(".xaml") == true)
+            {
+                edit = Utils.CheckPerspexRoot(File.ReadAllText(file));
+            }
+            return edit;
         }
 
         public static bool CheckPerspexRoot(string content)
@@ -42,7 +53,7 @@ namespace PerspexVS
                     if (reader.Name == "xmlns")
                     {
                         reader.ReadAttributeValue();
-                        return reader.Value.ToLower() == "https://github.com/grokys/perspex";
+                        return reader.Value.ToLower() == PerspexNamespace;
                     }
 
                 } while (reader.MoveToNextAttribute());
@@ -53,6 +64,8 @@ namespace PerspexVS
                 return false;
             }
         }
+
+        public const string PerspexNamespace = "https://github.com/perspex";
 
         public static Project GetContainingProject(this IWpfTextView textView)
         {
