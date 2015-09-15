@@ -39,6 +39,54 @@ namespace PerspexVS.IntelliSense
             return currentPoint.Snapshot.CreateTrackingSpan(extent.Span, SpanTrackingMode.EdgeInclusive);
         }
 
+        class MetadataHelper
+        {
+            //TODO: detect root namespace
+            //TODO: add support for user's namespaces
+
+            private List<string> _rootNamespaces;
+            private Dictionary<string, MetadataType> _rootNsTypes;
+            private PerspexDesignerMetadata _oldMetadata;
+            public void SetMetadata(PerspexDesignerMetadata metadata)
+            {
+                if (_oldMetadata == metadata)
+                    return;
+                _oldMetadata = metadata;
+
+                
+                var rootNs = "https://github.com/grokys/Perspex";
+                _rootNamespaces =
+                    metadata.NamespaceAliases.Where(n => n.XmlNamespace == rootNs).Select(x => x.Namespace).ToList();
+                _rootNsTypes = metadata.Types.Where(t => _rootNamespaces.Contains(t.Namespace)).ToDictionary(t => t.Name);
+            }
+
+            public IEnumerable<string> FilterTypeNames(string prefix) =>
+                _rootNsTypes.Values
+                    .Where(t => t.Name.StartsWith(prefix, StringComparison.InvariantCultureIgnoreCase))
+                    .Select(s => s.Name);
+
+            public MetadataType LookupType(string name)
+            {
+                MetadataType rv;
+                _rootNsTypes.TryGetValue(name, out rv);
+                return rv;
+            }
+
+            public IEnumerable<string> FilterPropertyNames(string typeName, string propName)
+            {
+                var t = LookupType(typeName);
+                propName = propName ?? "";
+                return
+                    t?.Properties.Where(p => p.Name.StartsWith(propName, StringComparison.InvariantCultureIgnoreCase))
+                        .Select(p => p.Name) ?? new string[0];
+            }
+
+            public MetadataProperty LookupProperty(string typeName, string propName) 
+                => LookupType(typeName)?.Properties?.FirstOrDefault(p => p.Name == propName);
+        }
+
+        MetadataHelper _helper = new MetadataHelper();
+
         public void AugmentCompletionSession(ICompletionSession session, IList<CompletionSet> completionSets)
         {
             PerspexDesigner designer;
@@ -50,14 +98,10 @@ namespace PerspexVS.IntelliSense
             var pos = session.TextView.Caret.Position.BufferPosition;
             var text = pos.Snapshot.GetText(0, pos.Position);
             var state = XmlParser.Parse(text);
-
+            
             var completions = new List<Completion>();
+            _helper.SetMetadata(metadata);
 
-            //TODO: detect root namespace
-            var rootNs = "https://github.com/grokys/Perspex";
-            var rootNamespaces =
-                metadata.NamespaceAliases.Where(n => n.XmlNamespace == rootNs).Select(x => x.Namespace).ToList();
-            var rootNsTypes = metadata.Types.Where(t => rootNamespaces.Contains(t.Namespace)).ToDictionary(t => t.Name);
 
 
             var curStart = state.CurrentValueStart ?? 0;
@@ -65,26 +109,40 @@ namespace PerspexVS.IntelliSense
             if (state.State == XmlParser.ParserState.StartElement)
             {
                 var tagName = state.TagName;
-                completions.AddRange(rootNsTypes.Values
-                    .Where(t => t.Name.StartsWith(tagName, StringComparison.InvariantCultureIgnoreCase))
-                    .Select(metadataType => new Completion(metadataType.Name)));
-            }
-            else if(state.State == XmlParser.ParserState.InsideElement || state.State == XmlParser.ParserState.StartAttribute)
-            {
-                if (state.State == XmlParser.ParserState.InsideElement)
-                    curStart = pos.Position;
-                MetadataType type;
-                if (rootNsTypes.TryGetValue(state.TagName, out type))
+                if (tagName.Contains("."))
                 {
-                    var attrName = state.AttributeName ?? "";
-                    completions.AddRange(type.Properties
-                        .Where(p => p.Name.StartsWith(attrName, StringComparison.InvariantCultureIgnoreCase))
-                        .Select(prop => new Completion(prop.Name, prop.Name + "=\"\"", prop.Name, null, null)));
+                    var dotPos = tagName.IndexOf(".");
+                    var typeName = tagName.Substring(0, dotPos);
+                    var compName = tagName.Substring(dotPos + 1, 0);
+                    curStart = curStart + dotPos + 1;
+                    completions.AddRange(_helper.FilterPropertyNames(typeName, compName).Select(p => new Completion(p)));
                 }
+                else
+                    completions.AddRange(_helper.FilterTypeNames(tagName).Select(x => new Completion(x)));
+            }
+            else if (state.State == XmlParser.ParserState.InsideElement ||
+                     state.State == XmlParser.ParserState.StartAttribute)
+            {
+
+                if (state.State == XmlParser.ParserState.InsideElement)
+                    curStart = pos.Position; //Force completion to be started from current cursor position
+
+                completions.AddRange(_helper.FilterPropertyNames(state.TagName, state.AttributeName)
+                    .Select(x => new Completion(x, x + "=\"\"", x, null, null)));
+
                 session.Committed += delegate
                 {
                     session.TextView.Caret.MoveToPreviousCaretPosition();
+                    //Automagically trigger new completion for attribute enums
+                    ((CompletionCommandHandler) session.TextView.Properties[typeof (CompletionCommandHandler)])
+                        .TriggerNew();
                 };
+            }
+            else if (state.State == XmlParser.ParserState.AttributeValue)
+            {
+                var prop = _helper.LookupProperty(state.TagName, state.AttributeName);
+                if (prop?.Type == MetadataPropertyType.Enum)
+                    completions.AddRange(prop.EnumValues.Select(v => new Completion(v)));
             }
 
             if (completions.Count != 0)
