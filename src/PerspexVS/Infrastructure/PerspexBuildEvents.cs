@@ -46,6 +46,7 @@ namespace PerspexVS.Infrastructure
         private void PdbeBuildBegin(vsBuildScope scope, vsBuildAction action)
         {
             OnBuildBegin();
+            DesignerKiller.KillAllDesigners();
         }
     }
 
