@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="Project" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" xmlns:sdk="http://schemas.microsoft.com/developer/vstemplate-sdkextension/2010">
+  <TemplateData>
+    <Name>Perspex Application Template</Name>
+    <Description>Perspex Application Template</Description>
+    <Icon>PerspexApplicationTemplate.ico</Icon>
+    <ProjectType>CSharp</ProjectType>
+    <RequiredFrameworkVersion>4.6</RequiredFrameworkVersion>
+    <SortOrder>1000</SortOrder>
+    <TemplateID>191cf8ae-cce5-4162-8932-d4f34eec1938</TemplateID>
+    <CreateNewFolder>true</CreateNewFolder>
+    <DefaultName>PerspexApplication</DefaultName>
+    <ProvideDefaultName>true</ProvideDefaultName>
+  </TemplateData>
+  <TemplateContent>
+    <Project File="ProjectTemplate.csproj" ReplaceParameters="true">
+      <ProjectItem ReplaceParameters="true" TargetFileName="Properties\AssemblyInfo.cs">AssemblyInfo.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="App.cs">App.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="Program.cs">Program.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" OpenInEditor="true" TargetFileName="MainWindow.paml">MainWindow.paml</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="MainWindow.paml.cs" >MainWindow.cs</ProjectItem>
+    </Project>
+  </TemplateContent>
+  <WizardExtension>
+    <Assembly>NuGet.VisualStudio.Interop, Version=1.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</Assembly>
+    <FullClassName>NuGet.VisualStudio.TemplateWizard</FullClassName>
+  </WizardExtension>
+  <WizardData>
+    <packages repository="extension" repositoryId="Perspex.PerspexVS">
+      <package id="Rx-Core" version="2.2.5"/>
+      <package id="Rx-Interfaces" version="2.2.5"/>
+      <package id="Rx-Linq" version="2.2.5"/>
+      <package id="Rx-Main" version="2.2.5"/>
+      <package id="Rx-PlatformServices" version="2.2.5"/>
+      <package id="Rx-XAML" version="2.2.5"/>
+      <package id="Serilog" version="1.5.9"/>
+      <package id="Splat" version="1.6.2"/>
+      <package id="Sprache" version="2.0.0.47"/>
+      <package id="Perspex" version="0.0.2-alpha2-pre"/>
+    </packages>
+  </WizardData>
+</VSTemplate>

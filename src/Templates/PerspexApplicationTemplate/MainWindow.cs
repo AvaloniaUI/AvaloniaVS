@@ -1,8 +1,7 @@
-﻿using System;
-using Perspex.Controls;
-using Perspex.Xaml.Desktop;
+﻿using Perspex.Controls;
+using Perspex.Markup.Xaml;
 
-namespace ApplicationTemplate
+namespace $safeprojectname$
 {
     public class MainWindow : Window
     {
@@ -14,8 +13,7 @@ namespace ApplicationTemplate
 
         private void InitializeComponent()
         {
-            var loader = new PerspexXamlLoader(new PerspexInflatableTypeFactory());
-            loader.Load(this.GetType());
+            PerspexXamlLoader.Load(this);
         }
     }
 }

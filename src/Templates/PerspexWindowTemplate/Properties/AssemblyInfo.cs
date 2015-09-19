@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("PerspexApplication")]
+[assembly: AssemblyTitle("PerspexWindowTemplate")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("PerspexApplication")]
-[assembly: AssemblyCopyright("Copyright ©  2015")]
+[assembly: AssemblyCompany("Nikita Tsukanov")]
+[assembly: AssemblyProduct("PerspexWindowTemplate")]
+[assembly: AssemblyCopyright("Copyright © Nikita Tsukanov 2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("b7f1f127-b07b-457b-8e1c-abdb61111fcb")]
+[assembly: Guid("c8b3ff98-50a3-4c04-8f8c-ed853ec0760c")]
 
 // Version information for an assembly consists of the following four values:
 //

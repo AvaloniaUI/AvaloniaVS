@@ -1,12 +1,11 @@
-﻿using System;
-using Perspex.Controls;
+﻿using Perspex.Controls;
 using Perspex.Markup.Xaml;
 
-namespace PerspexApplication
+namespace $rootnamespace$
 {
-    public class MainWindow : Window
+    public class $safeitemrootname$ : Window
     {
-        public MainWindow()
+        public $safeitemrootname$()
         {
             this.InitializeComponent();
             App.AttachDevTools(this);
