@@ -58,10 +58,6 @@
     <Compile Include="Infrastructure\XmlParser.cs" />
     <Compile Include="IntelliSense\CompletionCommandHandler.cs" />
     <Compile Include="IntelliSense\CompletionSource.cs" />
-    <Content Include="packages\Perspex.0.0.2-alpha2-pre.nupkg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
     <Compile Include="Utils.cs" />
     <Compile Include="Infrastructure\GuidList.cs" />
     <Compile Include="Infrastructure\PerspexBuildEvents.cs" />
@@ -110,6 +106,10 @@
     <Content Include="packages\Sprache.2.0.0.47.nupkg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="packages\Perspex.0.1.0-alpha2.nupkg">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>

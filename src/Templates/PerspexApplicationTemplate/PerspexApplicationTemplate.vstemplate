@@ -36,7 +36,7 @@
       <package id="Serilog" version="1.5.9"/>
       <package id="Splat" version="1.6.2"/>
       <package id="Sprache" version="2.0.0.47"/>
-      <package id="Perspex" version="0.0.2-alpha2-pre"/>
+      <package id="Perspex" version="0.1.0-alpha2"/>
     </packages>
   </WizardData>
 </VSTemplate>
