@@ -5,7 +5,7 @@
     <Description>Perspex Application Template</Description>
     <Icon>PerspexApplicationTemplate.ico</Icon>
     <ProjectType>CSharp</ProjectType>
-    <RequiredFrameworkVersion>4.6</RequiredFrameworkVersion>
+    <RequiredFrameworkVersion>4.5</RequiredFrameworkVersion>
     <SortOrder>1000</SortOrder>
     <TemplateID>191cf8ae-cce5-4162-8932-d4f34eec1938</TemplateID>
     <CreateNewFolder>true</CreateNewFolder>
