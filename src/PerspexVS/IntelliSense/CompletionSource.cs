@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
@@ -41,44 +43,77 @@ namespace PerspexVS.IntelliSense
 
         class MetadataHelper
         {
-            //TODO: detect root namespace
-            //TODO: add support for user's namespaces
+            private Metadata _metadata;
+            public Dictionary<string, string> Aliases { get; private set; }
 
-            private List<string> _rootNamespaces;
-            private Dictionary<string, MetadataType> _rootNsTypes;
-            private PerspexDesignerMetadata _oldMetadata;
-            public void SetMetadata(PerspexDesignerMetadata metadata)
+            Dictionary<string, MetadataType> _types;
+
+            public void SetMetadata(Metadata metadata, string xml)
             {
-                if (_oldMetadata == metadata)
-                    return;
-                _oldMetadata = metadata;
-
+                var aliases = GetNamespaceAliases(xml);
                 
-                var rootNs = Utils.PerspexNamespace;
-                _rootNamespaces =
-                    metadata.NamespaceAliases.Where(n => n.XmlNamespace == rootNs).Select(x => x.Namespace).ToList();
-                _rootNsTypes = metadata.Types.Where(t => _rootNamespaces.Contains(t.Namespace)).ToDictionary(t => t.Name);
+                //Check if metadata and aliases can be reused
+                if (_metadata == metadata && Aliases != null && _types != null)
+                {
+                    if (aliases.Count == Aliases.Count)
+                    {
+                        bool mismatch = false;
+                        foreach (var alias in aliases)
+                        {
+                            if (!Aliases.ContainsKey(alias.Key) || Aliases[alias.Key] != alias.Value)
+                            {
+                                mismatch = true;
+                                break;
+                            }
+                        }
+
+                        if (!mismatch)
+                            return;
+                    }
+                }
+                Aliases = aliases;
+                _metadata = metadata;
+                _types = null;
+                var types = new Dictionary<string, MetadataType>();
+                foreach (var alias in Aliases)
+                {
+                    Dictionary<string, MetadataType> ns;
+                    if (!metadata.Namespaces.TryGetValue(alias.Value, out ns))
+                        continue;
+                    var prefix = alias.Key.Length == 0 ? "" : (alias.Key + ":");
+                    foreach (var type in ns.Values)
+                        types[prefix + type.Name] = type;
+                }
+                _types = types;
+
             }
 
-            public IEnumerable<string> FilterTypeNames(string prefix) =>
-                _rootNsTypes.Values
-                    .Where(t => t.Name.StartsWith(prefix, StringComparison.InvariantCultureIgnoreCase))
-                    .Select(s => s.Name);
 
-            public MetadataType LookupType(string name)
+            public IEnumerable<string> FilterTypeNames(string prefix, bool withAttachedPropertiesOnly = false)
+            {
+                prefix = prefix ?? "";
+                var e = _types
+                    .Where(t => t.Key.StartsWith(prefix, StringComparison.InvariantCultureIgnoreCase));
+                if (withAttachedPropertiesOnly)
+                    e = e.Where(t => t.Value.HasAttachedProperties);
+                return e.Select(s => s.Key);
+            }
+
+            MetadataType LookupType(string name)
             {
                 MetadataType rv;
-                _rootNsTypes.TryGetValue(name, out rv);
+                _types.TryGetValue(name, out rv);
                 return rv;
             }
 
-            public IEnumerable<string> FilterPropertyNames(string typeName, string propName)
+            public IEnumerable<string> FilterPropertyNames(string typeName, string propName, bool attachedOnly = false)
             {
                 var t = LookupType(typeName);
                 propName = propName ?? "";
-                return
-                    t?.Properties.Where(p => p.Name.StartsWith(propName, StringComparison.InvariantCultureIgnoreCase))
-                        .Select(p => p.Name) ?? new string[0];
+                var e = t.Properties.Where(p => p.Name.StartsWith(propName, StringComparison.InvariantCultureIgnoreCase));
+                if (attachedOnly)
+                    e = e.Where(p => p.IsAttached);
+                return e.Select(p => p.Name);
             }
 
             public MetadataProperty LookupProperty(string typeName, string propName) 
@@ -87,11 +122,42 @@ namespace PerspexVS.IntelliSense
 
         MetadataHelper _helper = new MetadataHelper();
 
+        static Dictionary<string, string> GetNamespaceAliases(string xml)
+        {
+            var rv = new Dictionary<string, string>();
+            try
+            {
+                var xmlRdr = XmlReader.Create(new StringReader(xml));
+                while (xmlRdr.NodeType != XmlNodeType.Element)
+                {
+                    xmlRdr.Read();
+                }
+
+                for (var c = 0; c < xmlRdr.AttributeCount; c++)
+                {
+                    xmlRdr.MoveToAttribute(c);
+                    var ns = xmlRdr.Name;
+                    if (ns != "xmlns" && !ns.StartsWith("xmlns:"))
+                        continue;
+                    ns = ns == "xmlns" ? "" : ns.Substring(6);
+                    rv[ns] = xmlRdr.Value;
+                }
+
+                
+            }
+            catch 
+            {
+                //
+            }
+            if (!rv.ContainsKey(""))
+                    rv[""] = Utils.PerspexNamespace;
+            return rv;
+        }
+
         public void AugmentCompletionSession(ICompletionSession session, IList<CompletionSet> completionSets)
         {
-            PerspexDesigner designer;
-            _textBuffer.Properties.TryGetProperty(typeof (PerspexDesigner), out designer);
-            var metadata = designer?.Metadata;
+            Metadata metadata;
+            _textBuffer.Properties.TryGetProperty(typeof (Metadata), out metadata);
             if (metadata == null)
                 return;
 
@@ -99,11 +165,10 @@ namespace PerspexVS.IntelliSense
             var text = pos.Snapshot.GetText(0, pos.Position);
             var state = XmlParser.Parse(text);
             
+
             var completions = new List<Completion>();
-            _helper.SetMetadata(metadata);
-
-
-
+            _helper.SetMetadata(metadata, _textBuffer.CurrentSnapshot.GetText());
+            
             var curStart = state.CurrentValueStart ?? 0;
 
             if (state.State == XmlParser.ParserState.StartElement)
@@ -127,8 +192,22 @@ namespace PerspexVS.IntelliSense
                 if (state.State == XmlParser.ParserState.InsideElement)
                     curStart = pos.Position; //Force completion to be started from current cursor position
 
-                completions.AddRange(_helper.FilterPropertyNames(state.TagName, state.AttributeName)
-                    .Select(x => new Completion(x, x + "=\"\"", x, null, null)));
+                if (state.AttributeName?.Contains(".") == true)
+                {
+                    var dotPos = state.AttributeName.IndexOf('.');
+                    curStart += dotPos + 1;
+                    var split = state.AttributeName.Split(new[] {'.'}, 2);
+                    completions.AddRange(_helper.FilterPropertyNames(split[0], split[1], true)
+                        .Select(x => new Completion(x, x + "=\"\"", x, null, null)));
+                }
+                else
+                {
+                    completions.AddRange(_helper.FilterPropertyNames(state.TagName, state.AttributeName).Select(x => new Completion(x, x + "=\"\"", x, null, null)));
+                    completions.AddRange(
+                        _helper.FilterTypeNames(state.AttributeName, true)
+                            .Select(v => new Completion(v, v + ". ", v, null, null)));
+                }
+
 
                 session.Committed += delegate
                 {
@@ -140,9 +219,36 @@ namespace PerspexVS.IntelliSense
             }
             else if (state.State == XmlParser.ParserState.AttributeValue)
             {
-                var prop = _helper.LookupProperty(state.TagName, state.AttributeName);
+                MetadataProperty prop;
+                if (state.AttributeName.Contains("."))
+                {
+                    //Attached property
+                    var split = state.AttributeName.Split('.');
+                    prop = _helper.LookupProperty(split[0], split[1]);
+                }
+                else
+                    prop = _helper.LookupProperty(state.TagName, state.AttributeName);
+
+
                 if (prop?.Type == MetadataPropertyType.Enum)
                     completions.AddRange(prop.EnumValues.Select(v => new Completion(v)));
+                else if (state.AttributeName == "xmlns" || state.AttributeName.Contains("xmlns:"))
+                {
+                    if (state.AttributeValue.StartsWith("clr-namespace:"))
+                        completions.AddRange(
+                            metadata.Namespaces.Keys.Where(v => v.StartsWith(state.AttributeValue))
+                                .Select(v => new Completion(v)));
+                    else
+                    {
+                        completions.Add(new Completion("clr-namespace:"));
+                        completions.AddRange(
+                            metadata.Namespaces.Keys.Where(
+                                v =>
+                                    v.StartsWith(state.AttributeValue) &&
+                                    !"clr-namespace".StartsWith(state.AttributeValue))
+                                .Select(v => new Completion(v)));
+                    }
+                }
             }
 
             if (completions.Count != 0)

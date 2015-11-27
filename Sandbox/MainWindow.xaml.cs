@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using PerspexVS.IntelliSense;
 
 namespace Sandbox
 {
@@ -22,6 +23,7 @@ namespace Sandbox
     {
         public MainWindow()
         {
+            
             InitializeComponent();
             Xml.SelectionChanged += Xml_SelectionChanged;
             Xml.Text = @"<Root><wa";

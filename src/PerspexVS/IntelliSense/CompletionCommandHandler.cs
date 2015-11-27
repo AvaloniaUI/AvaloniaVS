@@ -93,6 +93,11 @@ namespace PerspexVS.IntelliSense
                 typedChar = (char) (ushort) Marshal.GetObjectForNativeVariant(pvaIn);
             }
 
+            if (typedChar == '.')
+            {
+                Console.WriteLine();
+            }
+
             //check for a commit character 
             if (nCmdID == (uint) VSConstants.VSStd2KCmdID.RETURN
                 || nCmdID == (uint) VSConstants.VSStd2KCmdID.TAB
@@ -104,9 +109,16 @@ namespace PerspexVS.IntelliSense
                     //if the selection is fully selected, commit the current session 
                     if (_session.SelectedCompletionSet.SelectionStatus.IsSelected)
                     {
-                        _session.Commit();
-                        //also, don't add the character to the buffer 
-                        return VSConstants.S_OK;
+                        if (
+                            typedChar != ':' &&
+                            (typedChar != '.' || !_session.SelectedCompletionSet.SelectionStatus.Completion.InsertionText.Contains('.')))
+                        {
+                            _session.Commit();
+                            //also, don't add the character to the buffer 
+                            return VSConstants.S_OK;
+                        }
+                        else nCmdID = (uint) VSConstants.VSStd2KCmdID.COMPLETEWORD;
+
                     }
                     else
                     {
@@ -124,7 +136,10 @@ namespace PerspexVS.IntelliSense
                  (char.IsLetterOrDigit(typedChar) || typedChar == '<' || typedChar == ' ' || typedChar  == '.')))
             {
                 if (typedChar != '\0')
-                    retVal = _realCommandHandler.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
+                {
+                    _textView.TextBuffer.Insert(_textView.Caret.Position.BufferPosition.Position, typedChar.ToString());
+                    //retVal = _realCommandHandler.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
+                }
                 if (_session == null || _session.IsDismissed)
                     // If there is no active session, bring up completion
                 {
@@ -147,6 +162,7 @@ namespace PerspexVS.IntelliSense
                 retVal = _nextCommandHandler.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
                 handled = true;
             }
+            
             else
                 retVal = _nextCommandHandler.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
             if (handled) return VSConstants.S_OK;

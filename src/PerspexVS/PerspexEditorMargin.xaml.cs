@@ -1,9 +1,12 @@
-﻿using System.Windows;
+﻿using System.IO;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using dnlib.DotNet.Writer;
 using Microsoft.VisualStudio.Text.Editor;
 using Perspex.Designer;
 using PerspexVS.Infrastructure;
+using PerspexVS.IntelliSense;
 
 namespace PerspexVS
 {
@@ -11,11 +14,19 @@ namespace PerspexVS
     {
         private readonly IWpfTextView _textView;
         private readonly PerspexDesigner _designer;
+        private string _targetExe;
 
         public PerspexEditorMargin(IWpfTextView textView)
         {
             _textView = textView;
-            _designer = new PerspexDesigner() {TargetExe = textView.GetContainingProject()?.GetAssemblyPath()};
+
+            _targetExe = textView.GetContainingProject()?.GetAssemblyPath();
+            if (_targetExe == null)
+            {
+                Height = 0;
+                return;
+            }
+            _designer = new PerspexDesigner() {TargetExe = _targetExe };
             InitializeComponent();
             DesignerContainer.Content = _designer;
             Height = 200;
@@ -26,7 +37,7 @@ namespace PerspexVS
             {
                 _designer.Xaml = textView.TextBuffer.CurrentSnapshot.GetText();
             };
-            
+            ReloadMetadata();
         }
 
         public PerspexDesigner Designer => _designer;
@@ -34,11 +45,18 @@ namespace PerspexVS
         private void EventsOnBuildEnd()
         {
             _designer?.RestartProcess();
+            ReloadMetadata();
         }
 
         private void EventsOnBuildBegin()
         {
             _designer?.KillProcess();
+        }
+
+        void ReloadMetadata()
+        {
+            if (File.Exists(_targetExe))
+                _textView.TextBuffer.Properties[typeof (Metadata)] = MetadataLoader.LoadMetadata(_targetExe);
         }
 
         public void Dispose()

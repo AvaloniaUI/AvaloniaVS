@@ -73,12 +73,6 @@ namespace PerspexVS
             if (string.IsNullOrWhiteSpace(fileName)) return null;
             var dte2 = (DTE2)Package.GetGlobalService(typeof(SDTE));
             var projItem = dte2?.Solution.FindProjectItem(fileName);
-            if (projItem != null)
-            {
-                var props = projItem.Properties.OfType<Property>().ToList();
-                var names = props.Select(p => p.Name).ToList();
-                Console.WriteLine();
-            }
             return projItem?.ContainingProject;
         }
 
@@ -89,12 +83,39 @@ namespace PerspexVS
         /// <returns>Target Exe path</returns>
         public static string GetAssemblyPath(this Project vsProject)
         {
-            string fullPath = vsProject.Properties.Item("FullPath").Value.ToString();
-            string outputPath = vsProject.ConfigurationManager.ActiveConfiguration.Properties.Item("OutputPath").Value.ToString();
+            string fullPath = vsProject?.Properties?.Item("FullPath")?.Value?.ToString();
+            string outputPath = vsProject?.ConfigurationManager?.ActiveConfiguration?.Properties?.Item("OutputPath")?.Value?.ToString();
+            if (fullPath == null || outputPath == null)
+                return null;
             string outputDir = Path.Combine(fullPath, outputPath);
             string outputFileName = vsProject.Properties.Item("OutputFileName").Value.ToString();
             string assemblyPath = Path.Combine(outputDir, outputFileName);
             return assemblyPath;
+        }
+
+        public static TValue GetOrCreate<TKey, TValue>(this Dictionary<TKey, TValue> dic, TKey key,
+            Func<TKey, TValue> getter)
+        {
+            TValue rv;
+            if (!dic.TryGetValue(key, out rv))
+                dic[key] = rv = getter(key);
+            return rv;
+        }
+
+        public static TValue GetOrCreate<TKey, TValue>(this Dictionary<TKey, TValue> dic, TKey key) where TValue :new()
+        {
+            TValue rv;
+            if (!dic.TryGetValue(key, out rv))
+                dic[key] = rv = new TValue();
+            return rv;
+        }
+
+        public static TValue GetValueOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dic, TKey key) 
+        {
+            TValue rv;
+            if (!dic.TryGetValue(key, out rv))
+                return default(TValue);
+            return rv;
         }
     }
 }
