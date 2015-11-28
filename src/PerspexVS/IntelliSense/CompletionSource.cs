@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using Perspex.Designer;
 using Perspex.Designer.Metadata;
+using PerspexVS.Infrastructure;
 using Sandbox;
 
 namespace PerspexVS.IntelliSense
@@ -89,17 +90,19 @@ namespace PerspexVS.IntelliSense
             }
 
 
-            public IEnumerable<string> FilterTypeNames(string prefix, bool withAttachedPropertiesOnly = false)
+            public IEnumerable<string> FilterTypeNames(string prefix, bool withAttachedPropertiesOnly = false, bool markupExtensionsOnly = false)
             {
                 prefix = prefix ?? "";
                 var e = _types
                     .Where(t => t.Key.StartsWith(prefix, StringComparison.InvariantCultureIgnoreCase));
                 if (withAttachedPropertiesOnly)
                     e = e.Where(t => t.Value.HasAttachedProperties);
+                if (markupExtensionsOnly)
+                    e = e.Where(t => t.Value.IsMarkupExtension);
                 return e.Select(s => s.Key);
             }
 
-            MetadataType LookupType(string name)
+            public MetadataType LookupType(string name)
             {
                 MetadataType rv;
                 _types.TryGetValue(name, out rv);
@@ -110,6 +113,8 @@ namespace PerspexVS.IntelliSense
             {
                 var t = LookupType(typeName);
                 propName = propName ?? "";
+                if(t == null)
+                    return new string[0];
                 var e = t.Properties.Where(p => p.Name.StartsWith(propName, StringComparison.InvariantCultureIgnoreCase));
                 if (attachedOnly)
                     e = e.Where(p => p.IsAttached);
@@ -229,24 +234,33 @@ namespace PerspexVS.IntelliSense
                 else
                     prop = _helper.LookupProperty(state.TagName, state.AttributeName);
 
-
-                if (prop?.Type == MetadataPropertyType.Enum)
-                    completions.AddRange(prop.EnumValues.Select(v => new Completion(v)));
-                else if (state.AttributeName == "xmlns" || state.AttributeName.Contains("xmlns:"))
+                //Markup extension, ignore everything else
+                if (state.AttributeValue.StartsWith("{"))
                 {
-                    if (state.AttributeValue.StartsWith("clr-namespace:"))
-                        completions.AddRange(
-                            metadata.Namespaces.Keys.Where(v => v.StartsWith(state.AttributeValue))
-                                .Select(v => new Completion(v)));
-                    else
+                    curStart = state.CurrentValueStart.Value +
+                               BuildCompletionsForMarkupExtension(completions,
+                                   text.Substring(state.CurrentValueStart.Value));
+                }
+                else
+                {
+                    if (prop?.Type == MetadataPropertyType.Enum)
+                        completions.AddRange(prop.EnumValues.Select(v => new Completion(v)));
+                    else if (state.AttributeName == "xmlns" || state.AttributeName.Contains("xmlns:"))
                     {
-                        completions.Add(new Completion("clr-namespace:"));
-                        completions.AddRange(
-                            metadata.Namespaces.Keys.Where(
-                                v =>
-                                    v.StartsWith(state.AttributeValue) &&
-                                    !"clr-namespace".StartsWith(state.AttributeValue))
-                                .Select(v => new Completion(v)));
+                        if (state.AttributeValue.StartsWith("clr-namespace:"))
+                            completions.AddRange(
+                                metadata.Namespaces.Keys.Where(v => v.StartsWith(state.AttributeValue))
+                                    .Select(v => new Completion(v)));
+                        else
+                        {
+                            completions.Add(new Completion("clr-namespace:"));
+                            completions.AddRange(
+                                metadata.Namespaces.Keys.Where(
+                                    v =>
+                                        v.StartsWith(state.AttributeValue) &&
+                                        !"clr-namespace".StartsWith(state.AttributeValue))
+                                    .Select(v => new Completion(v)));
+                        }
                     }
                 }
             }
@@ -257,6 +271,39 @@ namespace PerspexVS.IntelliSense
                 completionSets.Insert(0, new CompletionSet("Perspex", "Perspex",
                     pos.Snapshot.CreateTrackingSpan(span, SpanTrackingMode.EdgeInclusive), completions, null));
             }
+        }
+
+
+
+        int BuildCompletionsForMarkupExtension(List<Completion> completions, string data)
+        {
+            int? forcedStart = null;
+            var ext = MarkupExtensionParser.Parse(data);
+
+            var transformedName = (ext.ElementName ?? "").Trim();
+            if (_helper.LookupType(transformedName)?.IsMarkupExtension != true)
+                transformedName += "Extension";
+
+            if (ext.State == MarkupExtensionParser.ParserStateType.StartElement)
+                completions.AddRange(_helper.FilterTypeNames(ext.ElementName, markupExtensionsOnly: true)
+                    .Select(t => t.EndsWith("Extension") ? t.Substring(0, t.Length - "Extension".Length) : t)
+                    .Select(t => new Completion(t)));
+            if (ext.State == MarkupExtensionParser.ParserStateType.StartAttribute ||
+                ext.State == MarkupExtensionParser.ParserStateType.InsideElement)
+            {
+                if (ext.State == MarkupExtensionParser.ParserStateType.InsideElement)
+                    forcedStart = data.Length;
+                completions.AddRange(_helper.FilterPropertyNames(transformedName, ext.AttributeName ?? "")
+                    .Select(x => new Completion(x, x + "=", x, null, null)));
+            }
+            if (ext.State == MarkupExtensionParser.ParserStateType.AttributeValue)
+            {
+                var prop = _helper.LookupProperty(transformedName, ext.AttributeName);
+                if (prop?.Type == MetadataPropertyType.Enum)
+                    completions.AddRange(prop.EnumValues.Select(v => new Completion(v)));
+            }
+
+            return forcedStart ?? ext.CurrentValueStart;
         }
     }
 

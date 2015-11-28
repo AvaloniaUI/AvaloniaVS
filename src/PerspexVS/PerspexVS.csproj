@@ -55,6 +55,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Infrastructure\DesignerKiller.cs" />
+    <Compile Include="Infrastructure\MarkupExtensionParser.cs" />
     <Compile Include="Infrastructure\XmlParser.cs" />
     <Compile Include="IntelliSense\CompletionCommandHandler.cs" />
     <Compile Include="IntelliSense\CompletionSource.cs" />

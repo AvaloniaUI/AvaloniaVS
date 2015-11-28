@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using PerspexVS.Infrastructure;
 using PerspexVS.IntelliSense;
 
 namespace Sandbox
@@ -35,7 +36,7 @@ namespace Sandbox
 
             try
             {
-                Results.Text = XmlParser.Parse(Xml.Text.Substring(0, Xml.SelectionStart)).ToString();
+                Results.Text = MarkupExtensionParser.Parse(Xml.Text.Substring(0, Xml.SelectionStart)).ToString();
             }
             catch (Exception e)
             {
