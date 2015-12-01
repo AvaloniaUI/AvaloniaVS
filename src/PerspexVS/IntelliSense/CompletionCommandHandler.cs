@@ -133,11 +133,11 @@ namespace PerspexVS.IntelliSense
             bool handled = false;
             if (nCmdID == (uint) VSConstants.VSStd2KCmdID.COMPLETEWORD ||
                 (!typedChar.Equals(char.MinValue) &&
-                 (char.IsLetterOrDigit(typedChar) || typedChar == '<' || typedChar == ' ' || typedChar  == '.')))
+                 (char.IsLetterOrDigit(typedChar) || typedChar == '<' || typedChar == ' ' || typedChar  == '.' || typedChar == ':')))
             {
                 if (typedChar != '\0')
                 {
-                    if (typedChar == '.' || typedChar == ':')
+                    if (typedChar == '.' || typedChar == ':' || typedChar == '<')
                     {
                         if (!_textView.Selection.IsEmpty)
                         {
