@@ -3,6 +3,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using dnlib.DotNet.Writer;
+using EnvDTE;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Editor;
 using Perspex.Designer;
 using PerspexVS.Infrastructure;
@@ -31,8 +33,8 @@ namespace PerspexVS
             DesignerContainer.Content = _designer;
             Height = 200;
             _designer.Xaml = textView.TextBuffer.CurrentSnapshot.GetText();
-            PerspexBuildEvents.Instance.BuildBegin += EventsOnBuildBegin;
-            PerspexBuildEvents.Instance.BuildEnd += EventsOnBuildEnd;
+            PerspexBuildEvents.Instance.BuildEnd += Restart;
+            PerspexBuildEvents.Instance.ModeChanged += OnModeChanged;
             textView.TextBuffer.PostChanged += delegate
             {
                 _designer.Xaml = textView.TextBuffer.CurrentSnapshot.GetText();
@@ -40,12 +42,33 @@ namespace PerspexVS
             ReloadMetadata();
         }
 
+        private void OnModeChanged()
+        {
+            var dte = (DTE)Package.GetGlobalService(typeof(DTE));
+            if(dte.Mode==vsIDEMode.vsIDEModeDesign)
+                Restart();
+        }
+
         public PerspexDesigner Designer => _designer;
 
-        private void EventsOnBuildEnd()
+        private void Restart()
         {
-            _designer?.RestartProcess();
-            ReloadMetadata();
+            try
+            {
+                _designer?.RestartProcess();
+            }
+            catch
+            {
+                //TODO: Log
+            }
+            try
+            {
+                ReloadMetadata();
+            }
+            catch
+            { 
+                //TODO: Log
+            }
         }
 
         private void EventsOnBuildBegin()
@@ -62,7 +85,7 @@ namespace PerspexVS
         public void Dispose()
         {
             PerspexBuildEvents.Instance.BuildBegin -= EventsOnBuildBegin;
-            PerspexBuildEvents.Instance.BuildEnd -= EventsOnBuildEnd;
+            PerspexBuildEvents.Instance.BuildEnd -= Restart;
             _designer.KillProcess();
         }
 
