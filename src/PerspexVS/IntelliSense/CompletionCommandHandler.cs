@@ -155,7 +155,7 @@ namespace PerspexVS.IntelliSense
                 {
 
                     TriggerCompletion();
-                    if (typedChar != '<' && _session != null)
+                     if (typedChar != '<' && typedChar != 0 && _session != null)
                         _session.Filter();
                 }
                 else
