@@ -137,8 +137,18 @@ namespace PerspexVS.IntelliSense
             {
                 if (typedChar != '\0')
                 {
-                    _textView.TextBuffer.Insert(_textView.Caret.Position.BufferPosition.Position, typedChar.ToString());
-                    //retVal = _realCommandHandler.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
+                    if (typedChar == '.' || typedChar == ':')
+                    {
+                        if (!_textView.Selection.IsEmpty)
+                        {
+                            foreach (var span in _textView.Selection.SelectedSpans.OrderByDescending(x => x.Start))
+                                _textView.TextBuffer.Replace(span, "");
+                        }
+                        _textView.TextBuffer.Insert(_textView.Caret.Position.BufferPosition.Position,
+                            typedChar.ToString());
+                    }
+                    else
+                        retVal = _realCommandHandler.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
                 }
                 if (_session == null || _session.IsDismissed)
                     // If there is no active session, bring up completion
