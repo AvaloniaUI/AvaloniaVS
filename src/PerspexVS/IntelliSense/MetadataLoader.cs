@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using dnlib.DotNet;
@@ -142,10 +143,17 @@ namespace PerspexVS.IntelliSense
             foreach (var asm in Directory.GetFiles(directory, "*.*")
                 .Where(f=>Path.GetExtension(f.ToLower()) == ".exe" || Path.GetExtension(f.ToLower())==".dll"))
             {
-                var def = AssemblyDef.Load(asm);
-                def.Modules[0].Context = modCtx;
-                asmResolver.AddToCache(def);
-                assemblies.Add(def);
+                try
+                {
+                    var def = AssemblyDef.Load(asm);
+                    def.Modules[0].Context = modCtx;
+                    asmResolver.AddToCache(def);
+                    assemblies.Add(def);
+                }
+                catch
+                {
+                    //Ignore
+                }
             }
 
             return assemblies;
