@@ -7,6 +7,7 @@ namespace PerspexVS.Infrastructure
     internal sealed class PerspexBuildEvents
     {
         private DTEEvents _dteEvents;
+        private BuildEvents _buildEvents;
 
         public static PerspexBuildEvents Instance { get; } = new PerspexBuildEvents();
         /// <summary>
@@ -24,8 +25,9 @@ namespace PerspexVS.Infrastructure
         private PerspexBuildEvents()
         {
             var dte = (DTE) Package.GetGlobalService(typeof (DTE));
-            dte.Events.BuildEvents.OnBuildBegin += PdbeBuildBegin;
-            dte.Events.BuildEvents.OnBuildDone += NotifyBuildEnd;
+            _buildEvents = dte.Events.BuildEvents;
+            _buildEvents.OnBuildBegin += PdbeBuildBegin;
+            _buildEvents.OnBuildDone += NotifyBuildEnd;
             _dteEvents = dte.Events.DTEEvents;
             _dteEvents.ModeChanged += NotifyModeChanged;
         }
