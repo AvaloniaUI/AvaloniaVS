@@ -243,7 +243,7 @@ namespace PerspexVS.IntelliSense
                 }
                 else
                 {
-                    if (prop?.Type == MetadataPropertyType.Enum)
+                    if (prop?.Type == MetadataPropertyType.Enum && prop.EnumValues != null)
                         completions.AddRange(prop.EnumValues.Select(v => new Completion(v)));
                     else if (state.AttributeName == "xmlns" || state.AttributeName.Contains("xmlns:"))
                     {
@@ -299,7 +299,7 @@ namespace PerspexVS.IntelliSense
             if (ext.State == MarkupExtensionParser.ParserStateType.AttributeValue)
             {
                 var prop = _helper.LookupProperty(transformedName, ext.AttributeName);
-                if (prop?.Type == MetadataPropertyType.Enum)
+                if (prop?.Type == MetadataPropertyType.Enum && prop.EnumValues != null)
                     completions.AddRange(prop.EnumValues.Select(v => new Completion(v)));
             }
 
