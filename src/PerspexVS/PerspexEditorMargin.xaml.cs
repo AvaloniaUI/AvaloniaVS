@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -52,11 +53,20 @@ namespace PerspexVS
 
         public PerspexDesigner Designer => _designer;
 
-        private void Restart()
+        private long _lastRestartToken;
+        private async void Restart()
         {
+            long token = ++_lastRestartToken;
+            Console.WriteLine("Designer restart requested, waiting");
+            await System.Threading.Tasks.Task.Delay(1000);
+            if (token != _lastRestartToken)
+                return;
+            var dte = (DTE)Package.GetGlobalService(typeof(DTE));
+            if (dte.Mode != vsIDEMode.vsIDEModeDesign)
+                return;
             try
             {
-                Debug.WriteLine("Restarting designer");
+                Console.WriteLine("Restarting designer");
                 _designer?.RestartProcess();
             }
             catch

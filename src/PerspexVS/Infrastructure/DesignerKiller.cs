@@ -13,6 +13,7 @@ namespace PerspexVS.Infrastructure
 
         public static void KillAllDesigners()
         {
+            Console.WriteLine("KillAllDesigners");
             var pid = Process.GetCurrentProcess().Id;
             try
             {
@@ -33,7 +34,7 @@ namespace PerspexVS.Infrastructure
                                 Process childProcess = Process.GetProcessById((int) childProcessId);
                                 if (childProcess.ProcessName.Contains("Perspex.Designer"))
                                 {
-                                    Debug.WriteLine("Killing " + childProcess.ProcessName);
+                                    Console.WriteLine("Killing " + childProcess.ProcessName);
                                     childProcess.Kill();
                                 }
                                 childProcess.Dispose();

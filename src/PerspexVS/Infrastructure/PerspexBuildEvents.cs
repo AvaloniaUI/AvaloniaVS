@@ -1,6 +1,9 @@
 ﻿using System;
+using System.IO;
+using System.Runtime.InteropServices;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.Win32;
 
 namespace PerspexVS.Infrastructure
 {
@@ -22,8 +25,11 @@ namespace PerspexVS.Infrastructure
 
         public event Action ModeChanged;
 
+
         private PerspexBuildEvents()
         {
+            if(Registry.GetValue(@"HKEY_CURRENT_USER\Software\PerspexUI\Designer", "AllocConsole", 0).Equals(1))
+                CreateConsole();
             var dte = (DTE) Package.GetGlobalService(typeof (DTE));
             _buildEvents = dte.Events.BuildEvents;
             _buildEvents.OnBuildBegin += PdbeBuildBegin;
@@ -32,8 +38,27 @@ namespace PerspexVS.Infrastructure
             _dteEvents.ModeChanged += NotifyModeChanged;
         }
 
+        public static void CreateConsole()
+        {
+            AllocConsole();
+            // reopen stdout
+            TextWriter writer = new StreamWriter(Console.OpenStandardOutput())
+            { AutoFlush = true };
+            Console.SetOut(writer);
+        }
+
+        // P/Invoke required:
+        private const UInt32 StdOutputHandle = 0xFFFFFFF5;
+        [DllImport("kernel32.dll")]
+        private static extern IntPtr GetStdHandle(UInt32 nStdHandle);
+        [DllImport("kernel32.dll")]
+        private static extern void SetStdHandle(UInt32 nStdHandle, IntPtr handle);
+        [DllImport("kernel32")]
+        static extern bool AllocConsole();
+
         private void NotifyModeChanged(vsIDEMode lastmode)
         {
+            Console.WriteLine("Mode: " + ((DTE) Package.GetGlobalService(typeof (DTE))).Mode);
             DesignerKiller.KillAllDesigners();
             ModeChanged?.Invoke();
         }
@@ -45,6 +70,7 @@ namespace PerspexVS.Infrastructure
         /// <param name="action"></param>
         private void NotifyBuildEnd(vsBuildScope scope, vsBuildAction action)
         {
+            Console.WriteLine("BuildEnd: " + scope + "/" + action);
             if (action < vsBuildAction.vsBuildActionBuild || action > vsBuildAction.vsBuildActionRebuildAll)
             {
                 //Not an actual build event, we are here if user hits Start and there is nothing to build
