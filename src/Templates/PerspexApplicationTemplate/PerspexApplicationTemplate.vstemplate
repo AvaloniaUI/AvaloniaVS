@@ -36,7 +36,11 @@
       <package id="Serilog" version="1.5.9"/>
       <package id="Splat" version="1.6.2"/>
       <package id="Sprache" version="2.0.0.47"/>
-      <package id="Perspex" version="0.1.0-alpha2"/>
+      <package id="Perspex" version="0.2.0-alpha3"/>
+      <package id="Perspex.Desktop" version="0.2.0-alpha3"/>
+      <package id="SharpDX" version="2.6.3"/>
+      <package id="SharpDX.Direct2D1" version="2.6.3"/>
+      <package id="SharpDX.DXGI" version="2.6.3"/>
     </packages>
   </WizardData>
 </VSTemplate>
