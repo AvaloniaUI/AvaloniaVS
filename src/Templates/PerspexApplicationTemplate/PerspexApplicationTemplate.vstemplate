@@ -15,8 +15,8 @@
   <TemplateContent>
     <Project File="ProjectTemplate.csproj" ReplaceParameters="true">
       <ProjectItem ReplaceParameters="true" TargetFileName="Properties\AssemblyInfo.cs">AssemblyInfo.cs</ProjectItem>
-      <ProjectItem ReplaceParameters="true" TargetFileName="App.cs">App.cs</ProjectItem>
-      <ProjectItem ReplaceParameters="true" TargetFileName="Program.cs">Program.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="App.paml">App.paml</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="App.paml.cs" >App.paml.cs</ProjectItem>
       <ProjectItem ReplaceParameters="true" OpenInEditor="true" TargetFileName="MainWindow.paml">MainWindow.paml</ProjectItem>
       <ProjectItem ReplaceParameters="true" TargetFileName="MainWindow.paml.cs" >MainWindow.cs</ProjectItem>
     </Project>

@@ -73,9 +73,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.cs" />
+    <None Include="App.paml.cs" />
+    <None Include="App.paml" />
     <None Include="MainWindow.cs" />
-    <None Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

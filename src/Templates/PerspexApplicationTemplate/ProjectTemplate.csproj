@@ -44,8 +44,10 @@
 		<Reference Include="System.Xml"/>
 	</ItemGroup>
 	<ItemGroup>
-    <Compile Include="App.cs"/>
-    <Compile Include="Program.cs"/>
+    <EmbeddedResource Include="App.paml" />
+    <Compile Include="App.paml.cs">
+      <DependentUpon>App.paml</DependentUpon>
+    </Compile>
     <EmbeddedResource Include="MainWindow.paml" />
     <Compile Include="MainWindow.paml.cs">
       <DependentUpon>MainWindow.paml</DependentUpon>
