@@ -28,7 +28,7 @@ namespace PerspexVS.Infrastructure
 
         private PerspexBuildEvents()
         {
-            if(Registry.GetValue(@"HKEY_CURRENT_USER\Software\PerspexUI\Designer", "AllocConsole", 0).Equals(1))
+            if (Equals(Registry.GetValue(@"HKEY_CURRENT_USER\Software\PerspexUI\Designer", "AllocConsole", 0), 1))
                 CreateConsole();
             var dte = (DTE) Package.GetGlobalService(typeof (DTE));
             _buildEvents = dte.Events.BuildEvents;
