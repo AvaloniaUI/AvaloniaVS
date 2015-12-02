@@ -32,7 +32,11 @@ namespace PerspexVS.Infrastructure
                             {
                                 Process childProcess = Process.GetProcessById((int) childProcessId);
                                 if (childProcess.ProcessName.Contains("Perspex.Designer"))
+                                {
+                                    Debug.WriteLine("Killing " + childProcess.ProcessName);
                                     childProcess.Kill();
+                                }
+                                childProcess.Dispose();
                             }
                             catch
                             {
