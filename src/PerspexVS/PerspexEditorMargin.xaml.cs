@@ -41,6 +41,12 @@ namespace PerspexVS
             {
                 _designer.Xaml = textView.TextBuffer.CurrentSnapshot.GetText();
             };
+            textView.Closed += delegate
+            {
+                PerspexBuildEvents.Instance.BuildEnd -= Restart;
+                PerspexBuildEvents.Instance.ModeChanged -= OnModeChanged;
+                _designer.KillProcess();
+            };
             ReloadMetadata();
         }
 
