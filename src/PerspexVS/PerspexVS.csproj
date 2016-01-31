@@ -55,7 +55,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Infrastructure\DesignerKiller.cs" />
+    <Compile Include="Infrastructure\PamlDocumentPane.IVsFindTarget.cs">
+      <DependentUpon>PamlDocumentPane.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Internals\Guids.cs" />
     <Compile Include="Infrastructure\MarkupExtensionParser.cs" />
+    <Compile Include="Infrastructure\PamlDocumentPane.cs" />
+    <Compile Include="Infrastructure\PamlEditorFactory.cs" />
     <Compile Include="Infrastructure\XmlParser.cs" />
     <Compile Include="IntelliSense\CompletionCommandHandler.cs" />
     <Compile Include="IntelliSense\CompletionSource.cs" />
@@ -64,14 +70,16 @@
     <Compile Include="Infrastructure\GuidList.cs" />
     <Compile Include="Infrastructure\PerspexBuildEvents.cs" />
     <Compile Include="Infrastructure\PerspexPackage.cs" />
-    <Compile Include="Infrastructure\PerspexEditorMarginFactory.cs" />
-    <Compile Include="PerspexEditorMargin.xaml.cs">
-      <DependentUpon>PerspexEditorMargin.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Views\PamlDesignerHostView.xaml.cs">
+      <DependentUpon>PamlDesignerHostView.xaml</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Infrastructure\Key.snk" />
+    <Compile Include="Infrastructure\PamlDocumentPane.IOleCommandTarget.cs">
+      <DependentUpon>PamlDocumentPane.cs</DependentUpon>
+    </Compile>
     <None Include="packages.config" />
     <Content Include="packages\Rx-Core.2.2.5.nupkg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -153,6 +161,11 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.VisualStudio.CommandBars, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.ComponentModelHost, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\VSSDK.ComponentModelHost.12.0.4\lib\net45\Microsoft.VisualStudio.ComponentModelHost.dll</HintPath>
+      <Private>True</Private>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Microsoft.VisualStudio.CoreUtility.14.1.24720\lib\net45\Microsoft.VisualStudio.CoreUtility.dll</HintPath>
@@ -283,6 +296,9 @@
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="PamlDesignerTheme.pkgdef">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="Resources\PerspexPackage.ico" />
   </ItemGroup>
   <ItemGroup>
@@ -293,12 +309,18 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Page Include="PerspexEditorMargin.xaml">
+    <Page Include="Views\PamlDesignerHostView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\PerspexVS.Controls\PerspexVS.Controls.csproj">
+      <Project>{bddc602f-89c4-439c-b728-582700b689b4}</Project>
+      <Name>PerspexVS.Controls</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
+    </ProjectReference>
     <ProjectReference Include="..\Templates\PerspexApplicationTemplate\PerspexApplicationTemplate.csproj">
       <Project>{75104AA0-3B1B-47D4-9C4D-501A8185ACFC}</Project>
       <Name>PerspexApplicationTemplate</Name>
@@ -314,6 +336,7 @@
       <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
   <Import Project="$(TemplateBuilderTargets)" Condition="Exists('$(TemplateBuilderTargets)')" Label="TemplateBuilder" />
