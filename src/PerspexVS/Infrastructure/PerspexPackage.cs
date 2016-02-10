@@ -27,7 +27,16 @@ namespace PerspexVS.Infrastructure
         DesignerLogicalViewEditor = typeof(PamlEditorFactory),
         Namespace = "https://github.com/grokys/perspex",
         MatchExtensionAndNamespace = true)]
-    [ProvideEditorExtension(typeof(PamlEditorFactory), PamlEditorFactory.Extension, 0x40)]
+
+    [ProvideEditorFactory(typeof(PamlEditorFactory),
+        113,
+        TrustLevel = __VSEDITORTRUSTLEVEL.ETL_AlwaysTrusted)]
+
+
+    [ProvideEditorExtension(typeof(PamlEditorFactory),
+        PamlEditorFactory.Extension,
+        100,
+        NameResourceID = 113)]
     [ProvideEditorLogicalView(typeof(PamlEditorFactory), LogicalViewID.Designer)]
 
     // we let the shell know that the package exposes some menus
