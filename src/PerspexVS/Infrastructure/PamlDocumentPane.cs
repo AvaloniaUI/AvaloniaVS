@@ -171,7 +171,7 @@ namespace PerspexVS.Infrastructure
             {
                 PerspexBuildEvents.Instance.BuildBegin -= EventsOnBuildBegin;
                 PerspexBuildEvents.Instance.BuildEnd -= Restart;
-                _designer.KillProcess();
+                _designer?.KillProcess();
             }
         }
     }
