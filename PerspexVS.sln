@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerspexVS", "src\PerspexVS\PerspexVS.csproj", "{378D99A6-57BF-432D-A5A2-82CC4153736A}"
 EndProject
@@ -12,6 +12,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerspexApplicationTemplate", "src\Templates\PerspexApplicationTemplate\PerspexApplicationTemplate.csproj", "{75104AA0-3B1B-47D4-9C4D-501A8185ACFC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerspexWindowTemplate", "src\Templates\PerspexWindowTemplate\PerspexWindowTemplate.csproj", "{C8B3FF98-50A3-4C04-8F8C-ED853EC0760C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerspexVS.Controls", "src\PerspexVS.Controls\PerspexVS.Controls.csproj", "{BDDC602F-89C4-439C-B728-582700B689B4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,6 +37,10 @@ Global
 		{C8B3FF98-50A3-4C04-8F8C-ED853EC0760C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C8B3FF98-50A3-4C04-8F8C-ED853EC0760C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C8B3FF98-50A3-4C04-8F8C-ED853EC0760C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BDDC602F-89C4-439C-B728-582700B689B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BDDC602F-89C4-439C-B728-582700B689B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BDDC602F-89C4-439C-B728-582700B689B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BDDC602F-89C4-439C-B728-582700B689B4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
