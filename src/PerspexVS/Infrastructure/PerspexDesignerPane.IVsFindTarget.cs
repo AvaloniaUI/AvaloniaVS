@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace PerspexVS.Infrastructure
 {
-    public partial class PamlDocumentPane : IVsFindTarget, IVsFindTarget2
+    public partial class PerspexDesignerPane : IVsFindTarget, IVsFindTarget2
     {
         public int GetCapabilities(bool[] pfImage, uint[] pgrfOptions)
         {

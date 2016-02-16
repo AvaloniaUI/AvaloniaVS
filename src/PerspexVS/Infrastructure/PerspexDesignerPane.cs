@@ -17,12 +17,12 @@ using HorizontalAlignment = System.Windows.HorizontalAlignment;
 namespace PerspexVS.Infrastructure
 {
     [ComVisible(true), Guid("75b0ba12-1e01-4f80-a035-32239896bcab")]
-    public partial class PamlDocumentPane : ToolWindowPane
+    public partial class PerspexDesignerPane : ToolWindowPane
     {
         private const int WM_KEYFIRST = 0x0100;
         private const int WM_KEYLAST = 0x0109;
 
-        private PamlDesignerHostView _designerHost;
+        private PerspexDesignerHostView _designerHost;
         private readonly IWpfTextViewHost _wpfTextViewHost;
         private readonly IVsTextLines _textBuffer;
         private readonly IVsTextView _textView;
@@ -32,7 +32,7 @@ namespace PerspexVS.Infrastructure
         private string _targetExe;
         private long _lastRestartToken;
 
-        public PamlDocumentPane(IWpfTextViewHost wpfTextViewHost, IVsTextLines textBuffer, IVsTextView textView, string fileName)
+        public PerspexDesignerPane(IWpfTextViewHost wpfTextViewHost, IVsTextLines textBuffer, IVsTextView textView, string fileName)
         {
             _wpfTextViewHost = wpfTextViewHost;
             _textBuffer = textBuffer;
@@ -50,7 +50,7 @@ namespace PerspexVS.Infrastructure
         private void InitializeDesigner()
         {
             // initialize the designer host view.
-            _designerHost = new PamlDesignerHostView
+            _designerHost = new PerspexDesignerHostView
             {
                 EditView =
                 {

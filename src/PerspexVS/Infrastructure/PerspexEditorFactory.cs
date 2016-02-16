@@ -13,16 +13,14 @@ using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 
 namespace PerspexVS.Infrastructure
 {
-    [Guid(Guids.PamlDesignerEditorFactoryString)]
-    public class PamlEditorFactory : IVsEditorFactory, IDisposable
+    [Guid(Guids.PerspexEditorFactoryString)]
+    public class PerspexEditorFactory : IVsEditorFactory, IDisposable
     {
-        public const string Extension = ".paml";
-
         private readonly PerspexPackage _package;
         private ServiceProvider _serviceProvider;
         private IOleServiceProvider _oleServiceProvider;
 
-        public PamlEditorFactory(PerspexPackage package)
+        public PerspexEditorFactory(PerspexPackage package)
         {
             _package = package;
         }
@@ -46,7 +44,7 @@ namespace PerspexVS.Infrastructure
         {
             ppunkDocView = IntPtr.Zero;
             ppunkDocData = IntPtr.Zero;
-            pguidCmdUI = Guids.PamlDesignerEditorFactoryGuid;
+            pguidCmdUI = Guids.PerspexEditorFactoryGuid;
             pgrfCDW = 0;
             pbstrEditorCaption = null;
 
@@ -129,7 +127,7 @@ namespace PerspexVS.Infrastructure
             //Get our WPF host from our text view (from our code window).
             var textViewHost = editorAdapterFactoryService.GetWpfTextViewHost(textView);
 
-            var editorPane = new PamlDocumentPane(textViewHost, documentBuffer, textView, pszMkDocument);
+            var editorPane = new PerspexDesignerPane(textViewHost, documentBuffer, textView, pszMkDocument);
             ppunkDocView = Marshal.GetIUnknownForObject(editorPane);
             ppunkDocData = Marshal.GetIUnknownForObject(documentBuffer);
             pbstrEditorCaption = "";
