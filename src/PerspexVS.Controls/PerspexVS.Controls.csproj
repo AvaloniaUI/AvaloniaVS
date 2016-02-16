@@ -67,7 +67,7 @@
     <Compile Include="FocusableContentPresenter.cs" />
     <Compile Include="Internals\DoubleUtilties.cs" />
     <Compile Include="Internals\LineEquation.cs" />
-    <Compile Include="Internals\PamlDesignerBrushes.cs" />
+    <Compile Include="Internals\PerspexDesignerBrushes.cs" />
     <Compile Include="Primitives\TabItemDock.cs" />
     <Compile Include="SplitterCommands.cs" />
     <Compile Include="SplitterContainer.cs" />

@@ -18,20 +18,21 @@ namespace PerspexVS.Infrastructure
     [PackageRegistration(UseManagedResourcesOnly = true)]
     [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)] // Info on this package for Help/About
 
-    [ProvideEditorFactory(typeof(PamlEditorFactory),
+    [ProvideXmlEditorChooserDesignerView("Perspex",
+        "xaml",
+        LogicalViewID.Designer,
+        1000,
+        Namespace = "https://github.com/perspex",
+        MatchExtensionAndNamespace = true,
+        CodeLogicalViewEditor = typeof(PerspexEditorFactory),
+        DesignerLogicalViewEditor = typeof(PerspexEditorFactory),
+        DebuggingLogicalViewEditor = typeof(PerspexEditorFactory),
+        TextLogicalViewEditor = typeof(PerspexEditorFactory))]
+
+
+    [ProvideEditorFactory(typeof(PerspexEditorFactory),
         113,
         TrustLevel = __VSEDITORTRUSTLEVEL.ETL_AlwaysTrusted)]
-
-    [ProvideEditorExtension(typeof(PamlEditorFactory),
-        PamlEditorFactory.Extension,
-        100,
-        NameResourceID = 113)]
-
-    [ProvideEditorLogicalView(typeof(PamlEditorFactory), LogicalViewID.Designer)]
-    [ProvideEditorLogicalView(typeof(PamlEditorFactory), LogicalViewID.TextView)]
-    [ProvideEditorLogicalView(typeof(PamlEditorFactory), LogicalViewID.Primary)]
-    [ProvideEditorLogicalView(typeof(PamlEditorFactory), LogicalViewID.Code)]
-    [ProvideEditorLogicalView(typeof(PamlEditorFactory), LogicalViewID.Debugging)]
 
     // we let the shell know that the package exposes some menus
     [ProvideMenuResource("Menus.ctmenu", 1)]
@@ -48,7 +49,7 @@ namespace PerspexVS.Infrastructure
         protected override void Initialize()
         {
             base.Initialize();
-            base.RegisterEditorFactory(new PamlEditorFactory(this));
+            base.RegisterEditorFactory(new PerspexEditorFactory(this));
         }
     }
 }

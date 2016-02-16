@@ -10,7 +10,7 @@ using Constants = Microsoft.VisualStudio.OLE.Interop.Constants;
 
 namespace PerspexVS.Infrastructure
 {
-    public partial class PamlDocumentPane : IOleCommandTarget
+    public partial class PerspexDesignerPane : IOleCommandTarget
     {
         private IOleCommandTarget _editorCommandTarget;
 

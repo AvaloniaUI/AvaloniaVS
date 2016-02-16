@@ -1,40 +1,41 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
-    <Metadata>
-        <Identity Id="Perspex.PerspexVS" Version="0.2.0.0" Language="en-US" Publisher="Steven Kirk" />
-        <DisplayName>PerspexVS</DisplayName>
-        <Description xml:space="preserve">Perspex Extensions for Visual Studio</Description>
-    </Metadata>
-    <Installation>
-        <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[14.0]" />
-    </Installation>
-    <Dependencies>
-        <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
-        <Dependency Id="Microsoft.VisualStudio.MPF.14.0" DisplayName="Visual Studio MPF 14.0" d:Source="Installed" Version="[14.0]" />
-    </Dependencies>
-    <Assets>
-        <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
-        <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
-        <Asset Type="Microsoft.VisualStudio.ProjectTemplate" d:Source="Project" d:TargetPath="|PerspexApplicationTemplate;TemplateProjectOutputGroup|" Path="ProjectTemplates" d:VsixSubPath="ProjectTemplates" d:ProjectName="PerspexApplicationTemplate" />
-        <Asset Type="Microsoft.VisualStudio.ItemTemplate" d:Source="Project" d:ProjectName="PerspexWindowTemplate" d:TargetPath="|PerspexWindowTemplate;TemplateProjectOutputGroup|" Path="ItemTemplates" d:VsixSubPath="ItemTemplates" />
+  <Metadata>
+    <Identity Id="Perspex.PerspexVS" Version="0.2.0.0" Language="en-US" Publisher="Steven Kirk" />
+    <DisplayName>PerspexVS</DisplayName>
+    <Description xml:space="preserve">Perspex Extensions for Visual Studio</Description>
+  </Metadata>
+  <Installation>
+    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[14.0]" />
+  </Installation>
+  <Dependencies>
+    <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
+    <Dependency Id="Microsoft.VisualStudio.MPF.14.0" DisplayName="Visual Studio MPF 14.0" d:Source="Installed" Version="[14.0]" />
+  </Dependencies>
+  <Assets>
+    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
+    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
+    <Asset Type="Microsoft.VisualStudio.ProjectTemplate" d:Source="Project" d:TargetPath="|PerspexApplicationTemplate;TemplateProjectOutputGroup|" Path="ProjectTemplates" d:VsixSubPath="ProjectTemplates" d:ProjectName="PerspexApplicationTemplate" />
+    <Asset Type="Microsoft.VisualStudio.ItemTemplate" d:Source="Project" d:ProjectName="PerspexWindowTemplate" d:TargetPath="|PerspexWindowTemplate;TemplateProjectOutputGroup|" Path="ItemTemplates" d:VsixSubPath="ItemTemplates" />
 
-        <Asset Type="Rx-Core.2.2.5.nupkg" d:Source="File" Path="packages\Rx-Core.2.2.5.nupkg" d:VsixSubPath="packages" />
-        <Asset Type="Rx-Interfaces.2.2.5.nupkg" d:Source="File" Path="packages\Rx-Interfaces.2.2.5.nupkg" d:VsixSubPath="packages" />
-        <Asset Type="Rx-Linq.2.2.5.nupkg" d:Source="File" Path="packages\Rx-Linq.2.2.5.nupkg" d:VsixSubPath="packages" />
-        <Asset Type="Rx-Main.2.2.5.nupkg" d:Source="File" Path="packages\Rx-Main.2.2.5.nupkg" d:VsixSubPath="packages" />
-        <Asset Type="Rx-PlatformServices.2.2.5.nupkg" d:Source="File" Path="packages\Rx-PlatformServices.2.2.5.nupkg" d:VsixSubPath="packages" />
-        <Asset Type="Rx-XAML.2.2.5.nupkg" d:Source="File" Path="packages\Rx-XAML.2.2.5.nupkg" d:VsixSubPath="packages" />
-        <Asset Type="Serilog.1.5.9.nupkg" d:Source="File" Path="packages\Serilog.1.5.9.nupkg" d:VsixSubPath="packages" />
-        <Asset Type="Splat.1.6.2.nupkg" d:Source="File" Path="packages\Splat.1.6.2.nupkg" d:VsixSubPath="packages" />
-        <Asset Type="Sprache.2.0.0.47.nupkg" d:Source="File" Path="packages\Sprache.2.0.0.47.nupkg" d:VsixSubPath="packages" />
-        <Asset Type="Perspex.0.0.2-alpha2-pre.nupkg" d:Source="File" Path="packages\Perspex.0.0.2-alpha2-pre.nupkg" d:VsixSubPath="packages" />
-        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="%CurrentProject%.Controls" Path="|PerspexVS.Controls|" AssemblyName="|PerspexVS.Controls;AssemblyName|" />
+    <Asset Type="Rx-Core.2.2.5.nupkg" d:Source="File" Path="packages\Rx-Core.2.2.5.nupkg" d:VsixSubPath="packages" />
+    <Asset Type="Rx-Interfaces.2.2.5.nupkg" d:Source="File" Path="packages\Rx-Interfaces.2.2.5.nupkg" d:VsixSubPath="packages" />
+    <Asset Type="Rx-Linq.2.2.5.nupkg" d:Source="File" Path="packages\Rx-Linq.2.2.5.nupkg" d:VsixSubPath="packages" />
+    <Asset Type="Rx-Main.2.2.5.nupkg" d:Source="File" Path="packages\Rx-Main.2.2.5.nupkg" d:VsixSubPath="packages" />
+    <Asset Type="Rx-PlatformServices.2.2.5.nupkg" d:Source="File" Path="packages\Rx-PlatformServices.2.2.5.nupkg" d:VsixSubPath="packages" />
+    <Asset Type="Rx-XAML.2.2.5.nupkg" d:Source="File" Path="packages\Rx-XAML.2.2.5.nupkg" d:VsixSubPath="packages" />
+    <Asset Type="Serilog.1.5.9.nupkg" d:Source="File" Path="packages\Serilog.1.5.9.nupkg" d:VsixSubPath="packages" />
+    <Asset Type="Splat.1.6.2.nupkg" d:Source="File" Path="packages\Splat.1.6.2.nupkg" d:VsixSubPath="packages" />
+    <Asset Type="Sprache.2.0.0.47.nupkg" d:Source="File" Path="packages\Sprache.2.0.0.47.nupkg" d:VsixSubPath="packages" />
+    <Asset Type="Perspex.0.0.2-alpha2-pre.nupkg" d:Source="File" Path="packages\Perspex.0.0.2-alpha2-pre.nupkg" d:VsixSubPath="packages" />
+    <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="%CurrentProject%.Controls" Path="|PerspexVS.Controls|" AssemblyName="|PerspexVS.Controls;AssemblyName|" />
+    <Asset Type="Microsoft.VisualStudio.ItemTemplate" d:Source="Project" d:ProjectName="PerspexUserControlTemplate" d:TargetPath="|PerspexUserControlTemplate;TemplateProjectOutputGroup|" Path="ItemTemplates" d:VsixSubPath="ItemTemplates" />
 
 
 
-    </Assets>
-    <Reference Id="NuPackToolsVsix.Microsoft.67e54e40-0ae3-42c5-a949-fddf5739e7a5" MinVersion="1.7.30402.9028">
-        <Name>NuGet Package Manager</Name>
-        <MoreInfoUrl>http://docs.nuget.org/</MoreInfoUrl>
-    </Reference>
+  </Assets>
+  <Reference Id="NuPackToolsVsix.Microsoft.67e54e40-0ae3-42c5-a949-fddf5739e7a5" MinVersion="1.7.30402.9028">
+    <Name>NuGet Package Manager</Name>
+    <MoreInfoUrl>http://docs.nuget.org/</MoreInfoUrl>
+  </Reference>
 </PackageManifest>

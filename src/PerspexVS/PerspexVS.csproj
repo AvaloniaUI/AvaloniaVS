@@ -55,13 +55,16 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Infrastructure\DesignerKiller.cs" />
-    <Compile Include="Infrastructure\PamlDocumentPane.IVsFindTarget.cs">
-      <DependentUpon>PamlDocumentPane.cs</DependentUpon>
+    <Compile Include="Infrastructure\PerspexDesignerPane.IOleCommandTarget.cs">
+      <DependentUpon>PerspexDesignerPane.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Infrastructure\PerspexDesignerPane.IVsFindTarget.cs">
+      <DependentUpon>PerspexDesignerPane.cs</DependentUpon>
     </Compile>
     <Compile Include="Internals\Guids.cs" />
     <Compile Include="Infrastructure\MarkupExtensionParser.cs" />
-    <Compile Include="Infrastructure\PamlDocumentPane.cs" />
-    <Compile Include="Infrastructure\PamlEditorFactory.cs" />
+    <Compile Include="Infrastructure\PerspexDesignerPane.cs" />
+    <Compile Include="Infrastructure\PerspexEditorFactory.cs" />
     <Compile Include="Infrastructure\XmlParser.cs" />
     <Compile Include="IntelliSense\CompletionCommandHandler.cs" />
     <Compile Include="IntelliSense\CompletionSource.cs" />
@@ -71,15 +74,12 @@
     <Compile Include="Infrastructure\PerspexBuildEvents.cs" />
     <Compile Include="Infrastructure\PerspexPackage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Views\PamlDesignerHostView.xaml.cs">
-      <DependentUpon>PamlDesignerHostView.xaml</DependentUpon>
+    <Compile Include="Views\PerspexDesignerHostView.xaml.cs">
+      <DependentUpon>PerspexDesignerHostView.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Infrastructure\Key.snk" />
-    <Compile Include="Infrastructure\PamlDocumentPane.IOleCommandTarget.cs">
-      <DependentUpon>PamlDocumentPane.cs</DependentUpon>
-    </Compile>
     <None Include="packages.config" />
     <Content Include="packages\Rx-Core.2.2.5.nupkg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -296,7 +296,7 @@
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="PamlDesignerTheme.pkgdef">
+    <Content Include="PerspexDesignerTheme.pkgdef">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Resources\PerspexPackage.ico" />
@@ -309,7 +309,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Page Include="Views\PamlDesignerHostView.xaml">
+    <Page Include="Views\PerspexDesignerHostView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -325,6 +325,13 @@
       <Project>{75104AA0-3B1B-47D4-9C4D-501A8185ACFC}</Project>
       <Name>PerspexApplicationTemplate</Name>
       <VSIXSubPath>ProjectTemplates</VSIXSubPath>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+    </ProjectReference>
+    <ProjectReference Include="..\Templates\PerspexUserControlTemplate\PerspexUserControlTemplate.csproj">
+      <Project>{3BFD12BB-E6D8-46D7-9D5F-119A9896941E}</Project>
+      <Name>PerspexUserControlTemplate</Name>
+      <VSIXSubPath>ItemTemplates</VSIXSubPath>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
     </ProjectReference>
