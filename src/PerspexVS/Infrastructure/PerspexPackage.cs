@@ -47,7 +47,7 @@ namespace PerspexVS.Infrastructure
         114,
         115,
         true,
-        new[] { "paml", "designer" })]
+        new[] { "xaml", "designer" })]
 
     // we let the shell know that the package exposes some menus
     [ProvideMenuResource("Menus.ctmenu", 1)]
