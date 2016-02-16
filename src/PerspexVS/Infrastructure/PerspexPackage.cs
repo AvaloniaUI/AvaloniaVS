@@ -4,10 +4,15 @@
 // </copyright>
 //------------------------------------------------------------------------------
 
+using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
+using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using PerspexVS.Internals;
+using PerspexVS.Options;
 
 namespace PerspexVS.Infrastructure
 {
@@ -34,6 +39,16 @@ namespace PerspexVS.Infrastructure
         113,
         TrustLevel = __VSEDITORTRUSTLEVEL.ETL_AlwaysTrusted)]
 
+    // Options pages
+    [ProvideProfile(typeof(PerspexDesignerGeneralPage), "Perspex designer", "Perspex Designer Options", 114, 114, true, DescriptionResourceID = 114)]
+    [ProvideOptionPage(typeof(PerspexDesignerGeneralPage),
+        "Perspex Designer",
+        "General",
+        114,
+        115,
+        true,
+        new[] { "paml", "designer" })]
+
     // we let the shell know that the package exposes some menus
     [ProvideMenuResource("Menus.ctmenu", 1)]
 
@@ -42,6 +57,7 @@ namespace PerspexVS.Infrastructure
     [ProvideAutoLoad("ADFC4E64-0397-11D1-9F4E-00A0C911004F")]
     [Guid(PackageGuidString)]
     [ComVisible(true)]
+    [Export]
     public sealed class PerspexPackage : Package
     {
         public const string PackageGuidString = "865ba8d5-1180-4bf8-8821-345f72a4cb79";
@@ -49,7 +65,17 @@ namespace PerspexVS.Infrastructure
         protected override void Initialize()
         {
             base.Initialize();
-            base.RegisterEditorFactory(new PerspexEditorFactory(this));
+            InitializeVisualStudioServices();
+
+            var pamlEditorFactory = VisualStudioServices.ComponentModel.DefaultExportProvider.GetExportedValue<PerspexEditorFactory>();
+            base.RegisterEditorFactory(pamlEditorFactory);
+        }
+
+        private void InitializeVisualStudioServices()
+        {
+            var componentModel = (IComponentModel)GetService(typeof(SComponentModel));
+            VisualStudioServices.ComponentModel = componentModel;
+            VisualStudioServices.VsEditorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
         }
     }
 }

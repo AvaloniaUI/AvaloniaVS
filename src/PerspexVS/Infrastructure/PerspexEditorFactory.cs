@@ -1,10 +1,9 @@
 ﻿using System;
+using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Shell.Interop;
 using IServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -13,16 +12,19 @@ using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 
 namespace PerspexVS.Infrastructure
 {
-    [Guid(Guids.PerspexEditorFactoryString)]
+    [Guid(Guids.PerspexEditorFactoryString), Export]
     public class PerspexEditorFactory : IVsEditorFactory, IDisposable
     {
         private readonly PerspexPackage _package;
+        private readonly IPerspexDesignerSettings _designerSettings;
         private ServiceProvider _serviceProvider;
         private IOleServiceProvider _oleServiceProvider;
 
-        public PerspexEditorFactory(PerspexPackage package)
+        [ImportingConstructor]
+        public PerspexEditorFactory(PerspexPackage package, IPerspexDesignerSettings designerSettings)
         {
             _package = package;
+            _designerSettings = designerSettings;
         }
 
         public object GetService(Type serviceType)
@@ -44,7 +46,7 @@ namespace PerspexVS.Infrastructure
         {
             ppunkDocView = IntPtr.Zero;
             ppunkDocData = IntPtr.Zero;
-            pguidCmdUI = Guids.PerspexEditorFactoryGuid;
+            pguidCmdUI = Guids.PerspexDesignerGeneralPageGuid;
             pgrfCDW = 0;
             pbstrEditorCaption = null;
 
@@ -99,39 +101,49 @@ namespace PerspexVS.Infrastructure
             // set xml as the language service id
             ErrorHandler.ThrowOnFailure(documentBuffer.SetLanguageServiceID(ref Guids.XmlLanguageServiceGuid));
 
-            //Get the component model so we can request the editor adapter factory which we can use to spin up an editor instance.
-            var componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
-            var editorAdapterFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
+            var editorPane = GetDocumentView(documentBuffer, pszMkDocument);
+            ppunkDocView = Marshal.GetIUnknownForObject(editorPane);
+            ppunkDocData = Marshal.GetIUnknownForObject(documentBuffer);
+            pbstrEditorCaption = "";
+            return VSConstants.S_OK;
+        }
 
+        internal object GetDocumentView(IVsTextLines documentBuffer, string filePath)
+        {
+            var codeWindow = CreateVsCodeWindow(documentBuffer);
+
+            // in case the designer is not supported, we return the current VsCodeWindow that we just created.
+            if (!_designerSettings.IsDesignerEnabled)
+            {
+                return codeWindow;
+            }
+
+            // we're using a trick here to extract the wpf editor from the above created VsCodeWindow
+            // this is a hack and in the future we will change it.
+
+            //Get our text view for our editor which we will use to get the WPF control that hosts said editor.
+            IVsTextView textView;
+            ErrorHandler.ThrowOnFailure(codeWindow.GetPrimaryView(out textView));
+            var textViewHost = VisualStudioServices.VsEditorAdaptersFactoryService.GetWpfTextViewHost(textView);
+            return new PerspexDesignerPane(textViewHost, documentBuffer, textView, filePath, _designerSettings);
+        }
+
+        private IVsCodeWindow CreateVsCodeWindow(IVsTextLines documentBuffer)
+        {
             //Create a code window adapter.
-            var codeWindow = editorAdapterFactoryService.CreateVsCodeWindowAdapter(_oleServiceProvider);
+            var codeWindow = VisualStudioServices.VsEditorAdaptersFactoryService.CreateVsCodeWindowAdapter(_oleServiceProvider);
 
             // Disable the splitter control on the editor as leaving it enabled causes a crash if the user
             // tries to use it here :(
             var codeWindowEx = (IVsCodeWindowEx)codeWindow;
             var initView = new INITVIEW[1];
-            codeWindowEx.Initialize((uint)_codewindowbehaviorflags.CWB_DISABLESPLITTER,
-                VSUSERCONTEXTATTRIBUTEUSAGE.VSUC_Usage_Filter,
-                szNameAuxUserContext: "",
-                szValueAuxUserContext: "",
-                InitViewFlags: 0,
-                pInitView: initView);
+            var codeWindowBehaviorFlags = _designerSettings.IsDesignerEnabled ? _codewindowbehaviorflags.CWB_DISABLESPLITTER : _codewindowbehaviorflags.CWB_DEFAULT;
+            codeWindowEx.Initialize((uint)codeWindowBehaviorFlags, VSUSERCONTEXTATTRIBUTEUSAGE.VSUC_Usage_Filter, "", "", 0, initView);
 
             //Associate our IVsTextLines with our new code window.
             ErrorHandler.ThrowOnFailure(codeWindow.SetBuffer(documentBuffer));
 
-            //Get our text view for our editor which we will use to get the WPF control that hosts said editor.
-            IVsTextView textView;
-            ErrorHandler.ThrowOnFailure(codeWindow.GetPrimaryView(out textView));
-
-            //Get our WPF host from our text view (from our code window).
-            var textViewHost = editorAdapterFactoryService.GetWpfTextViewHost(textView);
-
-            var editorPane = new PerspexDesignerPane(textViewHost, documentBuffer, textView, pszMkDocument);
-            ppunkDocView = Marshal.GetIUnknownForObject(editorPane);
-            ppunkDocData = Marshal.GetIUnknownForObject(documentBuffer);
-            pbstrEditorCaption = "";
-            return VSConstants.S_OK;
+            return codeWindow;
         }
 
         public int SetSite(IServiceProvider psp)
