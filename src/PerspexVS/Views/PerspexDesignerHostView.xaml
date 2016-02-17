@@ -51,7 +51,7 @@
                       DockPanel.Dock="Left"
                       Data="{StaticResource MarkupIconShape}"
                       SnapsToDevicePixels="True" />
-                <TextBlock Text="PAML"
+                <TextBlock Text="XAML"
                            Margin="2,0,0,0"
                            Visibility="{Binding ElementName=Container, Path=IsHorizontal, Converter={StaticResource BooleanToVisibilityConverter}}"/>
             </DockPanel>

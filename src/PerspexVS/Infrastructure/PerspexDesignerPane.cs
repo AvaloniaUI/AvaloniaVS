@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Perspex.Designer;
+using PerspexVS.Controls;
 using PerspexVS.IntelliSense;
 using PerspexVS.Views;
 using HorizontalAlignment = System.Windows.HorizontalAlignment;
@@ -27,17 +28,19 @@ namespace PerspexVS.Infrastructure
         private readonly IVsTextLines _textBuffer;
         private readonly IVsTextView _textView;
         private readonly string _fileName;
+        private readonly IPerspexDesignerSettings _designerSettings;
         private IVsFindTarget _vsFindTarget;
         private PerspexDesigner _designer;
         private string _targetExe;
         private long _lastRestartToken;
 
-        public PerspexDesignerPane(IWpfTextViewHost wpfTextViewHost, IVsTextLines textBuffer, IVsTextView textView, string fileName)
+        public PerspexDesignerPane(IWpfTextViewHost wpfTextViewHost, IVsTextLines textBuffer, IVsTextView textView, string fileName, IPerspexDesignerSettings designerSettings)
         {
             _wpfTextViewHost = wpfTextViewHost;
             _textBuffer = textBuffer;
             _textView = textView;
             _fileName = fileName;
+            _designerSettings = designerSettings;
         }
 
         protected override void Initialize()
@@ -55,8 +58,21 @@ namespace PerspexVS.Infrastructure
                 EditView =
                 {
                     Content = _wpfTextViewHost
+                },
+                Container =
+                {
+                    Orientation = _designerSettings.SplitOrientation == SplitOrientation.Default ||
+                                  _designerSettings.SplitOrientation == SplitOrientation.Horizontal
+                        ? Orientation.Horizontal
+                        : Orientation.Vertical,
+                    IsReversed = _designerSettings.IsReversed
                 }
             };
+
+            if (_designerSettings.DocumentView != DocumentView.SplitView)
+            {
+                _designerHost.Container.Collapse(_designerSettings.DocumentView == DocumentView.DesignView ? SplitterViews.Design : SplitterViews.Editor);
+            }
 
             // initialize the designer
             var wpfTextView = _wpfTextViewHost.TextView;

@@ -1,0 +1,91 @@
+﻿<UserControl x:Class="PerspexVS.Views.PerspexDesignerGeneralPageView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:converters="clr-namespace:PerspexVS.Converters"
+             xmlns:options="clr-namespace:PerspexVS.Options"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             xmlns:helpers="clr-namespace:PerspexVS.Helpers"
+             xmlns:infrastructure="clr-namespace:PerspexVS.Infrastructure"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+    <d:UserControl.DataContext>
+        <helpers:PerspexDesignerGeneralPageViewModelDesign />
+    </d:UserControl.DataContext>
+
+    <UserControl.Resources>
+        <ObjectDataProvider x:Key="DocumentViewSource" ObjectType="{x:Type sys:Enum}" MethodName="GetValues">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="infrastructure:DocumentView" />
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+
+        <ObjectDataProvider x:Key="SplitOrientationSource" ObjectType="{x:Type sys:Enum}" MethodName="GetValues">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="infrastructure:SplitOrientation" />
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+    </UserControl.Resources>
+
+    <DockPanel LastChildFill="False">
+        <CheckBox Content="Enable Perspex Designer (Requires re-opening current XAML documents)"
+                  IsChecked="{Binding Path=IsDesignerEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  Margin="0,4,0,0"
+                  DockPanel.Dock="Top"/>
+
+        <Grid Margin="15,10,0,0" VerticalAlignment="Top" MinWidth="300" HorizontalAlignment="Left" DockPanel.Dock="Top">
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition Height="5" />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="20" />
+                <ColumnDefinition Width="*" MinWidth="184" />
+            </Grid.ColumnDefinitions>
+
+            <!-- default document view -->
+            <Label Content="Default document view:"
+                   IsEnabled="{Binding Path=IsDesignerEnabled}" />
+            <ComboBox Grid.Column="2"
+                      Grid.Row="0"
+                      IsEnabled="{Binding Path=IsDesignerEnabled, Mode=OneWay}"
+                      ItemsSource="{Binding Source={StaticResource DocumentViewSource}}"
+                      SelectedValue="{Binding Path=DocumentView, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                      VerticalAlignment="Center">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Converter={converters:EnumDescriptionConverter EnumType=infrastructure:DocumentView}}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+
+            <!-- split orientation -->
+            <Label Grid.Row="2"
+                   Grid.Column="0"
+                   IsEnabled="{Binding Path=IsDesignerEnabled, Mode=OneWay}"
+                   Content="Split Orientation:" />
+
+            <ComboBox Grid.Column="2"
+                      Grid.Row="2"
+                      IsEnabled="{Binding Path=IsDesignerEnabled, Mode=OneWay}"
+                      ItemsSource="{Binding Source={StaticResource SplitOrientationSource}}"
+                      SelectedValue="{Binding Path=SplitOrientation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                      VerticalAlignment="Center">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Converter={converters:EnumDescriptionConverter EnumType=infrastructure:SplitOrientation}}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+        </Grid>
+        <CheckBox IsEnabled="{Binding Path=IsDesignerEnabled, Mode=OneWay}"
+                  IsChecked="{Binding Path=IsReversed, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  DockPanel.Dock="Top"
+                  Margin="0,10,0,0"
+                  Content="Reverse designer and editor initial locations" />
+
+    </DockPanel>
+</UserControl>

@@ -526,7 +526,7 @@ namespace PerspexVS.Controls
         {
             if (!IsCollapsed)
             {
-                _previousGripOffset = _gripOffset;
+                _previousGripOffset = double.IsNaN(_gripOffset) ? 50 : _gripOffset;
                 _gripOffset = 100;
                 IsCollapsed = true;
             }
@@ -851,6 +851,25 @@ namespace PerspexVS.Controls
         {
             if (element != null)
                 Keyboard.Focus(element);
+        }
+
+        public void Collapse(SplitterViews activeView)
+        {
+            OnExpandCollapse();
+
+            _requstedActiveView = activeView;
+            Loaded += OnContainerLoaded;
+        }
+
+        // this is a hack, I should stop relying on keyboard focus
+        // to know whether the designer or editor is active, for example
+        // during initialization, keyboard focus is not present 
+        // and the active view is not properly set.
+        private SplitterViews _requstedActiveView;
+        private void OnContainerLoaded(object sender, RoutedEventArgs routedEventArgs)
+        {
+            ActivateView(_requstedActiveView);
+            Loaded -= OnContainerLoaded;
         }
     }
 }
