@@ -34,6 +34,11 @@ namespace PerspexVS.Infrastructure
         DebuggingLogicalViewEditor = typeof(PerspexEditorFactory),
         TextLogicalViewEditor = typeof(PerspexEditorFactory))]
 
+    [ProvideEditorExtension(typeof(PerspexEditorFactory), ".paml", 100, NameResourceID = 113, DefaultName = "Perspex Xaml Editor")]
+    [ProvideEditorLogicalView(typeof(PerspexEditorFactory), LogicalViewID.TextView)]
+    [ProvideEditorLogicalView(typeof(PerspexEditorFactory), LogicalViewID.Code)]
+    [ProvideEditorLogicalView(typeof(PerspexEditorFactory), LogicalViewID.Designer)]
+    [ProvideEditorLogicalView(typeof(PerspexEditorFactory), LogicalViewID.Debugging)]
 
     [ProvideEditorFactory(typeof(PerspexEditorFactory),
         113,
