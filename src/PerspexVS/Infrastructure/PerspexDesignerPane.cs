@@ -4,41 +4,43 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using EnvDTE;
+using EnvDTE80;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Perspex.Designer;
 using PerspexVS.Controls;
+using PerspexVS.Helpers;
 using PerspexVS.IntelliSense;
+using PerspexVS.Internals;
 using PerspexVS.Views;
+using Debugger = System.Diagnostics.Debugger;
 using HorizontalAlignment = System.Windows.HorizontalAlignment;
 
 namespace PerspexVS.Infrastructure
 {
     [ComVisible(true), Guid("75b0ba12-1e01-4f80-a035-32239896bcab")]
-    public partial class PerspexDesignerPane : ToolWindowPane
+    public partial class PerspexDesignerPane : WindowPane
     {
         private const int WM_KEYFIRST = 0x0100;
         private const int WM_KEYLAST = 0x0109;
 
         private PerspexDesignerHostView _designerHost;
-        private readonly IWpfTextViewHost _wpfTextViewHost;
-        private readonly IVsTextLines _textBuffer;
-        private readonly IVsTextView _textView;
         private readonly string _fileName;
         private readonly IPerspexDesignerSettings _designerSettings;
-        private IVsFindTarget _vsFindTarget;
         private PerspexDesigner _designer;
         private string _targetExe;
         private long _lastRestartToken;
+        private IVsCodeWindow _vsCodeWindow;
+        private readonly ITextBuffer _textBuffer;
 
-        public PerspexDesignerPane(IWpfTextViewHost wpfTextViewHost, IVsTextLines textBuffer, IVsTextView textView, string fileName, IPerspexDesignerSettings designerSettings)
+        public PerspexDesignerPane(IVsCodeWindow vsCodeWindow, IVsTextLines textBuffer, string fileName, IPerspexDesignerSettings designerSettings)
         {
-            _wpfTextViewHost = wpfTextViewHost;
-            _textBuffer = textBuffer;
-            _textView = textView;
+            _vsCodeWindow = vsCodeWindow;
+            _textBuffer = textBuffer.GetTextBuffer();
             _fileName = fileName;
             _designerSettings = designerSettings;
         }
@@ -46,18 +48,18 @@ namespace PerspexVS.Infrastructure
         protected override void Initialize()
         {
             base.Initialize();
-            InitializeDesigner();
+            InitializePane();
             RegisterMenuCommands();
         }
 
-        private void InitializeDesigner()
+        private void InitializePane()
         {
             // initialize the designer host view.
             _designerHost = new PerspexDesignerHostView
             {
                 EditView =
                 {
-                    Content = _wpfTextViewHost
+                    Content = ((WindowPane)_vsCodeWindow).Content
                 },
                 Container =
                 {
@@ -74,10 +76,24 @@ namespace PerspexVS.Infrastructure
                 _designerHost.Container.Collapse(_designerSettings.DocumentView == DocumentView.DesignView ? SplitterViews.Design : SplitterViews.Editor);
             }
 
-            // initialize the designer
-            var wpfTextView = _wpfTextViewHost.TextView;
+            InitializeDesigner();
+        }
 
-            _targetExe = wpfTextView.GetContainingProject()?.GetAssemblyPath();
+        private static Project GetContainerProject(string fileName)
+        {
+            if (string.IsNullOrWhiteSpace(fileName) || !File.Exists(fileName))
+            {
+                return null;
+            }
+
+            var dte2 = (DTE2) Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof (SDTE));
+            var projItem = dte2?.Solution.FindProjectItem(fileName);
+            return projItem?.ContainingProject;
+        }
+
+        private void InitializeDesigner()
+        {
+            _targetExe = GetContainerProject(_fileName).GetAssemblyPath();
             if (_targetExe == null)
             {
                 var block = new TextBlock
@@ -86,27 +102,40 @@ namespace PerspexVS.Infrastructure
                     HorizontalAlignment = HorizontalAlignment.Center,
                     Text = $"{Path.GetFileName(_fileName)} cannot be edited in the Design view."
                 };
-                _designerHost.EditView.Content = block;
+                _designerHost.DesignView.Content = block;
                 return;
             }
 
             _designer = new PerspexDesigner { TargetExe = _targetExe };
             _designerHost.DesignView.Content = _designer;
 
-            _designer.Xaml = wpfTextView.TextBuffer.CurrentSnapshot.GetText();
+            _designer.Xaml = _textBuffer.CurrentSnapshot.GetText();
             PerspexBuildEvents.Instance.BuildEnd += Restart;
             PerspexBuildEvents.Instance.ModeChanged += OnModeChanged;
-            wpfTextView.TextBuffer.PostChanged += delegate
-            {
-                _designer.Xaml = wpfTextView.TextBuffer.CurrentSnapshot.GetText();
-            };
+            _textBuffer.PostChanged += OnTextBufferPostChanged;
             ReloadMetadata();
+        }
+
+        private void OnTextBufferPostChanged(object sender, EventArgs e)
+        {
+            var buffer = (ITextBuffer)sender;
+            _designer.Xaml = buffer.CurrentSnapshot.GetText();
+        }
+
+        protected override void OnClose()
+        {
+            _vsCodeWindow.Close();
+            base.OnClose();
         }
 
         void ReloadMetadata()
         {
-            if (File.Exists(_targetExe))
-                _wpfTextViewHost.TextView.TextBuffer.Properties[typeof(Metadata)] = MetadataLoader.LoadMetadata(_targetExe);
+            if (!File.Exists(_targetExe))
+            {
+                return;
+            }
+
+            _textBuffer.Properties[typeof (Metadata)] = MetadataLoader.LoadMetadata(_targetExe);
         }
 
         public override object Content
@@ -117,23 +146,6 @@ namespace PerspexVS.Infrastructure
             }
         }
 
-        private IVsFindTarget VsFindTarget
-        {
-            get { return _vsFindTarget ?? (_vsFindTarget = (IVsFindTarget) _textView); }
-        }
-
-        public override void OnToolWindowCreated()
-        {
-            var frame = Frame as IVsWindowFrame;
-            if (frame != null)
-            {
-                var textEditorFactoryGuid = VSConstants.GUID_TextEditorFactory;
-                frame.SetGuidProperty((int)__VSFPROPID.VSFPROPID_InheritKeyBindings, ref textEditorFactoryGuid);
-            }
-
-            base.OnToolWindowCreated();
-        }
-
         private void EventsOnBuildBegin()
         {
             _designer?.KillProcess();
@@ -141,7 +153,7 @@ namespace PerspexVS.Infrastructure
 
         private void OnModeChanged()
         {
-            var dte = (DTE)Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof(DTE));
+            var dte = (DTE)Package.GetGlobalService(typeof(DTE));
             if (dte.Mode == vsIDEMode.vsIDEModeDesign)
                 Restart();
         }
@@ -185,9 +197,10 @@ namespace PerspexVS.Infrastructure
         {
             if (disposing)
             {
-                PerspexBuildEvents.Instance.BuildBegin -= EventsOnBuildBegin;
                 PerspexBuildEvents.Instance.BuildEnd -= Restart;
+                PerspexBuildEvents.Instance.ModeChanged -= OnModeChanged;
                 _designer?.KillProcess();
+                _textBuffer.PostChanged -= OnTextBufferPostChanged;
             }
         }
     }
