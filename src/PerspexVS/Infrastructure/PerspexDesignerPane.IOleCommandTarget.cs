@@ -6,11 +6,14 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.TextManager.Interop;
+using PerspexVS.Internals;
 using Constants = Microsoft.VisualStudio.OLE.Interop.Constants;
 
 namespace PerspexVS.Infrastructure
 {
-    public partial class PamlDocumentPane : IOleCommandTarget
+    public partial class PerspexDesignerPane : IOleCommandTarget
     {
         private IOleCommandTarget _editorCommandTarget;
 
@@ -18,7 +21,7 @@ namespace PerspexVS.Infrastructure
         {
             get
             {
-                return _editorCommandTarget ?? (_editorCommandTarget = (IOleCommandTarget)_textView);
+                return _editorCommandTarget ?? (_editorCommandTarget = (IOleCommandTarget)_vsCodeWindow);
             }
         }
 
@@ -154,8 +157,14 @@ namespace PerspexVS.Infrastructure
             _designerHost.Container.SwapActiveView();
             if (_designerHost.Container.IsEditorActive)
             {
-                var editorControl = _wpfTextViewHost.TextView.VisualElement as IInputElement;
-                editorControl?.Focus();
+                IVsTextView lastActiveView;
+                GetLastActiveView(out lastActiveView);
+
+                var wpfEditorView = lastActiveView as IWpfTextView;
+                if (wpfEditorView != null)
+                {
+                    wpfEditorView.VisualElement.Focus();
+                }
             }
         }
 

@@ -44,7 +44,7 @@
         <Setter Property="Focusable" Value="False" />
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="Padding" Value="2" />
-        <Setter Property="Foreground" Value="{DynamicResource {x:Static internals:PamlDesignerBrushes.HeaderActiveTextBrushKey}}" />
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static internals:PerspexDesignerBrushes.HeaderActiveTextBrushKey}}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
@@ -56,12 +56,12 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="bg" Property="Background" Value="{DynamicResource {x:Static internals:PamlDesignerBrushes.ButtonMouseOverBackgroundBrushKey}}" />
-                            <Setter Property="Foreground" Value="{DynamicResource {x:Static internals:PamlDesignerBrushes.ButtonMouseOverForegroundBrushKey}}" />
+                            <Setter TargetName="bg" Property="Background" Value="{DynamicResource {x:Static internals:PerspexDesignerBrushes.ButtonMouseOverBackgroundBrushKey}}" />
+                            <Setter Property="Foreground" Value="{DynamicResource {x:Static internals:PerspexDesignerBrushes.ButtonMouseOverForegroundBrushKey}}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="bg" Property="Background" Value="{DynamicResource {x:Static internals:PamlDesignerBrushes.ButtonPressedBackgroundBrushKey}}" />
-                            <Setter Property="Foreground" Value="{DynamicResource {x:Static internals:PamlDesignerBrushes.ButtonPressedForegroundBrushKey}}" />
+                            <Setter TargetName="bg" Property="Background" Value="{DynamicResource {x:Static internals:PerspexDesignerBrushes.ButtonPressedBackgroundBrushKey}}" />
+                            <Setter Property="Foreground" Value="{DynamicResource {x:Static internals:PerspexDesignerBrushes.ButtonPressedForegroundBrushKey}}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -74,7 +74,7 @@
         <Setter Property="Focusable" Value="False" />
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="Padding" Value="2" />
-        <Setter Property="Foreground" Value="{DynamicResource {x:Static internals:PamlDesignerBrushes.HeaderActiveTextBrushKey}}" />
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static internals:PerspexDesignerBrushes.HeaderActiveTextBrushKey}}" />
         <Setter Property="ToolTip" Value="Collapse Pane" />
         <Setter Property="Template">
             <Setter.Value>
@@ -93,12 +93,12 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="bg" Property="Background" Value="{DynamicResource {x:Static internals:PamlDesignerBrushes.ButtonMouseOverBackgroundBrushKey}}" />
-                            <Setter Property="Foreground" Value="{DynamicResource {x:Static internals:PamlDesignerBrushes.ButtonMouseOverForegroundBrushKey}}" />
+                            <Setter TargetName="bg" Property="Background" Value="{DynamicResource {x:Static internals:PerspexDesignerBrushes.ButtonMouseOverBackgroundBrushKey}}" />
+                            <Setter Property="Foreground" Value="{DynamicResource {x:Static internals:PerspexDesignerBrushes.ButtonMouseOverForegroundBrushKey}}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="bg" Property="Background" Value="{DynamicResource {x:Static internals:PamlDesignerBrushes.ButtonPressedBackgroundBrushKey}}" />
-                            <Setter Property="Foreground" Value="{DynamicResource {x:Static internals:PamlDesignerBrushes.ButtonPressedForegroundBrushKey}}" />
+                            <Setter TargetName="bg" Property="Background" Value="{DynamicResource {x:Static internals:PerspexDesignerBrushes.ButtonPressedBackgroundBrushKey}}" />
+                            <Setter Property="Foreground" Value="{DynamicResource {x:Static internals:PerspexDesignerBrushes.ButtonPressedForegroundBrushKey}}" />
                         </Trigger>
                         
                         <DataTrigger Binding="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=lc:SplitterGrip}, Path=IsCollapsed}" Value="True">
@@ -131,7 +131,7 @@
         <Setter Property="Focusable" Value="False" />
         <Setter Property="Padding" Value="1" />
         <Setter Property="VerticalAlignment" Value="Center" />
-        <Setter Property="Foreground" Value="{DynamicResource {x:Static internals:PamlDesignerBrushes.HeaderActiveTextBrushKey}}" />
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static internals:PerspexDesignerBrushes.HeaderActiveTextBrushKey}}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ToggleButton">
@@ -147,17 +147,17 @@
 
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="bg" Property="Background" Value="{DynamicResource {x:Static internals:PamlDesignerBrushes.ButtonMouseOverBackgroundBrushKey}}" />
-                            <Setter TargetName="bg" Property="BorderBrush" Value="{DynamicResource {x:Static internals:PamlDesignerBrushes.ButtonMouseOverBackgroundBrushKey}}" />
-                            <Setter Property="Foreground" Value="{DynamicResource {x:Static internals:PamlDesignerBrushes.ButtonMouseOverForegroundBrushKey}}" />
+                            <Setter TargetName="bg" Property="Background" Value="{DynamicResource {x:Static internals:PerspexDesignerBrushes.ButtonMouseOverBackgroundBrushKey}}" />
+                            <Setter TargetName="bg" Property="BorderBrush" Value="{DynamicResource {x:Static internals:PerspexDesignerBrushes.ButtonMouseOverBackgroundBrushKey}}" />
+                            <Setter Property="Foreground" Value="{DynamicResource {x:Static internals:PerspexDesignerBrushes.ButtonMouseOverForegroundBrushKey}}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="bg" Property="Background" Value="{DynamicResource {x:Static internals:PamlDesignerBrushes.ButtonPressedBackgroundBrushKey}}" />
-                            <Setter TargetName="bg" Property="BorderBrush" Value="{DynamicResource {x:Static internals:PamlDesignerBrushes.ButtonPressedBackgroundBrushKey}}" />
-                            <Setter Property="Foreground" Value="{DynamicResource {x:Static internals:PamlDesignerBrushes.ButtonPressedForegroundBrushKey}}" />
+                            <Setter TargetName="bg" Property="Background" Value="{DynamicResource {x:Static internals:PerspexDesignerBrushes.ButtonPressedBackgroundBrushKey}}" />
+                            <Setter TargetName="bg" Property="BorderBrush" Value="{DynamicResource {x:Static internals:PerspexDesignerBrushes.ButtonPressedBackgroundBrushKey}}" />
+                            <Setter Property="Foreground" Value="{DynamicResource {x:Static internals:PerspexDesignerBrushes.ButtonPressedForegroundBrushKey}}" />
                         </Trigger>
                         <Trigger Property="IsChecked" Value="True">
-                            <Setter TargetName="bg" Property="BorderBrush" Value="{DynamicResource {x:Static internals:PamlDesignerBrushes.ButtonPressedBackgroundBrushKey}}" />
+                            <Setter TargetName="bg" Property="BorderBrush" Value="{DynamicResource {x:Static internals:PerspexDesignerBrushes.ButtonPressedBackgroundBrushKey}}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -175,16 +175,16 @@
         <Setter Property="Padding" Value="8,1" />
         <Style.Triggers>
             <Trigger Property="IsChecked" Value="True">
-                <Setter Property="Background" Value="{DynamicResource {x:Static internals:PamlDesignerBrushes.HeaderActiveBrushKey}}" />
-                <Setter Property="Foreground" Value="{DynamicResource {x:Static internals:PamlDesignerBrushes.HeaderActiveTextBrushKey}}" />
+                <Setter Property="Background" Value="{DynamicResource {x:Static internals:PerspexDesignerBrushes.HeaderActiveBrushKey}}" />
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static internals:PerspexDesignerBrushes.HeaderActiveTextBrushKey}}" />
                 <Setter Property="Panel.ZIndex" Value="10" />
             </Trigger>
         </Style.Triggers>
     </Style>
 
     <Style x:Key="DesignerTabItemStyle" TargetType="RadioButton" BasedOn="{StaticResource TabItemBaseStyle}">
-        <Setter Property="Background" Value="{DynamicResource {x:Static internals:PamlDesignerBrushes.HeaderInactiveBrushKey}}" />
-        <Setter Property="Foreground" Value="{DynamicResource {x:Static internals:PamlDesignerBrushes.HeaderInactiveTextBrushKey}}" />
+        <Setter Property="Background" Value="{DynamicResource {x:Static internals:PerspexDesignerBrushes.HeaderInactiveBrushKey}}" />
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static internals:PerspexDesignerBrushes.HeaderInactiveTextBrushKey}}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="RadioButton">
@@ -231,8 +231,8 @@
     </Style>
 
     <Style x:Key="EditorTabItemStyle" TargetType="RadioButton" BasedOn="{StaticResource TabItemBaseStyle}">
-        <Setter Property="Background" Value="{DynamicResource {x:Static internals:PamlDesignerBrushes.HeaderInactiveBrushKey}}" />
-        <Setter Property="Foreground" Value="{DynamicResource {x:Static internals:PamlDesignerBrushes.HeaderInactiveTextBrushKey}}" />
+        <Setter Property="Background" Value="{DynamicResource {x:Static internals:PerspexDesignerBrushes.HeaderInactiveBrushKey}}" />
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static internals:PerspexDesignerBrushes.HeaderInactiveTextBrushKey}}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="RadioButton">
@@ -520,7 +520,7 @@
     <Style TargetType="lc:SplitterGrip">
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="VerticalAlignment" Value="Stretch" />
-        <Setter Property="Background" Value="{DynamicResource {x:Static internals:PamlDesignerBrushes.SplitterBackgroundBrushKey}}" />
+        <Setter Property="Background" Value="{DynamicResource {x:Static internals:PerspexDesignerBrushes.SplitterBackgroundBrushKey}}" />
         <Style.Triggers>
             <Trigger Property="Orientation" Value="Vertical">
                 <Setter Property="Template" Value="{StaticResource VerticalSpliterGrip}" />

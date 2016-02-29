@@ -54,33 +54,53 @@
     <TemplateBuilderTargets Condition=" '$(TemplateBuilderTargets)'=='' ">$([System.IO.Path]::GetFullPath( $(MSBuildProjectDirectory)\..\..\packages\TemplateBuilder.1.1.3\tools\ligershark.templates.targets ))</TemplateBuilderTargets>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Converters\EnumDescriptionConverter.cs" />
+    <Compile Include="Helpers\PerspexDesignerGeneralPageViewModelDesign.cs" />
+    <Compile Include="Helpers\Extensions.cs" />
     <Compile Include="Infrastructure\DesignerKiller.cs" />
-    <Compile Include="Infrastructure\PamlDocumentPane.IVsFindTarget.cs">
-      <DependentUpon>PamlDocumentPane.cs</DependentUpon>
+    <Compile Include="Infrastructure\PerspexDesignerPane.IOleCommandTarget.cs">
+      <DependentUpon>PerspexDesignerPane.cs</DependentUpon>
     </Compile>
+    <Compile Include="Infrastructure\PerspexDesignerPane.IVsFindTarget.cs">
+      <DependentUpon>PerspexDesignerPane.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Internals\VisualStudioServices.cs" />
     <Compile Include="Internals\Guids.cs" />
     <Compile Include="Infrastructure\MarkupExtensionParser.cs" />
-    <Compile Include="Infrastructure\PamlDocumentPane.cs" />
-    <Compile Include="Infrastructure\PamlEditorFactory.cs" />
+    <Compile Include="Infrastructure\PerspexDesignerPane.cs" />
+    <Compile Include="Infrastructure\PerspexEditorFactory.cs" />
     <Compile Include="Infrastructure\XmlParser.cs" />
     <Compile Include="IntelliSense\CompletionCommandHandler.cs" />
     <Compile Include="IntelliSense\CompletionSource.cs" />
     <Compile Include="IntelliSense\MetadataLoader.cs" />
+    <Compile Include="Internals\VsComInterfaces.cs" />
+    <Compile Include="ViewModels\ViewModelBase.cs" />
+    <Compile Include="Infrastructure\DocumentView.cs" />
+    <Compile Include="ViewModels\IPerspexDesignerGeneralPageViewModel.cs" />
+    <Compile Include="Infrastructure\IPerspexDesignerSettings.cs" />
+    <Compile Include="Options\PerspexDesignerGeneralPage.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="ViewModels\PerspexDesignerGeneralPageViewModel.cs" />
+    <Compile Include="Infrastructure\PerspexDesignerSettings.cs" />
+    <Compile Include="Infrastructure\SplitOrientation.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="Infrastructure\GuidList.cs" />
     <Compile Include="Infrastructure\PerspexBuildEvents.cs" />
     <Compile Include="Infrastructure\PerspexPackage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Views\PamlDesignerHostView.xaml.cs">
-      <DependentUpon>PamlDesignerHostView.xaml</DependentUpon>
+    <Compile Include="Views\PerspexDesignerGeneralPageView.xaml.cs">
+      <DependentUpon>PerspexDesignerGeneralPageView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\PerspexDesignerHostView.xaml.cs">
+      <DependentUpon>PerspexDesignerHostView.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Infrastructure\Key.snk" />
-    <Compile Include="Infrastructure\PamlDocumentPane.IOleCommandTarget.cs">
-      <DependentUpon>PamlDocumentPane.cs</DependentUpon>
-    </Compile>
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
     <Content Include="packages\Rx-Core.2.2.5.nupkg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -200,6 +220,16 @@
       <HintPath>..\..\packages\Microsoft.VisualStudio.Text.UI.Wpf.14.1.24720\lib\net45\Microsoft.VisualStudio.Text.UI.Wpf.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Microsoft.VisualStudio.TextManager.Interop.11.0, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+      <HintPath>..\..\packages\Microsoft.VisualStudio.TextManager.Interop.11.0.11.0.61030\lib\Microsoft.VisualStudio.TextManager.Interop.11.0.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.TextManager.Interop.12.0, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+      <HintPath>..\..\packages\Microsoft.VisualStudio.TextManager.Interop.12.0.12.0.30110\lib\Microsoft.VisualStudio.TextManager.Interop.12.0.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.Threading, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Microsoft.VisualStudio.Threading.14.1.114\lib\net45\Microsoft.VisualStudio.Threading.dll</HintPath>
       <Private>True</Private>
@@ -296,7 +326,7 @@
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="PamlDesignerTheme.pkgdef">
+    <Content Include="PerspexDesignerTheme.pkgdef">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Resources\PerspexPackage.ico" />
@@ -309,7 +339,11 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Page Include="Views\PamlDesignerHostView.xaml">
+    <Page Include="Views\PerspexDesignerGeneralPageView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\PerspexDesignerHostView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -325,6 +359,13 @@
       <Project>{75104AA0-3B1B-47D4-9C4D-501A8185ACFC}</Project>
       <Name>PerspexApplicationTemplate</Name>
       <VSIXSubPath>ProjectTemplates</VSIXSubPath>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+    </ProjectReference>
+    <ProjectReference Include="..\Templates\PerspexUserControlTemplate\PerspexUserControlTemplate.csproj">
+      <Project>{3BFD12BB-E6D8-46D7-9D5F-119A9896941E}</Project>
+      <Name>PerspexUserControlTemplate</Name>
+      <VSIXSubPath>ItemTemplates</VSIXSubPath>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
     </ProjectReference>

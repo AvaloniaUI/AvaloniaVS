@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <VSTemplate Version="3.0.0" Type="Project" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" xmlns:sdk="http://schemas.microsoft.com/developer/vstemplate-sdkextension/2010">
   <TemplateData>
-    <Name>Perspex Application Template</Name>
-    <Description>Perspex Application Template</Description>
+    <Name>Perspex Application</Name>
+    <Description>Perspex client application</Description>
     <Icon>PerspexApplicationTemplate.ico</Icon>
     <ProjectType>CSharp</ProjectType>
     <RequiredFrameworkVersion>4.5</RequiredFrameworkVersion>
@@ -15,10 +15,10 @@
   <TemplateContent>
     <Project File="ProjectTemplate.csproj" ReplaceParameters="true">
       <ProjectItem ReplaceParameters="true" TargetFileName="Properties\AssemblyInfo.cs">AssemblyInfo.cs</ProjectItem>
-      <ProjectItem ReplaceParameters="true" TargetFileName="App.paml">App.paml</ProjectItem>
-      <ProjectItem ReplaceParameters="true" TargetFileName="App.paml.cs" >App.paml.cs</ProjectItem>
-      <ProjectItem ReplaceParameters="true" OpenInEditor="true" TargetFileName="MainWindow.paml">MainWindow.paml</ProjectItem>
-      <ProjectItem ReplaceParameters="true" TargetFileName="MainWindow.paml.cs" >MainWindow.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="App.xaml">App.xaml</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="App.xaml.cs" >App.xaml.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" OpenInEditor="true" TargetFileName="MainWindow.xaml">MainWindow.xaml</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="MainWindow.xaml.cs" >MainWindow.xaml.cs</ProjectItem>
     </Project>
   </TemplateContent>
   <WizardExtension>

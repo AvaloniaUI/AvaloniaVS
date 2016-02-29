@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="PerspexVS.Views.PamlDesignerHostView"
+﻿<UserControl x:Class="PerspexVS.Views.PerspexDesignerHostView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -51,7 +51,7 @@
                       DockPanel.Dock="Left"
                       Data="{StaticResource MarkupIconShape}"
                       SnapsToDevicePixels="True" />
-                <TextBlock Text="PAML"
+                <TextBlock Text="XAML"
                            Margin="2,0,0,0"
                            Visibility="{Binding ElementName=Container, Path=IsHorizontal, Converter={StaticResource BooleanToVisibilityConverter}}"/>
             </DockPanel>

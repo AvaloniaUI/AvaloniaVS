@@ -1,10 +1,9 @@
 ﻿using System;
+using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Shell.Interop;
 using IServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -13,18 +12,19 @@ using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 
 namespace PerspexVS.Infrastructure
 {
-    [Guid(Guids.PamlDesignerEditorFactoryString)]
-    public class PamlEditorFactory : IVsEditorFactory, IDisposable
+    [Guid(Guids.PerspexEditorFactoryString), Export]
+    public class PerspexEditorFactory : IVsEditorFactory, IDisposable
     {
-        public const string Extension = ".paml";
-
         private readonly PerspexPackage _package;
+        private readonly IPerspexDesignerSettings _designerSettings;
         private ServiceProvider _serviceProvider;
         private IOleServiceProvider _oleServiceProvider;
 
-        public PamlEditorFactory(PerspexPackage package)
+        [ImportingConstructor]
+        public PerspexEditorFactory(PerspexPackage package, IPerspexDesignerSettings designerSettings)
         {
             _package = package;
+            _designerSettings = designerSettings;
         }
 
         public object GetService(Type serviceType)
@@ -46,7 +46,7 @@ namespace PerspexVS.Infrastructure
         {
             ppunkDocView = IntPtr.Zero;
             ppunkDocData = IntPtr.Zero;
-            pguidCmdUI = Guids.PamlDesignerEditorFactoryGuid;
+            pguidCmdUI = Guids.PerspexDesignerGeneralPageGuid;
             pgrfCDW = 0;
             pbstrEditorCaption = null;
 
@@ -60,20 +60,18 @@ namespace PerspexVS.Infrastructure
 
             if (punkDocDataExisting == IntPtr.Zero)
             {
-                // the document is not yet open
-
                 // create an invisible editor
                 var invisibleEditorManager = (IVsInvisibleEditorManager)_serviceProvider.GetService(typeof(IVsInvisibleEditorManager));
                 IVsInvisibleEditor invisibleEditor;
                 ErrorHandler.ThrowOnFailure(invisibleEditorManager.RegisterInvisibleEditor(pszMkDocument,
-                    pProject: null,
-                    dwFlags: (uint)_EDITORREGFLAGS.RIEF_ENABLECACHING,
-                    pFactory: null,
-                    ppEditor: out invisibleEditor));
+                    null,
+                    (uint) _EDITORREGFLAGS.RIEF_ENABLECACHING,
+                    null,
+                    out invisibleEditor));
 
                 var docDataPointer = IntPtr.Zero;
                 var guidIVSTextLines = typeof(IVsTextLines).GUID;
-                ErrorHandler.ThrowOnFailure(invisibleEditor.GetDocData(fEnsureWritable: 1, riid: ref guidIVSTextLines, ppDocData: out docDataPointer));
+                ErrorHandler.ThrowOnFailure(invisibleEditor.GetDocData(1, ref guidIVSTextLines, out docDataPointer));
                 documentBuffer = (IVsTextLines)Marshal.GetObjectForIUnknown(docDataPointer);
 
                 //It is important to site the TextBuffer object
@@ -101,39 +99,53 @@ namespace PerspexVS.Infrastructure
             // set xml as the language service id
             ErrorHandler.ThrowOnFailure(documentBuffer.SetLanguageServiceID(ref Guids.XmlLanguageServiceGuid));
 
-            //Get the component model so we can request the editor adapter factory which we can use to spin up an editor instance.
-            var componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
-            var editorAdapterFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
+            var editorPane = GetDocumentView(documentBuffer, pszMkDocument);
+            ppunkDocView = Marshal.GetIUnknownForObject(editorPane);
+            ppunkDocData = Marshal.GetIUnknownForObject(documentBuffer);
+            pbstrEditorCaption = "";
+            return VSConstants.S_OK;
+        }
 
-            //Create a code window adapter.
-            var codeWindow = editorAdapterFactoryService.CreateVsCodeWindowAdapter(_oleServiceProvider);
+        internal object GetDocumentView(IVsTextLines documentBuffer, string filePath)
+        {
+            var codeWindow = CreateVsCodeWindow(documentBuffer);
+
+            // in case the designer is not supported, we return the current VsCodeWindow that we just created.
+            if (!_designerSettings.IsDesignerEnabled)
+            {
+                return codeWindow;
+            }
+
+            var perspexDesignerPane = new PerspexDesignerPane(codeWindow, documentBuffer, filePath, _designerSettings);
+            SiteObject(perspexDesignerPane);
+            return perspexDesignerPane;
+        }
+
+        private void SiteObject(IObjectWithSite objectWithSite)
+        {
+            if (objectWithSite == null)
+            {
+                return;
+            }
+
+            var oleServiceProvider = (IOleServiceProvider)GetService(typeof(IOleServiceProvider));
+            objectWithSite.SetSite(oleServiceProvider);
+        }
+
+        private IVsCodeWindow CreateVsCodeWindow(IVsTextLines documentBuffer)
+        {
+            // Create a code window adapter.
+            var codeWindow = VisualStudioServices.VsEditorAdaptersFactoryService.CreateVsCodeWindowAdapter(_oleServiceProvider);
 
             // Disable the splitter control on the editor as leaving it enabled causes a crash if the user
             // tries to use it here :(
             var codeWindowEx = (IVsCodeWindowEx)codeWindow;
             var initView = new INITVIEW[1];
-            codeWindowEx.Initialize((uint)_codewindowbehaviorflags.CWB_DISABLESPLITTER,
-                VSUSERCONTEXTATTRIBUTEUSAGE.VSUC_Usage_Filter,
-                szNameAuxUserContext: "",
-                szValueAuxUserContext: "",
-                InitViewFlags: 0,
-                pInitView: initView);
+            codeWindowEx.Initialize((uint)_codewindowbehaviorflags.CWB_DEFAULT, VSUSERCONTEXTATTRIBUTEUSAGE.VSUC_Usage_Filter, "", "", 0, initView);
 
             //Associate our IVsTextLines with our new code window.
             ErrorHandler.ThrowOnFailure(codeWindow.SetBuffer(documentBuffer));
-
-            //Get our text view for our editor which we will use to get the WPF control that hosts said editor.
-            IVsTextView textView;
-            ErrorHandler.ThrowOnFailure(codeWindow.GetPrimaryView(out textView));
-
-            //Get our WPF host from our text view (from our code window).
-            var textViewHost = editorAdapterFactoryService.GetWpfTextViewHost(textView);
-
-            var editorPane = new PamlDocumentPane(textViewHost, documentBuffer, textView, pszMkDocument);
-            ppunkDocView = Marshal.GetIUnknownForObject(editorPane);
-            ppunkDocData = Marshal.GetIUnknownForObject(documentBuffer);
-            pbstrEditorCaption = "";
-            return VSConstants.S_OK;
+            return codeWindow;
         }
 
         public int SetSite(IServiceProvider psp)
