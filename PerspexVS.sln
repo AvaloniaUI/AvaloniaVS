@@ -44,17 +44,14 @@ Global
 		{BDDC602F-89C4-439C-B728-582700B689B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BDDC602F-89C4-439C-B728-582700B689B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BDDC602F-89C4-439C-B728-582700B689B4}.Release|Any CPU.Build.0 = Release|Any CPU
-<<<<<<< HEAD
 		{EC42600F-049B-43FF-AED1-8314D61B2749}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{EC42600F-049B-43FF-AED1-8314D61B2749}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EC42600F-049B-43FF-AED1-8314D61B2749}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EC42600F-049B-43FF-AED1-8314D61B2749}.Release|Any CPU.Build.0 = Release|Any CPU
-=======
 		{3BFD12BB-E6D8-46D7-9D5F-119A9896941E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3BFD12BB-E6D8-46D7-9D5F-119A9896941E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3BFD12BB-E6D8-46D7-9D5F-119A9896941E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3BFD12BB-E6D8-46D7-9D5F-119A9896941E}.Release|Any CPU.Build.0 = Release|Any CPU
->>>>>>> 28c1d2fcc8d3f86c6b6526f93b9dd1625d8af65f
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
