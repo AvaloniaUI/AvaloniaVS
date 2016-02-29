@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerspexWindowTemplate", "sr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerspexVS.Controls", "src\PerspexVS.Controls\PerspexVS.Controls.csproj", "{BDDC602F-89C4-439C-B728-582700B689B4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Perspex.Designer", "src\Perspex.Designer\Perspex.Designer.csproj", "{EC42600F-049B-43FF-AED1-8314D61B2749}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,10 @@ Global
 		{BDDC602F-89C4-439C-B728-582700B689B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BDDC602F-89C4-439C-B728-582700B689B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BDDC602F-89C4-439C-B728-582700B689B4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC42600F-049B-43FF-AED1-8314D61B2749}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC42600F-049B-43FF-AED1-8314D61B2749}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC42600F-049B-43FF-AED1-8314D61B2749}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC42600F-049B-43FF-AED1-8314D61B2749}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
