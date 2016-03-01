@@ -67,6 +67,9 @@
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\Perspex\src\Perspex.Application\Designer\DesignerApi.cs">
+      <Link>AppHost\DesignerApi.cs</Link>
+    </Compile>
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
@@ -85,7 +88,6 @@
     <Compile Include="DemoWindow.xaml.cs">
       <DependentUpon>DemoWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="AppHost\DesignerApi.cs" />
     <Compile Include="InProcDesigner\InProcDesignerView.xaml.cs">
       <DependentUpon>InProcDesignerView.xaml</DependentUpon>
     </Compile>

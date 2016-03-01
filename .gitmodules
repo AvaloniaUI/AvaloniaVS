@@ -1,0 +1,3 @@
+[submodule "src/Perspex"]
+	path = src/Perspex
+	url = https://github.com/Perspex/Perspex
