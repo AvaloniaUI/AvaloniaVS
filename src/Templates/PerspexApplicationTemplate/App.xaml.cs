@@ -13,7 +13,6 @@ namespace $safeprojectname$
         {
             RegisterServices();
             InitializeSubsystems((int)Environment.OSVersion.Platform);
-            Styles = new DefaultTheme();
             PerspexXamlLoader.Load(this);
         }
 
