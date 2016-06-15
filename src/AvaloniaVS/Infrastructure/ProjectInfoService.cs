@@ -35,12 +35,40 @@ namespace AvaloniaVS.Infrastructure
 
         public event EventHandler<EventArgs> Changed;
 
+
+        IEnumerable<Project> GetProjects(IEnumerable<Project> en)
+        {
+            foreach (var p in en)
+            {
+                if(p.Object is VSProject)
+                    yield return p;
+
+                if (p.Object is SolutionFolder)
+                    foreach (var item in GetProjects(p.ProjectItems.OfType<ProjectItem>().Select(i => i.SubProject)))
+                        yield return item;
+            }
+
+        }
+
         private void OnTick(object sender, EventArgs e)
         {
             var lst = new List<ProjectDescriptor>();
             try
             {
-                lst.AddRange(_dte.Solution.Projects.OfType<Project>().Where(p => p.Object is VSProject).Select(proj => new ProjectDescriptor(proj)));
+
+
+
+                foreach (var proj in GetProjects(_dte.Solution.Projects.OfType<Project>()))
+                {
+                    try
+                    {
+                        lst.Add(new ProjectDescriptor(proj));
+                    }
+                    catch
+                    {
+                        
+                    }
+                }
             }
             catch
             {

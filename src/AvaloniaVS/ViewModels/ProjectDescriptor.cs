@@ -21,12 +21,18 @@ namespace AvaloniaVS.ViewModels
                 return;
             foreach(Reference r in vsproj.References)
             {
-                if(r.SourceProject == null || References.Contains(r.SourceProject))
-                    continue;
-                References.Add(r.SourceProject);
-                ScanReferences(r.SourceProject);
+                try
+                {
+                    if (r.SourceProject == null || References.Contains(r.SourceProject))
+                        continue;
+                    References.Add(r.SourceProject);
+                    ScanReferences(r.SourceProject);
+                }
+                catch
+                {
+                    
+                }
             }
-
         }
 
         public bool ChangedFrom(ProjectDescriptor other)
