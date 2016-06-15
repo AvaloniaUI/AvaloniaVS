@@ -65,7 +65,7 @@ namespace AvaloniaVS
             }
         }
 
-        public const string AvaloniaNamespace = "https://github.com/Avalonia";
+        public const string AvaloniaNamespace = "https://github.com/avaloniaui";
 
         public static Project GetContainingProject(this IWpfTextView textView)
         {

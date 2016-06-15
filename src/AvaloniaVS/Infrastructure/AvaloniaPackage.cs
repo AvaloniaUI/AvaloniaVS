@@ -27,7 +27,7 @@ namespace AvaloniaVS.Infrastructure
         "xaml",
         LogicalViewID.Designer,
         1000,
-        Namespace = "https://github.com/Avalonia",
+        Namespace = "https://github.com/avaloniaui",
         MatchExtensionAndNamespace = true,
         CodeLogicalViewEditor = typeof(AvaloniaEditorFactory),
         DesignerLogicalViewEditor = typeof(AvaloniaEditorFactory),
