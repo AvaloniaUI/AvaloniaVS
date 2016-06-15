@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="Project" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" xmlns:sdk="http://schemas.microsoft.com/developer/vstemplate-sdkextension/2010">
+  <TemplateData>
+    <Name>Avalonia Application</Name>
+    <Description>Avalonia client application</Description>
+    <Icon>AvaloniaApplicationTemplate.ico</Icon>
+    <ProjectType>CSharp</ProjectType>
+    <RequiredFrameworkVersion>4.5</RequiredFrameworkVersion>
+    <SortOrder>1000</SortOrder>
+    <TemplateID>191cf8ae-cce5-4162-8932-d4f34eec1938</TemplateID>
+    <CreateNewFolder>true</CreateNewFolder>
+    <DefaultName>AvaloniaApplication</DefaultName>
+    <ProvideDefaultName>true</ProvideDefaultName>
+  </TemplateData>
+  <TemplateContent>
+    <Project File="ProjectTemplate.csproj" ReplaceParameters="true">
+      <ProjectItem ReplaceParameters="true" TargetFileName="Properties\AssemblyInfo.cs">AssemblyInfo.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="App.paml">App.paml</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="App.paml.cs" >App.paml.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" OpenInEditor="true" TargetFileName="MainWindow.paml">MainWindow.paml</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="MainWindow.paml.cs" >MainWindow.paml.cs</ProjectItem>
+    </Project>
+  </TemplateContent>
+  <WizardExtension>
+    <Assembly>NuGet.VisualStudio.Interop, Version=1.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</Assembly>
+    <FullClassName>NuGet.VisualStudio.TemplateWizard</FullClassName>
+  </WizardExtension>
+  <WizardData>
+    <packages repository="extension" repositoryId="Avalonia.AvaloniaVS">
+      <package id="Rx-Core" version="2.2.5"/>
+      <package id="Rx-Interfaces" version="2.2.5"/>
+      <package id="Rx-Linq" version="2.2.5"/>
+      <package id="Rx-Main" version="2.2.5"/>
+      <package id="Rx-PlatformServices" version="2.2.5"/>
+      <package id="Rx-Xaml" version="2.2.5"/>
+      <package id="Serilog" version="1.5.14"/>
+      <package id="Splat" version="1.6.2"/>
+      <package id="Sprache" version="2.0.0.50"/>
+      <package id="Avalonia" version="0.2.9-alpha4-pre-1"/>
+      <package id="Avalonia.Desktop" version="0.2.9-alpha4-pre-1"/>
+      <package id="SharpDX" version="3.0.2"/>
+      <package id="SharpDX.Direct2D1" version="3.0.2"/>
+      <package id="SharpDX.DXGI" version="3.0.2"/>
+    </packages>
+  </WizardData>
+</VSTemplate>

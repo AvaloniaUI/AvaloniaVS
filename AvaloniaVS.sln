@@ -1,0 +1,59 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaVS", "src\AvaloniaVS\AvaloniaVS.csproj", "{378D99A6-57BF-432D-A5A2-82CC4153736A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sandbox", "Sandbox\Sandbox.csproj", "{6011E45F-2DE0-472C-817C-5E310AC00606}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Templates", "Templates", "{82C1C97B-56A1-4287-B8C2-42A127A07821}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaApplicationTemplate", "src\Templates\AvaloniaApplicationTemplate\AvaloniaApplicationTemplate.csproj", "{75104AA0-3B1B-47D4-9C4D-501A8185ACFC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaWindowTemplate", "src\Templates\AvaloniaWindowTemplate\AvaloniaWindowTemplate.csproj", "{C8B3FF98-50A3-4C04-8F8C-ED853EC0760C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaVS.Controls", "src\AvaloniaVS.Controls\AvaloniaVS.Controls.csproj", "{BDDC602F-89C4-439C-B728-582700B689B4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaUserControlTemplate", "src\Templates\AvaloniaUserControlTemplate\AvaloniaUserControlTemplate.csproj", "{3BFD12BB-E6D8-46D7-9D5F-119A9896941E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{378D99A6-57BF-432D-A5A2-82CC4153736A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{378D99A6-57BF-432D-A5A2-82CC4153736A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{378D99A6-57BF-432D-A5A2-82CC4153736A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{378D99A6-57BF-432D-A5A2-82CC4153736A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6011E45F-2DE0-472C-817C-5E310AC00606}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6011E45F-2DE0-472C-817C-5E310AC00606}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6011E45F-2DE0-472C-817C-5E310AC00606}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6011E45F-2DE0-472C-817C-5E310AC00606}.Release|Any CPU.Build.0 = Release|Any CPU
+		{75104AA0-3B1B-47D4-9C4D-501A8185ACFC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{75104AA0-3B1B-47D4-9C4D-501A8185ACFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{75104AA0-3B1B-47D4-9C4D-501A8185ACFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{75104AA0-3B1B-47D4-9C4D-501A8185ACFC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C8B3FF98-50A3-4C04-8F8C-ED853EC0760C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C8B3FF98-50A3-4C04-8F8C-ED853EC0760C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C8B3FF98-50A3-4C04-8F8C-ED853EC0760C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C8B3FF98-50A3-4C04-8F8C-ED853EC0760C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BDDC602F-89C4-439C-B728-582700B689B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BDDC602F-89C4-439C-B728-582700B689B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BDDC602F-89C4-439C-B728-582700B689B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BDDC602F-89C4-439C-B728-582700B689B4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3BFD12BB-E6D8-46D7-9D5F-119A9896941E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3BFD12BB-E6D8-46D7-9D5F-119A9896941E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3BFD12BB-E6D8-46D7-9D5F-119A9896941E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3BFD12BB-E6D8-46D7-9D5F-119A9896941E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{75104AA0-3B1B-47D4-9C4D-501A8185ACFC} = {82C1C97B-56A1-4287-B8C2-42A127A07821}
+		{C8B3FF98-50A3-4C04-8F8C-ED853EC0760C} = {82C1C97B-56A1-4287-B8C2-42A127A07821}
+		{3BFD12BB-E6D8-46D7-9D5F-119A9896941E} = {82C1C97B-56A1-4287-B8C2-42A127A07821}
+	EndGlobalSection
+EndGlobal

@@ -12,8 +12,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using PerspexVS.Infrastructure;
-using PerspexVS.IntelliSense;
+using AvaloniaVS.Infrastructure;
+using AvaloniaVS.IntelliSense;
 
 namespace Sandbox
 {
