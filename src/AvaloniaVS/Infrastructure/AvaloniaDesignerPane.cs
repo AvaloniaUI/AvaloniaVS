@@ -16,6 +16,7 @@ using AvaloniaVS.Controls;
 using AvaloniaVS.Helpers;
 using AvaloniaVS.IntelliSense;
 using AvaloniaVS.Internals;
+using AvaloniaVS.ViewModels;
 using AvaloniaVS.Views;
 using Debugger = System.Diagnostics.Debugger;
 using HorizontalAlignment = System.Windows.HorizontalAlignment;
@@ -28,7 +29,8 @@ namespace AvaloniaVS.Infrastructure
         private const int WM_KEYFIRST = 0x0100;
         private const int WM_KEYLAST = 0x0109;
 
-        private AvaloniaDesignerHostView _designerHost;
+        private AvaloniaDesignerHostView _designerHostView;
+        private AvaloniaDesignerHostViewModel _designerHost;
         private readonly string _fileName;
         private readonly IAvaloniaDesignerSettings _designerSettings;
         private AvaloniaDesigner _designer;
@@ -55,60 +57,40 @@ namespace AvaloniaVS.Infrastructure
         private void InitializePane()
         {
             // initialize the designer host view.
-            _designerHost = new AvaloniaDesignerHostView
+            _designerHost = new AvaloniaDesignerHostViewModel(_fileName)
             {
-                EditView =
-                {
-                    Content = ((WindowPane)_vsCodeWindow).Content
-                },
-                Container =
-                {
-                    Orientation = _designerSettings.SplitOrientation == SplitOrientation.Default ||
-                                  _designerSettings.SplitOrientation == SplitOrientation.Horizontal
-                        ? Orientation.Horizontal
-                        : Orientation.Vertical,
-                    IsReversed = _designerSettings.IsReversed
-                }
+                EditView = ((WindowPane) _vsCodeWindow).Content,
+                Orientation = _designerSettings.SplitOrientation == SplitOrientation.Default ||
+                              _designerSettings.SplitOrientation == SplitOrientation.Horizontal
+                    ? Orientation.Horizontal
+                    : Orientation.Vertical,
+                IsReversed = _designerSettings.IsReversed
             };
-
-            if (_designerSettings.DocumentView != DocumentView.SplitView)
-            {
-                _designerHost.Container.Collapse(_designerSettings.DocumentView == DocumentView.DesignView ? SplitterViews.Design : SplitterViews.Editor);
-            }
+            _designerHostView = new AvaloniaDesignerHostView {DataContext = _designerHost};
+            _designerHostView.Init(_designerSettings);
 
             InitializeDesigner();
+            _designerHost.TargetExeChanged += UpdateTargetExe;
         }
 
-        private static Project GetContainerProject(string fileName)
+        void UpdateTargetExe(string exe)
         {
-            if (string.IsNullOrWhiteSpace(fileName) || !File.Exists(fileName))
-            {
-                return null;
-            }
-
-            var dte2 = (DTE2) Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof (SDTE));
-            var projItem = dte2?.Solution.FindProjectItem(fileName);
-            return projItem?.ContainingProject;
+            _targetExe = exe;
+            _designer.TargetExe = exe;
+            _designerHost.DesignView = _targetExe == null
+                ? (object) new TextBlock
+                {
+                    VerticalAlignment = VerticalAlignment.Center,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    Text = $"{Path.GetFileName(_fileName)} cannot be edited in the Design view. Make sure that it's referenced from at least one desktop exe project"
+                }
+                : _designer;
         }
 
         private void InitializeDesigner()
         {
-            _targetExe = GetContainerProject(_fileName).GetAssemblyPath();
-            if (_targetExe == null)
-            {
-                var block = new TextBlock
-                {
-                    VerticalAlignment = VerticalAlignment.Center,
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    Text = $"{Path.GetFileName(_fileName)} cannot be edited in the Design view."
-                };
-                _designerHost.DesignView.Content = block;
-                return;
-            }
-
-            _designer = new AvaloniaDesigner { TargetExe = _targetExe };
-            _designerHost.DesignView.Content = _designer;
-
+            _designer = new AvaloniaDesigner();
+            UpdateTargetExe(_designerHost.TargetExe);
             _designer.Xaml = _textBuffer.CurrentSnapshot.GetText();
             AvaloniaBuildEvents.Instance.BuildEnd += Restart;
             AvaloniaBuildEvents.Instance.ModeChanged += OnModeChanged;
@@ -138,13 +120,7 @@ namespace AvaloniaVS.Infrastructure
             _textBuffer.Properties[typeof (Metadata)] = MetadataLoader.LoadMetadata(_targetExe);
         }
 
-        public override object Content
-        {
-            get
-            {
-                return _designerHost;
-            }
-        }
+        public override object Content => _designerHostView;
 
         private void EventsOnBuildBegin()
         {

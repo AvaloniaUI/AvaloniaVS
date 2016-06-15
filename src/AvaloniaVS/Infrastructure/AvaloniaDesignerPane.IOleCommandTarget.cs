@@ -82,7 +82,7 @@ namespace AvaloniaVS.Infrastructure
             if (m.Msg >= WM_KEYFIRST && m.Msg <= WM_KEYLAST)
             {
                 //Only attempt to do the input -> command mapping if focus is inside our hosted editor.
-                if (_designerHost.EditView.IsKeyboardFocusWithin)
+                if ((_designerHost.EditView as FrameworkElement)?.IsKeyboardFocusWithin == true)
                 {
                     IVsFilterKeys2 filterKeys = (IVsFilterKeys2)GetService(typeof(SVsFilterKeys));
                     MSG oleMSG = new MSG() { hwnd = m.HWnd, lParam = m.LParam, wParam = m.WParam, message = (uint)m.Msg };
@@ -154,8 +154,8 @@ namespace AvaloniaVS.Infrastructure
 
         private void OnViewForm(object sender, EventArgs e)
         {
-            _designerHost.Container.SwapActiveView();
-            if (_designerHost.Container.IsEditorActive)
+            _designerHostView.Container.SwapActiveView();
+            if (_designerHostView.Container.IsEditorActive)
             {
                 IVsTextView lastActiveView;
                 GetLastActiveView(out lastActiveView);
