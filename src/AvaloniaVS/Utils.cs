@@ -93,6 +93,18 @@ namespace AvaloniaVS
             return assemblyPath;
         }
 
+        public static Project GetContainerProject(string fileName)
+        {
+            if (string.IsNullOrWhiteSpace(fileName) || !File.Exists(fileName))
+            {
+                return null;
+            }
+
+            var dte2 = (DTE2)Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof(SDTE));
+            var projItem = dte2?.Solution.FindProjectItem(fileName);
+            return projItem?.ContainingProject;
+        }
+
         public static TValue GetOrCreate<TKey, TValue>(this Dictionary<TKey, TValue> dic, TKey key,
             Func<TKey, TValue> getter)
         {

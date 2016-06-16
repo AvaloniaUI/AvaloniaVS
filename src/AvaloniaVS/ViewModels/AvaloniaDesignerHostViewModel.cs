@@ -61,7 +61,7 @@ namespace AvaloniaVS.ViewModels
 
         void PopulateTargetList()
         {
-            var containing = GetContainerProject(_fileName);
+            var containing = Utils.GetContainerProject(_fileName);
             AvailableTargets = new List<ProjectDescriptor>(
                 ProjectInfoService.Projects.Where(p => p.TargetAssembly?.ToLower()?.EndsWith(".exe") == true
                                                        && (p.Project == containing || p.References.Contains(containing)))
@@ -74,16 +74,6 @@ namespace AvaloniaVS.ViewModels
             ShowTargetSelector = AvailableTargets.Count > 1;
         }
 
-        private static Project GetContainerProject(string fileName)
-        {
-            if (string.IsNullOrWhiteSpace(fileName) || !File.Exists(fileName))
-            {
-                return null;
-            }
-
-            var dte2 = (DTE2)Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof(SDTE));
-            var projItem = dte2?.Solution.FindProjectItem(fileName);
-            return projItem?.ContainingProject;
-        }
+        
     }
 }

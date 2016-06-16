@@ -89,7 +89,10 @@ namespace AvaloniaVS.Infrastructure
 
         private void InitializeDesigner()
         {
-            _designer = new AvaloniaDesigner();
+            _designer = new AvaloniaDesigner()
+            {
+                SourceAssembly = Utils.GetContainerProject(_fileName)?.GetAssemblyPath()
+            };
             UpdateTargetExe(_designerHost.TargetExe);
             _designer.Xaml = _textBuffer.CurrentSnapshot.GetText();
             AvaloniaBuildEvents.Instance.BuildEnd += Restart;
