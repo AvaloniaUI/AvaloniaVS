@@ -30,6 +30,16 @@ namespace AvaloniaVS.IntelliSense
         public string[] EnumValues { get; set; }
     }
 
+    public class CustomEnumTypeDef : TypeDefUser
+    {
+        public CustomEnumTypeDef(UTF8String name, string[] values) : base(name)
+        {
+            Values = values;
+        }
+
+        public string[] Values { get; }
+    }
+
     public enum MetadataPropertyType
     {
         String,
@@ -53,7 +63,13 @@ namespace AvaloniaVS.IntelliSense
 
         static void ResolvePropertyType(TypeDef type, MetadataProperty info)
         {
-            if (type.IsEnum)
+            if (type is CustomEnumTypeDef)
+            {
+                var ct = type as CustomEnumTypeDef;
+                info.Type = MetadataPropertyType.Enum;
+                info.EnumValues = ct.Values;
+            }
+            else if (type.IsEnum)
             {
                 info.Type = MetadataPropertyType.Enum;
                 info.EnumValues = type.Fields.Where(f => f.IsStatic).Select(f => f.Name.String).ToArray();
@@ -65,6 +81,11 @@ namespace AvaloniaVS.IntelliSense
             var types = new Dictionary<string, MetadataType>();
             var typeDefs = new Dictionary<MetadataType, TypeDef>();
             var metadata = new Metadata();
+
+            // add easilly the bool type and other types in the future like Brushes posiibly
+            var td = new CustomEnumTypeDef(typeof(bool).FullName, new[] { "True", "False" });
+            types.Add(typeof(bool).FullName, new MetadataType() { Name = typeof(bool).FullName });
+            typeDefs.Add(types[typeof(bool).FullName], td);
 
             foreach (var asm in LoadAssemblies(target))
             {
@@ -100,10 +121,16 @@ namespace AvaloniaVS.IntelliSense
                         if (setMethod == null || setMethod.IsStatic || !setMethod.IsPublic)
                             continue;
 
-                        var p = new MetadataProperty {Name = prop.Name};
-                        var mt = types.GetValueOrDefault(setMethod.ReturnType.FullName);
-                        if (mt != null)
-                            ResolvePropertyType(typeDefs[mt], p);
+                        var p = new MetadataProperty { Name = prop.Name };
+
+                        if (setMethod.Parameters.Count == 2)
+                        {
+                            //1 param this, 2 param prop value
+                            var mt = types.GetValueOrDefault(setMethod.Parameters[1].Type.FullName);
+
+                            if (mt != null)
+                                ResolvePropertyType(typeDefs[mt], p);
+                        }
 
                         type.Properties.Add(p);
                     }
@@ -112,7 +139,7 @@ namespace AvaloniaVS.IntelliSense
                         if (methodDef.Name.StartsWith("Set") && methodDef.IsStatic && methodDef.IsPublic
                             && methodDef.Parameters.Count == 2)
                         {
-                            var p = new MetadataProperty() {Name = methodDef.Name.Substring(3), IsAttached = true};
+                            var p = new MetadataProperty() { Name = methodDef.Name.Substring(3), IsAttached = true };
                             var mt = types.GetValueOrDefault(methodDef.Parameters[1].Type.FullName);
                             if (mt != null)
                                 ResolvePropertyType(typeDefs[mt], p);
