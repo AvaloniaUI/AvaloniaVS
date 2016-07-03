@@ -145,7 +145,7 @@ namespace AvaloniaVS.Infrastructure
             if (token != _lastRestartToken)
                 return;
             var dte = (DTE)Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof(DTE));
-            if (dte.Mode != vsIDEMode.vsIDEModeDesign)
+            if (dte.Mode != vsIDEMode.vsIDEModeDesign || AvaloniaBuildEvents.IsBuilding)
                 return;
             try
             {

@@ -25,6 +25,7 @@ namespace AvaloniaVS.Infrastructure
 
         public event Action ModeChanged;
 
+        public static bool IsBuilding { get; private set; }
 
         private AvaloniaBuildEvents()
         {
@@ -70,6 +71,7 @@ namespace AvaloniaVS.Infrastructure
         /// <param name="action"></param>
         private void NotifyBuildEnd(vsBuildScope scope, vsBuildAction action)
         {
+            IsBuilding = false;
             Console.WriteLine("BuildEnd: " + scope + "/" + action);
             if (action < vsBuildAction.vsBuildActionBuild || action > vsBuildAction.vsBuildActionRebuildAll)
             {
@@ -87,6 +89,7 @@ namespace AvaloniaVS.Infrastructure
         /// <param name="action"></param>
         private void PdbeBuildBegin(vsBuildScope scope, vsBuildAction action)
         {
+            IsBuilding = true;
             BuildBegin?.Invoke();
             DesignerKiller.KillAllDesigners();
         }
