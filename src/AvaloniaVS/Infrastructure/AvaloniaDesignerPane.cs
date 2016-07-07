@@ -113,14 +113,14 @@ namespace AvaloniaVS.Infrastructure
             base.OnClose();
         }
 
-        void ReloadMetadata()
+        private void ReloadMetadata()
         {
             if (!File.Exists(_targetExe))
             {
                 return;
             }
 
-            _textBuffer.Properties[typeof (Metadata)] = MetadataLoader.LoadMetadata(_targetExe);
+            _textBuffer.Properties[typeof(Metadata)] = MetadataLoader.LoadMetadata(_targetExe);
         }
 
         public override object Content => _designerHostView;
@@ -149,8 +149,15 @@ namespace AvaloniaVS.Infrastructure
                 return;
             try
             {
-                Console.WriteLine("Restarting designer");
-                _designer?.RestartProcess();
+                if (_designerSettings.DocumentView == DocumentView.SourceView)
+                {
+                    Console.WriteLine("Designer suspended in SourceView");
+                }
+                else
+                {
+                    Console.WriteLine("Restarting designer");
+                    _designer?.RestartProcess();
+                }
             }
             catch
             {
