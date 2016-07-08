@@ -20,14 +20,18 @@ namespace AvaloniaVS.IntelliSense
         public string Name { get; set; }
         public List<MetadataProperty> Properties { get; set; } = new List<MetadataProperty>();
         public bool HasAttachedProperties { get; set; }
+        public bool HasStaticGetters { get; set; }
     }
-    
+
     public class MetadataProperty
     {
         public string Name { get; set; }
         public bool IsAttached { get; set; }
         public MetadataPropertyType Type { get; set; }
         public string[] EnumValues { get; set; }
+        public bool IsStatic { get; set; }
+        public bool HasGetter { get; set; }
+        public bool HasSetter { get; set; }
     }
 
     public class CustomEnumTypeDef : TypeDefUser
@@ -115,13 +119,42 @@ namespace AvaloniaVS.IntelliSense
                 var typeDef = typeDefs[type];
                 while (typeDef != null)
                 {
+                    if (typeDef.IsEnum)
+                    {
+                        foreach(var field in typeDef.Fields.Where(f => f.IsStatic))
+                        {
+                            var enumValue = new MetadataProperty { Name = field.Name, IsStatic = true, HasGetter = true };
+                            type.Properties.Add(enumValue);
+                        }
+                    }
+                    foreach (var prop in typeDef.Properties)
+                    {
+                        var getMethod = prop.GetMethod;
+                        if (getMethod == null || !getMethod.IsStatic || !getMethod.IsPublic)
+                            continue;
+
+                        var p = new MetadataProperty { Name = prop.Name, IsStatic = true, HasGetter = true };
+                        var setMethod = prop.SetMethod;
+                        if (setMethod?.Parameters?.Count == 2)
+                        {
+                            p.HasSetter = true;
+                            //1 param this, 2 param prop value
+                            var mt = types.GetValueOrDefault(setMethod.Parameters[1].Type.FullName);
+
+                            if (mt != null)
+                                ResolvePropertyType(typeDefs[mt], p);
+                        }
+
+                        type.Properties.Add(p);
+                    }
+
                     foreach (var prop in typeDef.Properties)
                     {
                         var setMethod = prop.SetMethod;
                         if (setMethod == null || setMethod.IsStatic || !setMethod.IsPublic)
                             continue;
 
-                        var p = new MetadataProperty { Name = prop.Name };
+                        var p = new MetadataProperty { Name = prop.Name, HasSetter = true };
 
                         if (setMethod.Parameters.Count == 2)
                         {
@@ -149,6 +182,7 @@ namespace AvaloniaVS.IntelliSense
                     typeDef = typeDef.GetBaseType().ResolveTypeDef();
                 }
                 type.HasAttachedProperties = type.Properties.Any(p => p.IsAttached);
+                type.HasStaticGetters = type.Properties.Any(p => p.IsStatic && p.HasGetter);
             }
 
             return metadata;

@@ -19,6 +19,19 @@ namespace AvaloniaVS.IntelliSense
 {
     class CompletionSource : ICompletionSource
     {
+        private static readonly HashSet<string> _staticGetters = new HashSet<string>
+        {
+            "StaticExtension",
+            "TypeExtension",
+            "TypeExtension.TypeName=",
+            "TypeExtension.Type=",
+            "BindingExtension.Converter=",
+            "BindingExtension.Source=",
+            "BindingExtension.ConverterParameter=",
+            "BindingExtension.ConverterParameter=",
+            "BindingExtension.FallbackValue=",
+        };
+
         private readonly ITextBuffer _textBuffer;
         private readonly CompletionSourceProvider _provider;
 
@@ -50,7 +63,7 @@ namespace AvaloniaVS.IntelliSense
             public void SetMetadata(Metadata metadata, string xml)
             {
                 var aliases = GetNamespaceAliases(xml);
-                
+
                 //Check if metadata and aliases can be reused
                 if (_metadata == metadata && Aliases != null && _types != null)
                 {
@@ -87,8 +100,22 @@ namespace AvaloniaVS.IntelliSense
 
             }
 
+            public IEnumerable<string> FilterStaticGettersTypeNames(string prefix)
+                    => FilterTypeNames(prefix, false, false, true);
 
-            public IEnumerable<string> FilterTypeNames(string prefix, bool withAttachedPropertiesOnly = false, bool markupExtensionsOnly = false)
+            public IEnumerable<string> FilterTypeNames(string prefix)
+                    => FilterTypeNames(prefix, false, false, false);
+
+            public IEnumerable<string> FilterTypeNames(string prefix, bool withAttachedPropertiesOnly)
+                    => FilterTypeNames(prefix, withAttachedPropertiesOnly, false, false);
+
+            public IEnumerable<string> FilterMarkupExtensionsTypeNames(string prefix)
+                    => FilterTypeNames(prefix, false, true, false);
+
+            public IEnumerable<string> FilterTypeNames(string prefix,
+                                bool withAttachedPropertiesOnly,
+                                bool markupExtensionsOnly,
+                                bool withStaticGettersOnly)
             {
                 prefix = prefix ?? "";
                 var e = _types
@@ -97,6 +124,8 @@ namespace AvaloniaVS.IntelliSense
                     e = e.Where(t => t.Value.HasAttachedProperties);
                 if (markupExtensionsOnly)
                     e = e.Where(t => t.Value.IsMarkupExtension);
+                if (withStaticGettersOnly)
+                    e = e.Where(t => t.Value.HasStaticGetters);
                 return e.Select(s => s.Key);
             }
 
@@ -107,19 +136,33 @@ namespace AvaloniaVS.IntelliSense
                 return rv;
             }
 
-            public IEnumerable<string> FilterPropertyNames(string typeName, string propName, bool attachedOnly = false)
+            public IEnumerable<string> FilterPropertyNames(string typeName, string propName)
+                => FilterPropertyNames(typeName, propName, false, false);
+
+            public IEnumerable<string> FilterPropertyNames(string typeName, string propName, bool attachedOnly)
+                => FilterPropertyNames(typeName, propName, false, attachedOnly);
+
+            public IEnumerable<string> FilterStaticGetterPropertyNames(string typeName, string propName)
+                => FilterPropertyNames(typeName, propName, true, false);
+
+            public IEnumerable<string> FilterPropertyNames(string typeName, string propName, bool staticGetterOnly, bool attachedOnly)
             {
                 var t = LookupType(typeName);
                 propName = propName ?? "";
-                if(t == null)
+                if (t == null)
                     return new string[0];
                 var e = t.Properties.Where(p => p.Name.StartsWith(propName, StringComparison.InvariantCultureIgnoreCase));
+
+                if (staticGetterOnly)
+                    e = e.Where(p => p.IsStatic && p.HasGetter);
+
                 if (attachedOnly)
                     e = e.Where(p => p.IsAttached);
+
                 return e.Select(p => p.Name);
             }
 
-            public MetadataProperty LookupProperty(string typeName, string propName) 
+            public MetadataProperty LookupProperty(string typeName, string propName)
                 => LookupType(typeName)?.Properties?.FirstOrDefault(p => p.Name == propName);
         }
 
@@ -146,32 +189,32 @@ namespace AvaloniaVS.IntelliSense
                     rv[ns] = xmlRdr.Value;
                 }
 
-                
+
             }
-            catch 
+            catch
             {
                 //
             }
             if (!rv.ContainsKey(""))
-                    rv[""] = Utils.AvaloniaNamespace;
+                rv[""] = Utils.AvaloniaNamespace;
             return rv;
         }
 
         public void AugmentCompletionSession(ICompletionSession session, IList<CompletionSet> completionSets)
         {
             Metadata metadata;
-            _textBuffer.Properties.TryGetProperty(typeof (Metadata), out metadata);
+            _textBuffer.Properties.TryGetProperty(typeof(Metadata), out metadata);
             if (metadata == null)
                 return;
 
             var pos = session.TextView.Caret.Position.BufferPosition;
             var text = pos.Snapshot.GetText(0, pos.Position);
             var state = XmlParser.Parse(text);
-            
+
 
             var completions = new List<Completion>();
             _helper.SetMetadata(metadata, _textBuffer.CurrentSnapshot.GetText());
-            
+
             var curStart = state.CurrentValueStart ?? 0;
 
             if (state.State == XmlParser.ParserState.StartElement)
@@ -199,7 +242,7 @@ namespace AvaloniaVS.IntelliSense
                 {
                     var dotPos = state.AttributeName.IndexOf('.');
                     curStart += dotPos + 1;
-                    var split = state.AttributeName.Split(new[] {'.'}, 2);
+                    var split = state.AttributeName.Split(new[] { '.' }, 2);
                     completions.AddRange(_helper.FilterPropertyNames(split[0], split[1], true)
                         .Select(x => new Completion(x, x + "=\"\"", x, null, null)));
                 }
@@ -216,7 +259,7 @@ namespace AvaloniaVS.IntelliSense
                 {
                     session.TextView.Caret.MoveToPreviousCaretPosition();
                     //Automagically trigger new completion for attribute enums
-                    ((CompletionCommandHandler) session.TextView.Properties[typeof (CompletionCommandHandler)])
+                    ((CompletionCommandHandler)session.TextView.Properties[typeof(CompletionCommandHandler)])
                         .TriggerNew();
                 };
             }
@@ -283,7 +326,7 @@ namespace AvaloniaVS.IntelliSense
                 transformedName += "Extension";
 
             if (ext.State == MarkupExtensionParser.ParserStateType.StartElement)
-                completions.AddRange(_helper.FilterTypeNames(ext.ElementName, markupExtensionsOnly: true)
+                completions.AddRange(_helper.FilterMarkupExtensionsTypeNames(ext.ElementName)
                     .Select(t => t.EndsWith("Extension") ? t.Substring(0, t.Length - "Extension".Length) : t)
                     .Select(t => new Completion(t)));
             if (ext.State == MarkupExtensionParser.ParserStateType.StartAttribute ||
@@ -291,17 +334,58 @@ namespace AvaloniaVS.IntelliSense
             {
                 if (ext.State == MarkupExtensionParser.ParserStateType.InsideElement)
                     forcedStart = data.Length;
+
                 completions.AddRange(_helper.FilterPropertyNames(transformedName, ext.AttributeName ?? "")
-                    .Select(x => new Completion(x, x + "=", x, null, null)));
+                        .Select(x => new Completion(x, x + "=", x, null, null)));
+
+                if (HasStaticGetterCompletition(transformedName))
+                {
+                    BuildCompletionsStaticGetters(completions, ext.AttributeName);
+                }
             }
             if (ext.State == MarkupExtensionParser.ParserStateType.AttributeValue)
             {
                 var prop = _helper.LookupProperty(transformedName, ext.AttributeName);
+
                 if (prop?.Type == MetadataPropertyType.Enum && prop.EnumValues != null)
                     completions.AddRange(prop.EnumValues.Select(v => new Completion(v)));
             }
 
+            if (ext.State == MarkupExtensionParser.ParserStateType.BeforeAttributeValue ||
+                ext.State == MarkupExtensionParser.ParserStateType.AttributeValue)
+            {
+                if (HasStaticGetterCompletition(transformedName, ext.AttributeName))
+                {
+                    BuildCompletionsStaticGetters(completions, ext.AttributeValue);
+                }
+            }
+
             return forcedStart ?? ext.CurrentValueStart;
+        }
+
+
+
+        private bool HasStaticGetterCompletition(string markup, string markupProperty = null)
+        {
+            string key = markupProperty == null ? markup : $"{markup}.{markupProperty}";
+
+            return _staticGetters.Contains(key);
+        }
+
+        private void BuildCompletionsStaticGetters(List<Completion> completions, string currentValue)
+        {
+            if (!string.IsNullOrEmpty(currentValue) && currentValue.Contains("."))
+            {
+                var typeAndProp = currentValue.Split(new[] { '.' }, 2);
+
+                completions.AddRange(_helper.FilterStaticGetterPropertyNames(typeAndProp[0], typeAndProp[1])
+                .Select(x => new Completion(x, $"{typeAndProp[0]}.{x}", x, null, null)));
+            }
+            else
+            {
+                completions.AddRange(_helper.FilterStaticGettersTypeNames(currentValue)
+                   .Select(x => new Completion(x, x + ".", x, null, null)));
+            }
         }
     }
 

@@ -152,7 +152,7 @@ namespace AvaloniaVS.Infrastructure
                 }
                 else if (st == ParserStateType.StartAttribute)
                 {
-                    _state.AttributeNameEnd = c - 1;
+                    _state.AttributeNameEnd = c;
                     if (ch == '=')
                         _state.State = ParserStateType.BeforeAttributeValue;
                     else if (char.IsWhiteSpace(ch))
