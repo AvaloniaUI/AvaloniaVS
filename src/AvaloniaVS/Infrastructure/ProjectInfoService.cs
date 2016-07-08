@@ -38,7 +38,7 @@ namespace AvaloniaVS.Infrastructure
 
         IEnumerable<Project> GetProjects(IEnumerable<Project> en)
         {
-            foreach (var p in en)
+            foreach (var p in en.Where(x => x != null))
             {
                 if(p.Object is VSProject)
                     yield return p;
