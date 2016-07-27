@@ -44,13 +44,13 @@
     <Reference Include="System.Xml"/>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="App.paml" />
-    <Compile Include="App.paml.cs">
-      <DependentUpon>App.paml</DependentUpon>
+    <EmbeddedResource Include="App.xaml" />
+    <Compile Include="App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <EmbeddedResource Include="MainWindow.paml" />
-    <Compile Include="MainWindow.paml.cs">
-      <DependentUpon>MainWindow.paml</DependentUpon>
+    <EmbeddedResource Include="MainWindow.xaml" />
+    <Compile Include="MainWindow.xaml.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -63,4 +63,4 @@
   </Target>
   -->
 
- </Project>
+</Project>

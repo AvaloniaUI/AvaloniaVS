@@ -8,7 +8,7 @@
     <ProjectType>CSharp</ProjectType>
     <RequiredFrameworkVersion>4.5</RequiredFrameworkVersion>
     <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
-    <DefaultName>Window.paml</DefaultName>
+    <DefaultName>Window.xaml</DefaultName>
   </TemplateData>
   <TemplateContent>
     <References>
@@ -16,7 +16,7 @@
         <Assembly>System</Assembly>
       </Reference>
     </References>
-    <ProjectItem ReplaceParameters="true" TargetFileName="$fileinputname$.paml" OpenInEditor="true" ItemType="EmbeddedResource">Window.paml</ProjectItem>
-    <ProjectItem ReplaceParameters="true" TargetFileName="$fileinputname$.paml\$fileinputname$.paml.cs">Window.paml.cs</ProjectItem>
+    <ProjectItem ReplaceParameters="true" TargetFileName="$fileinputname$.xaml" OpenInEditor="true" ItemType="EmbeddedResource">Window.xaml</ProjectItem>
+    <ProjectItem ReplaceParameters="true" TargetFileName="$fileinputname$.xaml\$fileinputname$.xaml.cs">Window.xaml.cs</ProjectItem>
   </TemplateContent>
 </VSTemplate>

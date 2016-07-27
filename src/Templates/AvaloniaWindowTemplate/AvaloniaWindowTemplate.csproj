@@ -73,11 +73,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Window.paml.cs" />
+    <None Include="Window.xaml.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Window.paml">
+    <None Include="Window.xaml">
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
