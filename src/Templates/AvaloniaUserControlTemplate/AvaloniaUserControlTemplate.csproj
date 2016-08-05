@@ -75,7 +75,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <None Include="UserControl.paml.cs" />
+    <None Include="UserControl.xaml.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="AvaloniaUserControlTemplate.ico" />
@@ -84,7 +84,7 @@
     </VSTemplate>
   </ItemGroup>
   <ItemGroup>
-    <None Include="UserControl.paml">
+    <None Include="UserControl.xaml">
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
@@ -109,4 +109,4 @@
   <Target Name="AfterBuild">
   </Target>
   -->
-</Project>
+</Project> 

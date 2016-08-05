@@ -73,16 +73,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.paml.cs" />
-    <None Include="App.paml">
+    <None Include="App.xaml.cs" />
+    <None Include="App.xaml">
       <SubType>Designer</SubType>
     </None>
-    <None Include="MainWindow.paml.cs" />
+    <None Include="MainWindow.xaml.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="AssemblyInfo.cs" />
-    <None Include="MainWindow.paml">
+    <None Include="MainWindow.xaml">
       <SubType>Designer</SubType>
     </None>
     <None Include="ProjectTemplate.csproj" />
@@ -116,4 +116,4 @@
   <Target Name="AfterBuild">
   </Target>
   -->
-</Project>
+</Project> 

@@ -16,7 +16,13 @@ namespace $safeprojectname$
             base.Initialize();
         }
 
-        static void Main(string[] args) => AppBuilder.Configure<App>().UseWin32().UseDirect2D1().Start<MainWindow>();
+        static void Main(string[] args)
+        {
+            AppBuilder.Configure<App>()
+                .UseWin32()
+                .UseDirect2D1()
+                .Start<MainWindow>();
+        }
 
         public static void AttachDevTools(Window window)
         {
