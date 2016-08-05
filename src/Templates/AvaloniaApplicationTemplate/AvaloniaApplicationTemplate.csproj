@@ -90,6 +90,7 @@
   <ItemGroup>
     <VSTemplate Include="AvaloniaApplicationTemplate.vstemplate">
       <SubType>Designer</SubType>
+      <OutputSubPath>Avalonia</OutputSubPath>
     </VSTemplate>
   </ItemGroup>
   <ItemGroup>
