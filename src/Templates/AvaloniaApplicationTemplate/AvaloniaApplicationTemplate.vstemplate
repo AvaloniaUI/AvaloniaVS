@@ -26,7 +26,7 @@
     <FullClassName>NuGet.VisualStudio.TemplateWizard</FullClassName>
   </WizardExtension>
   <WizardData>
-    <packages repository="extension" repositoryId="Avalonia.AvaloniaVS">
+    <packages repository="extension" repositoryId="AvaloniaUI.AvaloniaVS">
       <package id="Avalonia" version="0.4.0"/>
       <package id="Avalonia.Desktop" version="0.4.0"/>
       <package id="Serilog" version="1.5.14"/>
