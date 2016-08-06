@@ -108,27 +108,15 @@
       <SubType>Designer</SubType>
     </None>
     <Content Include="FodyWeavers.xml" />
-    <Content Include="packages\Rx-Core.2.2.5.nupkg">
+    <Content Include="packages\Avalonia.0.4.0-alpha.nupkg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="packages\Rx-Interfaces.2.2.5.nupkg">
+    <Content Include="packages\Avalonia.Desktop.0.4.0-alpha.nupkg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="packages\Rx-Linq.2.2.5.nupkg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="packages\Rx-Main.2.2.5.nupkg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="packages\Rx-PlatformServices.2.2.5.nupkg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="packages\Rx-XAML.2.2.5.nupkg">
+    <Content Include="packages\Serilog.1.5.14.nupkg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
@@ -136,11 +124,27 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="packages\Avalonia.0.2.9-alpha4-pre-1.nupkg">
+    <Content Include="packages\System.Reactive.3.0.0.nupkg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="packages\Avalonia.Desktop.0.2.9-alpha4-pre-1.nupkg">
+    <Content Include="packages\System.Reactive.Core.3.0.0.nupkg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="packages\System.Reactive.Interfaces.3.0.0.nupkg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="packages\System.Reactive.Linq.3.0.0.nupkg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="packages\System.Reactive.PlatformServices.3.0.0.nupkg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="packages\System.Reactive.Windows.Threading.3.0.0.nupkg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
@@ -153,10 +157,6 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="packages\SharpDX.DXGI.3.0.2.nupkg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="packages\Serilog.1.5.14.nupkg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
