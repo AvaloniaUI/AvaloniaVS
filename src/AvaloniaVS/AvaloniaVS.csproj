@@ -108,11 +108,11 @@
       <SubType>Designer</SubType>
     </None>
     <Content Include="FodyWeavers.xml" />
-    <Content Include="packages\Avalonia.0.4.0-alpha.nupkg">
+    <Content Include="packages\Avalonia.0.4.0.nupkg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="packages\Avalonia.Desktop.0.4.0-alpha.nupkg">
+    <Content Include="packages\Avalonia.Desktop.0.4.0.nupkg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>

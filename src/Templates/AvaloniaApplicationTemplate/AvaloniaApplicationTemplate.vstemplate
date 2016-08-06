@@ -27,8 +27,8 @@
   </WizardExtension>
   <WizardData>
     <packages repository="extension" repositoryId="Avalonia.AvaloniaVS">
-      <package id="Avalonia" version="0.4.0-alpha"/>
-      <package id="Avalonia.Desktop" version="0.4.0-alpha"/>
+      <package id="Avalonia" version="0.4.0"/>
+      <package id="Avalonia.Desktop" version="0.4.0"/>
       <package id="Serilog" version="1.5.14"/>
       <package id="SharpDX" version="3.0.2"/>
       <package id="SharpDX.Direct2D1" version="3.0.2"/>
