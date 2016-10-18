@@ -22,8 +22,7 @@ namespace $safeprojectname$
         {
             InitializeLogging();
             AppBuilder.Configure<App>()
-                .UseWin32()
-                .UseDirect2D1()
+                .UsePlatformDetect()
                 .Start<MainWindow>();
         }
 
