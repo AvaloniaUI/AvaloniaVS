@@ -81,6 +81,18 @@ namespace AvaloniaVS
             return projItem?.ContainingProject;
         }
 
+        static string TryGetProperty(Properties props, string name)
+        {
+            try
+            {
+                return props.Item(name).Value.ToString();
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         private static Regex DesktopFrameworkRegex = new Regex("^net[0-9]+$");
 
         /// <summary>
