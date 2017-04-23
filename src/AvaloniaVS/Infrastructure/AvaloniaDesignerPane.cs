@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -54,12 +56,19 @@ namespace AvaloniaVS.Infrastructure
             RegisterMenuCommands();
         }
 
+        object GetContent(object adapter)
+        {
+            return adapter.GetType().GetProperties(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
+                .FirstOrDefault(p => p.Name == "Content").GetMethod.Invoke(adapter, null);
+        }
+
         private void InitializePane()
         {
+            
             // initialize the designer host view.
             _designerHost = new AvaloniaDesignerHostViewModel(_fileName)
             {
-                EditView = ((WindowPane) _vsCodeWindow).Content,
+                EditView = GetContent(_vsCodeWindow),
                 Orientation = _designerSettings.SplitOrientation == SplitOrientation.Default ||
                               _designerSettings.SplitOrientation == SplitOrientation.Horizontal
                     ? Orientation.Horizontal
