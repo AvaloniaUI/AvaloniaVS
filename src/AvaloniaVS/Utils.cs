@@ -2,11 +2,16 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
 using EnvDTE;
 using EnvDTE80;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.ProjectSystem;
+using Microsoft.VisualStudio.ProjectSystem.Properties;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -76,6 +81,8 @@ namespace AvaloniaVS
             return projItem?.ContainingProject;
         }
 
+        private static Regex DesktopFrameworkRegex = new Regex("^net[0-9]+$");
+
         /// <summary>
         /// Gets the full path of the <see cref="Project"/> configuration
         /// </summary>
@@ -83,7 +90,31 @@ namespace AvaloniaVS
         /// <returns>Target Exe path</returns>
         public static string GetAssemblyPath(this Project vsProject)
         {
+            if (TryGetProperty(vsProject.Properties, "TargetFrameworks") != null)
+            {
+                //This is a multi-targeted .NET Core project, special logic applies here
+                var ucproject = GetUnconfiguredProject(vsProject);
+                foreach(var loaded in ucproject.LoadedConfiguredProjects)
+                {
+                    if (!loaded.ProjectConfiguration.Dimensions.TryGetValue("TargetFramework", out var targetFw) ||
+                        !DesktopFrameworkRegex.IsMatch(targetFw))
+                        continue;
+
+                    var task = loaded.GetType()
+                        .GetProperty("MSBuildProject",
+                            BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
+                        .GetMethod.Invoke(loaded, null) as Task<Microsoft.Build.Evaluation.Project>;
+                    if(task?.IsCompleted != true)
+                        continue;
+
+                    var targetPath = task.Result.AllEvaluatedProperties.FirstOrDefault(p => p.Name == "TargetPath")?.EvaluatedValue;
+                    return targetPath;
+                }
+                return null;
+            }
+
             string fullPath = vsProject?.Properties?.Item("FullPath")?.Value?.ToString();
+
             string outputPath = vsProject?.ConfigurationManager?.ActiveConfiguration?.Properties?.Item("OutputPath")?.Value?.ToString();
             if (fullPath == null || outputPath == null)
                 return null;
@@ -91,6 +122,41 @@ namespace AvaloniaVS
             string outputFileName = vsProject.Properties.Item("OutputFileName").Value.ToString();
             string assemblyPath = Path.Combine(outputDir, outputFileName);
             return assemblyPath;
+        }
+
+        static UnconfiguredProject GetUnconfiguredProject(IVsProject project)
+        {
+            IVsBrowseObjectContext context = project as IVsBrowseObjectContext;
+            if (context == null)
+            { // VC implements this on their DTE.Project.Object
+                IVsHierarchy hierarchy = project as IVsHierarchy;
+                if (hierarchy != null)
+                {
+                    object extObject;
+                    if (ErrorHandler.Succeeded(hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID.VSHPROPID_ExtObject, out extObject)))
+                    {
+                        EnvDTE.Project dteProject = extObject as EnvDTE.Project;
+                        if (dteProject != null)
+                        {
+                            context = dteProject.Object as IVsBrowseObjectContext;
+                        }
+                    }
+                }
+            }
+
+            return context != null ? context.UnconfiguredProject : null;
+        }
+
+
+        static UnconfiguredProject GetUnconfiguredProject(EnvDTE.Project project)
+        {
+            IVsBrowseObjectContext context = project as IVsBrowseObjectContext;
+            if (context == null && project != null)
+            { // VC implements this on their DTE.Project.Object
+                context = project.Object as IVsBrowseObjectContext;
+            }
+
+            return context != null ? context.UnconfiguredProject : null;
         }
 
         public static Project GetContainerProject(string fileName)
