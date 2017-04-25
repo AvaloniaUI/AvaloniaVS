@@ -102,39 +102,44 @@ namespace AvaloniaVS
         /// <returns>Target Exe path</returns>
         public static string GetAssemblyPath(this Project vsProject)
         {
-            if (TryGetProperty(vsProject.Properties, "TargetFrameworks") != null 
-                || TryGetProperty(vsProject.Properties, "TargetFramework")?.StartsWith("net") == true)
-            {
-                //This is a multi-targeted .NET Core project, special logic applies here
-                var ucproject = GetUnconfiguredProject(vsProject);
-                foreach(var loaded in ucproject.LoadedConfiguredProjects)
+            var alternatives = new Dictionary<string, string>();
+            var ucproject = GetUnconfiguredProject(vsProject);
+            if (ucproject != null)
+                foreach (var loaded in ucproject.LoadedConfiguredProjects)
                 {
-                    if (!loaded.ProjectConfiguration.Dimensions.TryGetValue("TargetFramework", out var targetFw) ||
-                        !DesktopFrameworkRegex.IsMatch(targetFw))
-                        continue;
-
                     var task = loaded.GetType()
                         .GetProperty("MSBuildProject",
                             BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
                         .GetMethod.Invoke(loaded, null) as Task<Microsoft.Build.Evaluation.Project>;
-                    if(task?.IsCompleted != true)
+                    if (task?.IsCompleted != true)
                         continue;
 
                     var targetPath = task.Result.AllEvaluatedProperties.FirstOrDefault(p => p.Name == "TargetPath")?.EvaluatedValue;
-                    return targetPath;
+                    if (!string.IsNullOrWhiteSpace(targetPath))
+                    {
+                        if (!loaded.ProjectConfiguration.Dimensions.TryGetValue("TargetFramework", out var targetFw))
+                            targetFw = "unknown";
+                        alternatives[targetFw] = targetPath;
+                    }
                 }
-                return null;
-            }
-
             string fullPath = vsProject?.Properties?.Item("FullPath")?.Value?.ToString();
 
             string outputPath = vsProject?.ConfigurationManager?.ActiveConfiguration?.Properties?.Item("OutputPath")?.Value?.ToString();
-            if (fullPath == null || outputPath == null)
-                return null;
-            string outputDir = Path.Combine(fullPath, outputPath);
-            string outputFileName = vsProject.Properties.Item("OutputFileName").Value.ToString();
-            string assemblyPath = Path.Combine(outputDir, outputFileName);
-            return assemblyPath;
+            if (fullPath != null || outputPath != null)
+            {
+                string outputDir = Path.Combine(fullPath, outputPath);
+                string outputFileName = vsProject.Properties.Item("OutputFileName").Value.ToString();
+                if (!string.IsNullOrWhiteSpace(outputFileName))
+                {
+                    string assemblyPath = Path.Combine(outputDir, outputFileName);
+                    alternatives["classic"] = assemblyPath;
+                }
+            }
+            return alternatives.OrderBy(x => x.Key == "classic"
+                ? 10
+                : DesktopFrameworkRegex.IsMatch(x.Key)
+                    ? 9
+                    : x.Key.StartsWith("netstandard") ? 8 : 0).FirstOrDefault().Value;
         }
 
         static UnconfiguredProject GetUnconfiguredProject(IVsProject project)
