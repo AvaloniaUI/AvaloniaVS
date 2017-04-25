@@ -40,10 +40,10 @@ namespace AvaloniaVS.Infrastructure
         {
             foreach (var p in en)
             {
-                if(p.Object is VSProject)
+                if(p?.Object is VSProject)
                     yield return p;
 
-                if (p.Object is SolutionFolder)
+                if (p?.Object is SolutionFolder)
                     foreach (var item in GetProjects(p.ProjectItems.OfType<ProjectItem>().Select(i => i.SubProject)))
                         yield return item;
             }
