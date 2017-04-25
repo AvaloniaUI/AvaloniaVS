@@ -102,7 +102,8 @@ namespace AvaloniaVS
         /// <returns>Target Exe path</returns>
         public static string GetAssemblyPath(this Project vsProject)
         {
-            if (TryGetProperty(vsProject.Properties, "TargetFrameworks") != null)
+            if (TryGetProperty(vsProject.Properties, "TargetFrameworks") != null 
+                || TryGetProperty(vsProject.Properties, "TargetFramework")?.StartsWith("net") == true)
             {
                 //This is a multi-targeted .NET Core project, special logic applies here
                 var ucproject = GetUnconfiguredProject(vsProject);

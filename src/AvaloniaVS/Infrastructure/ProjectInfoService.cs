@@ -77,7 +77,9 @@ namespace AvaloniaVS.Infrastructure
 
             bool changed = _projects.Count != lst.Count ||
                            _projects.Where(
-                               (t, c) => lst[c].Project != t.Project || !lst[c].References.SequenceEqual(t.References))
+                                   (t, c) => lst[c].Project != t.Project
+                                             || lst[c].TargetAssembly != t.TargetAssembly
+                                             || !lst[c].References.SequenceEqual(t.References))
                                .Any();
             if (changed)
             {
