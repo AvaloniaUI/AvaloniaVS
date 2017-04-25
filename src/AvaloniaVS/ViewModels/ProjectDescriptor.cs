@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using AvaloniaVS.Infrastructure;
 using EnvDTE;
 using VSLangProj;
@@ -14,19 +16,38 @@ namespace AvaloniaVS.ViewModels
 
         public List<Project> References { get; set; } = new List<Project>();
 
-        void ScanReferences(Project proj)
+        void ScanReferences(Project proj, Dictionary<string, Project> dic)
         {
             var vsproj = proj.Object as VSProject;
             if(vsproj == null)
                 return;
+            var dir = Path.GetDirectoryName(proj.FullName);
             foreach(Reference r in vsproj.References)
             {
+
                 try
                 {
-                    if (r.SourceProject == null || References.Contains(r.SourceProject))
+                    Project src;
+                    var ospecp = r.GetType()
+                        .GetProperty("OriginalItemSpec",
+                            BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                    if (ospecp == null)
+                        //SLOW
+                        src = r.SourceProject;
+                    else
+                    {
+                        var ospec = ospecp.GetMethod.Invoke(r, null) as string;
+                        if(ospec == null)
+                            continue;
+                        var path = Path.GetFullPath(Path.Combine(dir, ospec)).ToLowerInvariant();
+                        if (!dic.TryGetValue(path, out src))
+                            continue;
+
+                    }
+                    if (src == null || References.Contains(src))
                         continue;
-                    References.Add(r.SourceProject);
-                    ScanReferences(r.SourceProject);
+                    References.Add(src);
+                    ScanReferences(src, dic);
                 }
                 catch
                 {
@@ -41,12 +62,12 @@ namespace AvaloniaVS.ViewModels
                    !other.References.SequenceEqual(References);
         }
 
-        public ProjectDescriptor(Project project)
+        public ProjectDescriptor(Project project, Dictionary<string, Project> dic)
         {
             Project = project;
-            ScanReferences(project);
+            Name = project.Name;
+            ScanReferences(project, dic);
             TargetAssembly = Project.GetAssemblyPath();
-            Name = Project.Name;
         }
 
         public ProjectDescriptor(string dummyName)

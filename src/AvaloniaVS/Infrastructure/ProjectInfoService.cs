@@ -57,18 +57,27 @@ namespace AvaloniaVS.Infrastructure
             {
 
 
-
+                var dic = new Dictionary<string, Project>();
                 foreach (var proj in GetProjects(_dte.Solution.Projects.OfType<Project>()))
                 {
                     try
                     {
-                        lst.Add(new ProjectDescriptor(proj));
+                        dic[proj.FullName.ToLowerInvariant()] = proj;
                     }
                     catch
                     {
                         
                     }
                 }
+                foreach(var proj in dic.Values)
+                    try
+                    {
+                        lst.Add(new ProjectDescriptor(proj, dic));
+                    }
+                    catch
+                    {
+                        
+                    }
             }
             catch
             {
