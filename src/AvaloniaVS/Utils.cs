@@ -135,7 +135,7 @@ namespace AvaloniaVS
                     alternatives["classic"] = assemblyPath;
                 }
             }
-            return alternatives.OrderBy(x => x.Key == "classic"
+            return alternatives.OrderByDescending(x => x.Key == "classic"
                 ? 10
                 : DesktopFrameworkRegex.IsMatch(x.Key)
                     ? 9
