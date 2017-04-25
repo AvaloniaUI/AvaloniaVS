@@ -102,6 +102,11 @@ namespace AvaloniaVS.Infrastructure
             {
                 SourceAssembly = Utils.GetContainerProject(_fileName)?.GetAssemblyPath()
             };
+            _designerHost.SourceAssemblyChanged += sa =>
+            {
+                if (_designer != null)
+                    _designer.SourceAssembly = sa;
+            };
             UpdateTargetExe(_designerHost.TargetExe);
             _designer.Xaml = _textBuffer.CurrentSnapshot.GetText();
             AvaloniaBuildEvents.Instance.BuildEnd += Restart;

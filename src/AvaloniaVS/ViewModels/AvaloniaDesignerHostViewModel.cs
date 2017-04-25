@@ -23,6 +23,7 @@ namespace AvaloniaVS.ViewModels
     {
         private readonly string _fileName;
         private ProjectDescriptor _selectedTarget;
+        private string _sourceAssembly;
 
         public object EditView { get; set; }
         public object DesignView { get; set; }
@@ -31,6 +32,7 @@ namespace AvaloniaVS.ViewModels
         public bool IsReversed { get; set; }
         public List<ProjectDescriptor> AvailableTargets { get; set; }
         public event Action<string> TargetExeChanged;
+        public event Action<string> SourceAssemblyChanged;
 
         public ProjectDescriptor SelectedTarget
         {
@@ -46,6 +48,17 @@ namespace AvaloniaVS.ViewModels
 
         public string TargetExe { get; set; }
 
+        public string SourceAssembly
+        {
+            get { return _sourceAssembly; }
+            set
+            {
+                _sourceAssembly = value; 
+                OnPropertyChanged();
+                SourceAssemblyChanged?.Invoke(value);
+            }
+        }
+
         public AvaloniaDesignerHostViewModel(string fileName)
         {
             _fileName = fileName;
@@ -56,6 +69,7 @@ namespace AvaloniaVS.ViewModels
         private void OnProjectInfoChanged(object sender, EventArgs e)
         {
             PopulateTargetList();
+            SourceAssembly = Utils.GetContainerProject(_fileName).GetAssemblyPath();
         }
 
 
