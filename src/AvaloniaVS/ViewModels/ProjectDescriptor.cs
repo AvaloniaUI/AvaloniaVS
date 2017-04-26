@@ -16,7 +16,6 @@ namespace AvaloniaVS.ViewModels
         public string TargetAssembly;
 
         public List<Project> References { get; set; } = new List<Project>();
-        public List<Project> DirectReferences { get; set; } = new List<Project>();
         
 
         public ProjectDescriptor(Project project)

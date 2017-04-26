@@ -22,6 +22,7 @@ namespace AvaloniaVS.Infrastructure
         public static IEnumerable<ProjectDescriptor> Projects => Instance._cached;
 
         private bool _solutionRescanQueued = true;
+        private bool _targetPathRescanQueued = true;
         private bool _treeRebuildQueued = true;
         private ProjectItemsEvents _solutionItemEvents;
         private SolutionEvents _solutionEvents;
@@ -79,6 +80,16 @@ namespace AvaloniaVS.Infrastructure
                 _service._treeRebuildQueued = true;
             }
 
+            public bool UpdateTargetPath()
+            {
+                var n = Project.GetAssemblyPath();
+                if (n != Descriptor.TargetAssembly)
+                {
+                    Descriptor.TargetAssembly = n;
+                    return true;
+                }
+                return false;
+            }
         }
 
         private Dictionary<Project, ProjectEntry> _projects = new Dictionary<Project, ProjectEntry>();
@@ -96,6 +107,10 @@ namespace AvaloniaVS.Infrastructure
 
             new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 1), IsEnabled = true }.Tick += OnTick;
             OnTick(null, null);
+            AvaloniaBuildEvents.Instance.BuildEnd += delegate
+            {
+                _targetPathRescanQueued = true;
+            };
         }
         
         IEnumerable<Project> Collect(ProjectEntry desc)
@@ -127,19 +142,26 @@ namespace AvaloniaVS.Infrastructure
                 _solutionRescanQueued = false;
                 _treeRebuildQueued = true;
             }
-            foreach(var p in _projects.Values)
-                if(p.RescanQueued)
+            bool targetPathsChanged = false;
+            foreach (var p in _projects.Values)
+            {
+                if (p.RescanQueued)
                     p.Rescan();
+                if (_targetPathRescanQueued)
+                    targetPathsChanged |= p.UpdateTargetPath();
+            }
             if (_treeRebuildQueued)
             {
                 foreach (var p in _projects.Values)
                 {
                     p.Descriptor.References = Collect(p).Distinct().ToList();
                 }
-                _treeRebuildQueued = false;
                 _cached = _projects.Values.Select(d => d.Descriptor).ToList();
-                Changed?.Invoke(this, new EventArgs());
+                
             }
+            if (targetPathsChanged || _treeRebuildQueued)
+                Changed?.Invoke(this, new EventArgs());
+            _treeRebuildQueued = false;
         }
 
 
