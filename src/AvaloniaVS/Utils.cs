@@ -125,7 +125,7 @@ namespace AvaloniaVS
             string fullPath = vsProject?.Properties?.Item("FullPath")?.Value?.ToString();
 
             string outputPath = vsProject?.ConfigurationManager?.ActiveConfiguration?.Properties?.Item("OutputPath")?.Value?.ToString();
-            if (fullPath != null || outputPath != null)
+            if (fullPath != null && outputPath != null)
             {
                 string outputDir = Path.Combine(fullPath, outputPath);
                 string outputFileName = vsProject.Properties.Item("OutputFileName").Value.ToString();
