@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+using AvaloniaVS.Helpers;
 using AvaloniaVS.ViewModels;
 using EnvDTE;
 using EnvDTE100;
@@ -36,40 +37,64 @@ namespace AvaloniaVS.Infrastructure
             public HashSet<Project> References = new HashSet<Project>();
             public ProjectDescriptor Descriptor { get; }
             public bool RescanQueued { get; private set; }
+            public bool TargetPathUpdateQueued { get; private set; }
+
+            public void CheckForLoadedStateChanges()
+            {
+                var project = Project.GetObjectSafe<VSProject>();
+                if (project != null && _events == null)
+                {
+                    SetupEvents(project);
+                    Rescan();
+                }
+                if (project == null && _events != null)
+                {
+                    _events = null;
+                    References.Clear();
+                    _service._treeRebuildQueued = true;
+                    TargetPathUpdateQueued = true;
+                }
+            }
+
+            void SetupEvents(VSProject vsProject)
+            {
+                _events = vsProject.Events.ReferencesEvents;
+                _events.ReferenceAdded += r =>
+                {
+                    var p = r.SourceProject;
+                    if (p != null)
+                        References.Add(p);
+                    _service._treeRebuildQueued = true;
+                };
+                _events.ReferenceRemoved += r =>
+                {
+                    var p = r.SourceProject;
+                    if (p != null)
+                        References.Remove(p);
+                    _service._treeRebuildQueued = true;
+                };
+                _events.ReferenceChanged += delegate
+                {
+                    RescanQueued = true;
+                };
+            }
+
             public ProjectEntry(ProjectInfoService service,  Project project)
             {
                 _service = service;
                 Project = project;
                 Descriptor = new ProjectDescriptor(project);
-                if (project.Object is VSProject vsProject)
-                {
-                    _events = vsProject.Events.ReferencesEvents;
-                    _events.ReferenceAdded += r =>
-                    {
-                        var p = r.SourceProject;
-                        if (p != null)
-                            References.Add(p);
-                        _service._treeRebuildQueued = true;
-                    };
-                    _events.ReferenceRemoved += r =>
-                    {
-                        var p = r.SourceProject;
-                        if (p != null)
-                            References.Remove(p);
-                        _service._treeRebuildQueued = true;
-                    };
-                    _events.ReferenceChanged += delegate
-                    {
-                        RescanQueued = true;
-                    };
-                }
-                Rescan();
+                var vsProject = project.GetObjectSafe<VSProject>();
+                if (vsProject != null)
+                    SetupEvents(vsProject);
+                RescanQueued = TargetPathUpdateQueued = true;
             }
 
             public void Rescan()
             {
                 References.Clear();
-                if (Project?.Object is VSProject vsProject)
+                var vsProject = Project.GetObjectSafe<VSProject>();
+                if (vsProject != null)
                     foreach (Reference r in vsProject.References)
                     {
                         var p = r.SourceProject;
@@ -83,6 +108,7 @@ namespace AvaloniaVS.Infrastructure
             public bool UpdateTargetPath()
             {
                 var n = Project.GetAssemblyPath();
+                TargetPathUpdateQueued = false;
                 if (n != Descriptor.TargetAssembly)
                 {
                     Descriptor.TargetAssembly = n;
@@ -127,29 +153,34 @@ namespace AvaloniaVS.Infrastructure
         private void OnTick(object sender, EventArgs e)
         {
 
-            if (_solutionRescanQueued)
-            {
-                var dic = new Dictionary<Project, ProjectEntry>();
+            var dic = new Dictionary<Project, ProjectEntry>();
 
-                foreach(var p in GetProjects(_dte.Solution.Projects.OfType<Project>()))
+            foreach(var p in GetProjects(_dte.Solution.Projects.OfType<Project>()))
+            {
+                if (_projects.TryGetValue(p, out var existing))
+                    dic[p] = existing;
+                else
                 {
-                    if (_projects.TryGetValue(p, out var existing))
-                        dic[p] = existing;
-                    else
-                        dic[p] = new ProjectEntry(this, p);
+                    dic[p] = new ProjectEntry(this, p);
+                    _treeRebuildQueued = true;
                 }
-                _projects = dic;
-                _solutionRescanQueued = false;
-                _treeRebuildQueued = true;
             }
+            if (dic.Count != _projects.Count)
+                _treeRebuildQueued = true;
+            _projects = dic;
+                
+            
             bool targetPathsChanged = false;
             foreach (var p in _projects.Values)
             {
+                p.CheckForLoadedStateChanges();
                 if (p.RescanQueued)
                     p.Rescan();
-                if (_targetPathRescanQueued)
+                if (_targetPathRescanQueued || p.TargetPathUpdateQueued)
                     targetPathsChanged |= p.UpdateTargetPath();
+                
             }
+            _targetPathRescanQueued = false;
             if (_treeRebuildQueued)
             {
                 foreach (var p in _projects.Values)
@@ -177,10 +208,10 @@ namespace AvaloniaVS.Infrastructure
         {
             foreach (var p in en)
             {
-                if(p?.Object is VSProject)
+                if (p.GetObjectSafe<VSProject>() != null)
                     yield return p;
 
-                if (p?.Object is SolutionFolder)
+                if (p.GetObjectSafe<SolutionFolder>() != null)
                     foreach (var item in GetProjects(p.ProjectItems.OfType<ProjectItem>().Select(i => i.SubProject)))
                         yield return item;
             }

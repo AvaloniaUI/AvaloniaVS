@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
+using AvaloniaVS.Helpers;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio;
@@ -102,6 +104,18 @@ namespace AvaloniaVS
         /// <returns>Target Exe path</returns>
         public static string GetAssemblyPath(this Project vsProject)
         {
+            try
+            {
+                return GetAssemblyPathInternal(vsProject);
+            }
+            catch (COMException e) when ((uint)e.HResult == 0x80004005)
+            {
+                return null;
+            }
+        }
+
+        static string GetAssemblyPathInternal(this Project vsProject)
+        {
             var alternatives = new Dictionary<string, string>();
             var ucproject = GetUnconfiguredProject(vsProject);
             if (ucproject != null)
@@ -142,39 +156,9 @@ namespace AvaloniaVS
                     : x.Key.StartsWith("netstandard") ? 8 : 0).FirstOrDefault().Value;
         }
 
-        static UnconfiguredProject GetUnconfiguredProject(IVsProject project)
-        {
-            IVsBrowseObjectContext context = project as IVsBrowseObjectContext;
-            if (context == null)
-            { // VC implements this on their DTE.Project.Object
-                IVsHierarchy hierarchy = project as IVsHierarchy;
-                if (hierarchy != null)
-                {
-                    object extObject;
-                    if (ErrorHandler.Succeeded(hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID.VSHPROPID_ExtObject, out extObject)))
-                    {
-                        EnvDTE.Project dteProject = extObject as EnvDTE.Project;
-                        if (dteProject != null)
-                        {
-                            context = dteProject.Object as IVsBrowseObjectContext;
-                        }
-                    }
-                }
-            }
-
-            return context != null ? context.UnconfiguredProject : null;
-        }
-
-
         static UnconfiguredProject GetUnconfiguredProject(EnvDTE.Project project)
         {
-            IVsBrowseObjectContext context = project as IVsBrowseObjectContext;
-            if (context == null && project != null)
-            { // VC implements this on their DTE.Project.Object
-                context = project.Object as IVsBrowseObjectContext;
-            }
-
-            return context != null ? context.UnconfiguredProject : null;
+            return project.GetObjectSafe<IVsBrowseObjectContext>()?.UnconfiguredProject;
         }
 
         public static Project GetContainerProject(string fileName)

@@ -94,6 +94,7 @@ namespace AvaloniaVS.Infrastructure
                     Text = $"{Path.GetFileName(_fileName)} cannot be edited in the Design view. Make sure that it's referenced from at least one desktop exe project"
                 }
                 : _designer;
+            ReloadMetadata();
         }
 
         private void InitializeDesigner()
@@ -112,7 +113,6 @@ namespace AvaloniaVS.Infrastructure
             AvaloniaBuildEvents.Instance.BuildEnd += Restart;
             AvaloniaBuildEvents.Instance.ModeChanged += OnModeChanged;
             _textBuffer.PostChanged += OnTextBufferPostChanged;
-            ReloadMetadata();
         }
 
         private void OnTextBufferPostChanged(object sender, EventArgs e)
@@ -129,12 +129,16 @@ namespace AvaloniaVS.Infrastructure
 
         void ReloadMetadata()
         {
-            if (!File.Exists(_targetExe))
-            {
+            if (_targetExe == null || !File.Exists(_targetExe))
                 return;
+            try
+            {
+                _textBuffer.Properties[typeof(Metadata)] = MetadataLoader.LoadMetadata(_targetExe);
             }
-
-            _textBuffer.Properties[typeof (Metadata)] = MetadataLoader.LoadMetadata(_targetExe);
+            catch (Exception e)
+            {
+                //TODO: Log
+            }
         }
 
         public override object Content => _designerHostView;
@@ -170,14 +174,8 @@ namespace AvaloniaVS.Infrastructure
             {
                 //TODO: Log
             }
-            try
-            {
-                ReloadMetadata();
-            }
-            catch
-            {
-                //TODO: Log
-            }
+            ReloadMetadata();
+
         }
 
         protected override void Dispose(bool disposing)
