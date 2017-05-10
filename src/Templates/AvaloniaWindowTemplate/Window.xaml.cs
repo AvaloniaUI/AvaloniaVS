@@ -1,4 +1,5 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
 namespace $rootnamespace$
@@ -8,7 +9,7 @@ namespace $rootnamespace$
         public $safeitemrootname$()
         {
             this.InitializeComponent();
-            App.AttachDevTools(this);
+            this.AttachDevTools();
         }
 
         private void InitializeComponent()
