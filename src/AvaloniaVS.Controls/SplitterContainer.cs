@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using AvaloniaVS.Controls.Internals;
@@ -419,6 +420,8 @@ namespace AvaloniaVS.Controls
 
         private void OnGotKeyboardFocusPrivate(KeyboardFocusChangedEventArgs e)
         {
+            if (e.NewFocus is Hyperlink)
+                return;
             var focus = e.NewFocus as DependencyObject;
             if (focus == null)
                 return;

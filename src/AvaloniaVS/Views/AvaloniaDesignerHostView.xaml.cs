@@ -1,4 +1,6 @@
-﻿using AvaloniaVS.Controls;
+﻿using System.Diagnostics;
+using System.Windows.Navigation;
+using AvaloniaVS.Controls;
 using AvaloniaVS.Infrastructure;
 
 namespace AvaloniaVS.Views
@@ -17,6 +19,18 @@ namespace AvaloniaVS.Views
                 Container.Collapse(designerSettings.DocumentView == DocumentView.DesignView
                     ? SplitterViews.Design
                     : SplitterViews.Editor);
+            }
+        }
+
+        private void Hyperlink_OnRequestNavigate(object sender, RequestNavigateEventArgs e)
+        {
+            try
+            {
+                Process.Start(e.Uri.ToString());
+            }
+            catch
+            {
+                
             }
         }
     }

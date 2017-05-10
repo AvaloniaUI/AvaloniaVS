@@ -74,9 +74,12 @@
             </lc:SplitterContainer.Editor>
             <lc:SplitterContainer.ExtraPanel>
                 <StackPanel Orientation="Horizontal" DataContext="{Binding ElementName=Root, Path=DataContext}">
-                    
+                    <TextBlock FontSize="10" VerticalAlignment="Center" Margin="0,0,10,0">
+                        <Hyperlink Focusable="False" NavigateUri="https://github.com/AvaloniaUI/Avalonia/wiki/Visual-Studio-Extension-Previewer"
+                                   RequestNavigate="Hyperlink_OnRequestNavigate">Help</Hyperlink>
+                    </TextBlock>
                     <Button x:Name="FixMe" Background="Transparent" BorderThickness="0" FontSize="10" Padding="0"
-                            infrastructure:TriggerMenuOnLeftClickBehavior.Enabled="True">
+                            infrastructure:TriggerMenuOnLeftClickBehavior.Enabled="True" Focusable="False">
                         Fix Me ▼
                         <Button.ContextMenu>
                             <ContextMenu>
