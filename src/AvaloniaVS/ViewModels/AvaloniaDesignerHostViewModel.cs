@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using AvaloniaVS.Infrastructure;
 using EnvDTE;
 using EnvDTE80;
@@ -31,6 +32,7 @@ namespace AvaloniaVS.ViewModels
         public Orientation Orientation { get; set; }
         public bool IsReversed { get; set; }
         public List<ProjectDescriptor> AvailableTargets { get; set; }
+        public ICommand RestartDesigner { get; set; }
         public event Action<string> TargetExeChanged;
         public event Action<string> SourceAssemblyChanged;
 

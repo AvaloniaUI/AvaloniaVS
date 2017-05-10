@@ -86,6 +86,8 @@
     </Compile>
     <Compile Include="Infrastructure\ProjectInfoService.cs" />
     <Compile Include="Infrastructure\PropertyChangedBase.cs" />
+    <Compile Include="Infrastructure\RelayCommand.cs" />
+    <Compile Include="Infrastructure\TriggerMenuOnLeftClickBehavior.cs" />
     <Compile Include="Internals\VisualStudioServices.cs" />
     <Compile Include="Internals\Guids.cs" />
     <Compile Include="Infrastructure\MarkupExtensionParser.cs" />

@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:lc="clr-namespace:AvaloniaVS.Controls;assembly=AvaloniaVS.Controls"
              xmlns:viewModels="clr-namespace:AvaloniaVS.ViewModels"
+             xmlns:infrastructure="clr-namespace:AvaloniaVS.Infrastructure"
              Background="White"
              mc:Ignorable="d" 
              d:DesignHeight="300"
@@ -71,6 +72,21 @@
             <lc:SplitterContainer.Editor>
                 <lc:FocusableContentPresenter DataContext="{Binding DataContext, ElementName=Root}" Content="{Binding EditView}" />
             </lc:SplitterContainer.Editor>
+            <lc:SplitterContainer.ExtraPanel>
+                <StackPanel Orientation="Horizontal" DataContext="{Binding ElementName=Root, Path=DataContext}">
+                    
+                    <Button x:Name="FixMe" Background="Transparent" BorderThickness="0" FontSize="10" Padding="0"
+                            infrastructure:TriggerMenuOnLeftClickBehavior.Enabled="True">
+                        Fix Me ▼
+                        <Button.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Command="{Binding RestartDesigner}" Header="Restart"/>
+                                <MenuItem Command="{x:Static infrastructure:ProjectInfoService.ReloadAll}" Header="Reload solution info"/>
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                    </Button>
+                </StackPanel>
+            </lc:SplitterContainer.ExtraPanel>
         </lc:SplitterContainer>
     </Border>
 </UserControl>

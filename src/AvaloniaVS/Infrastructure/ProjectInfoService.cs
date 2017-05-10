@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Threading;
 using AvaloniaVS.Helpers;
 using AvaloniaVS.ViewModels;
@@ -149,6 +150,14 @@ namespace AvaloniaVS.Infrastructure
                         yield return ch;
             }
         }
+
+        public static ICommand ReloadAll => new RelayCommand(() =>
+        {
+            Instance._projects = new Dictionary<Project, ProjectEntry>();
+            Instance._solutionRescanQueued = Instance._treeRebuildQueued = Instance._targetPathRescanQueued = true;
+            Instance.OnTick(null, null);
+        });
+
 
         private void OnTick(object sender, EventArgs e)
         {

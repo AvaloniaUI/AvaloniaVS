@@ -460,7 +460,7 @@
                           Visibility="Visible"
                           SnapsToDevicePixels="True" />
                 </ToggleButton>
-
+                <ContentPresenter Content="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=lc:SplitterContainer}, Path=ExtraPanel}" DockPanel.Dock="Right"/>
                 <RadioButton DockPanel.Dock="Left"
                              x:Name="DesignerButton"
                              Content="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=lc:SplitterContainer}, Path=DesignerHeader}"

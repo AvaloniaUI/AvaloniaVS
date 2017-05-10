@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace AvaloniaVS.ViewModels
 {
@@ -13,6 +14,7 @@ namespace AvaloniaVS.ViewModels
         bool ShowTargetSelector { get;  }
         Orientation Orientation { get; set; }
         ProjectDescriptor SelectedTarget { get; set; }
+        ICommand RestartDesigner { get; set; }
     }
 
     public class AvaloniaDesignerHostViewModelMock : IAvaloniaDesignerHostViewModel
@@ -23,6 +25,7 @@ namespace AvaloniaVS.ViewModels
         public bool IsReversed { get; set; }
         public bool ShowTargetSelector => true;
         public Orientation Orientation { get; set; }
+        public ICommand RestartDesigner { get; set; }
         public ProjectDescriptor SelectedTarget { get; set; } = new ProjectDescriptor("DUMMY");
 
         public AvaloniaDesignerHostViewModelMock()

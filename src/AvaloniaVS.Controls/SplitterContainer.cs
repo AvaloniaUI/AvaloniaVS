@@ -115,6 +115,15 @@ namespace AvaloniaVS.Controls
             new FrameworkPropertyMetadata(null));
 
         /// <summary>
+        /// Identifies the <see cref="ExtraPanel"/> dependency property.
+        /// </summary>
+        public static readonly DependencyProperty ExtraPanelProperty = DependencyProperty.Register(
+            "ExtraPanel",
+            typeof(object),
+            typeof(SplitterContainer),
+            new FrameworkPropertyMetadata(null));
+
+        /// <summary>
         /// Identifies the <see cref="EditorHeader"/> dependency property.
         /// </summary>
         public static readonly DependencyProperty EditorHeaderProperty = DependencyProperty.Register(
@@ -252,6 +261,17 @@ namespace AvaloniaVS.Controls
             get { return (object)GetValue(DesignerHeaderProperty); }
             set { SetValue(DesignerHeaderProperty, value); }
         }
+
+        /// <summary>
+        /// Gets or sets the content of the extra panel
+        /// </summary>
+        [Bindable(true)]
+        public object ExtraPanel
+        {
+            get { return (object)GetValue(ExtraPanelProperty); }
+            set { SetValue(ExtraPanelProperty, value); }
+        }
+
 
         /// <summary>
         /// Gets or sets the content of the <see cref="Editor"/> tab-item header.

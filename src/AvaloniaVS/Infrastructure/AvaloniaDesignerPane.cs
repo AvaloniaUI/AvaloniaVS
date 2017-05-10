@@ -109,6 +109,11 @@ namespace AvaloniaVS.Infrastructure
                     _designer.SourceAssembly = sa;
             };
             UpdateTargetExe(_designerHost.TargetExe);
+            _designerHost.RestartDesigner = new RelayCommand(() =>
+            {
+                Restart();
+                ReloadMetadata();
+            });
             _designer.Xaml = _textBuffer.CurrentSnapshot.GetText();
             AvaloniaBuildEvents.Instance.BuildEnd += Restart;
             AvaloniaBuildEvents.Instance.ModeChanged += OnModeChanged;
