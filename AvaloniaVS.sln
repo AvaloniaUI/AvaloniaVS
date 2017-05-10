@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26228.4
+VisualStudioVersion = 15.0.26403.7
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Templates", "Templates", "{82C1C97B-56A1-4287-B8C2-42A127A07821}"
 EndProject
@@ -14,6 +14,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaVS.Controls", "src\AvaloniaVS.Controls\AvaloniaVS.Controls.csproj", "{BDDC602F-89C4-439C-B728-582700B689B4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaUserControlTemplate", "src\Templates\AvaloniaUserControlTemplate\AvaloniaUserControlTemplate.csproj", "{3BFD12BB-E6D8-46D7-9D5F-119A9896941E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaCoreApplicationTemplate", "src\Templates\AvaloniaCoreApplicationTemplate\AvaloniaCoreApplicationTemplate.csproj", "{3EEED146-FC9F-41D6-B536-0CE056E3AC0C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,6 +43,10 @@ Global
 		{3BFD12BB-E6D8-46D7-9D5F-119A9896941E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3BFD12BB-E6D8-46D7-9D5F-119A9896941E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3BFD12BB-E6D8-46D7-9D5F-119A9896941E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3EEED146-FC9F-41D6-B536-0CE056E3AC0C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3EEED146-FC9F-41D6-B536-0CE056E3AC0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3EEED146-FC9F-41D6-B536-0CE056E3AC0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3EEED146-FC9F-41D6-B536-0CE056E3AC0C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -49,5 +55,6 @@ Global
 		{75104AA0-3B1B-47D4-9C4D-501A8185ACFC} = {82C1C97B-56A1-4287-B8C2-42A127A07821}
 		{C8B3FF98-50A3-4C04-8F8C-ED853EC0760C} = {82C1C97B-56A1-4287-B8C2-42A127A07821}
 		{3BFD12BB-E6D8-46D7-9D5F-119A9896941E} = {82C1C97B-56A1-4287-B8C2-42A127A07821}
+		{3EEED146-FC9F-41D6-B536-0CE056E3AC0C} = {82C1C97B-56A1-4287-B8C2-42A127A07821}
 	EndGlobalSection
 EndGlobal

@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFrameworks>netcoreapp1.1;net461</TargetFrameworks>
+    </PropertyGroup>
+    <ItemGroup>
+        <Compile Update="**\*.xaml.cs">
+            <DependentUpon>%(Filename)</DependentUpon>
+        </Compile>
+        <EmbeddedResource Include="**\*.xaml">
+            <SubType>Designer</SubType>
+        </EmbeddedResource>
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Avalonia" Version="0.4.1-build3088-alpha" />
+        <PackageReference Include="Avalonia.Desktop" Version="0.4.1-build3088-alpha" />
+        <PackageReference Include="Serilog.Sinks.Trace" Version="2.1.0" />
+    </ItemGroup>
+</Project>

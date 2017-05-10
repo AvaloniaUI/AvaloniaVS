@@ -413,6 +413,13 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
     </ProjectReference>
+    <ProjectReference Include="..\Templates\AvaloniaCoreApplicationTemplate\AvaloniaCoreApplicationTemplate.csproj">
+      <Project>{3EEED146-FC9F-41D6-B536-0CE056E3AC0C}</Project>
+      <Name>AvaloniaCoreApplicationTemplate</Name>
+      <VSIXSubPath>ProjectTemplates</VSIXSubPath>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+    </ProjectReference>
     <ProjectReference Include="..\Templates\AvaloniaUserControlTemplate\AvaloniaUserControlTemplate.csproj">
       <Project>{3BFD12BB-E6D8-46D7-9D5F-119A9896941E}</Project>
       <Name>AvaloniaUserControlTemplate</Name>
