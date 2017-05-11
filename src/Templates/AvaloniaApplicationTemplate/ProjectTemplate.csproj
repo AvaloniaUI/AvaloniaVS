@@ -42,8 +42,8 @@
         </Compile>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Avalonia" Version="0.4.1-build3088-alpha" />
-        <PackageReference Include="Avalonia.Desktop" Version="0.4.1-build3088-alpha" />
+        <PackageReference Include="Avalonia" Version="0.4.1-build3098-alpha" />
+        <PackageReference Include="Avalonia.Desktop" Version="0.4.1-build3098-alpha" />
         <PackageReference Include="Serilog.Sinks.Trace" Version="2.1.0" />
         <Reference Include="System" />
     </ItemGroup>
