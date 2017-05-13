@@ -91,7 +91,8 @@ namespace AvaloniaVS.Infrastructure
                 {
                     VerticalAlignment = VerticalAlignment.Center,
                     HorizontalAlignment = HorizontalAlignment.Center,
-                    Text = $"{Path.GetFileName(_fileName)} cannot be edited in the Design view. Make sure that it's referenced from at least one desktop exe project"
+                    TextWrapping = TextWrapping.Wrap,
+                    Text = $"{Path.GetFileName(_fileName)} cannot be edited in the Design view. Make sure that it's referenced from at least one desktop exe project and rebuild solution. FixMe button below might also help."
                 }
                 : _designer;
             ReloadMetadata();
