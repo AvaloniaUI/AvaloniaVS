@@ -70,7 +70,9 @@
                 </DockPanel>
             </lc:SplitterContainer.Designer>
             <lc:SplitterContainer.Editor>
-                <lc:FocusableContentPresenter DataContext="{Binding DataContext, ElementName=Root}" Content="{Binding EditView}" />
+                <lc:FocusableContentPresenter TextOptions.TextFormattingMode="{Binding (TextOptions.TextFormattingMode), RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type FrameworkElement}}}"
+                                              DataContext="{Binding DataContext, ElementName=Root}"
+                                              Content="{Binding EditView}" />
             </lc:SplitterContainer.Editor>
             <lc:SplitterContainer.ExtraPanel>
                 <StackPanel Orientation="Horizontal" DataContext="{Binding ElementName=Root, Path=DataContext}">
