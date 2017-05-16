@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.Composition;
+using System.IO;
 using Microsoft.VisualStudio.Shell.Interop;
 using IServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 using System.Runtime.InteropServices;
@@ -54,6 +55,13 @@ namespace AvaloniaVS.Infrastructure
             if ((grfCreateDoc & (VSConstants.CEF_OPENFILE | VSConstants.CEF_SILENT)) == 0)
             {
                 return VSConstants.E_INVALIDARG;
+            }
+
+            if (pszMkDocument.ToLowerInvariant().EndsWith(".xaml"))
+            {
+                //Special handling for xaml documents
+                if (!Utils.CheckAvaloniaRoot(File.ReadAllText(pszMkDocument)))
+                    return VSConstants.VS_E_UNSUPPORTEDFORMAT;
             }
 
             IVsTextLines documentBuffer = null;
