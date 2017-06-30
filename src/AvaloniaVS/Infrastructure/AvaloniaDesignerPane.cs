@@ -14,6 +14,9 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Avalonia.Designer;
+using Avalonia.Ide.CompletionEngine;
+using Avalonia.Ide.CompletionEngine.AssemblyMetadata;
+using Avalonia.Ide.CompletionEngine.SrmMetadataProvider;
 using AvaloniaVS.Controls;
 using AvaloniaVS.Helpers;
 using AvaloniaVS.IntelliSense;
@@ -139,7 +142,8 @@ namespace AvaloniaVS.Infrastructure
                 return;
             try
             {
-                _textBuffer.Properties[typeof(Metadata)] = MetadataLoader.LoadMetadata(_targetExe);
+                _textBuffer.Properties[typeof(Metadata)] = new MetadataReader(new SrmMetadataProvider())
+                    .GetForTargetAssembly(_targetExe);
             }
             catch (Exception e)
             {

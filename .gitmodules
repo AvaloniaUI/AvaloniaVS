@@ -1,0 +1,3 @@
+[submodule "src/external/Avalonia.Ide"]
+	path = src/external/Avalonia.Ide
+	url = git@github.com:AvaloniaUI/Avalonia.Ide.git

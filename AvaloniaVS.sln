@@ -17,7 +17,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaUserControlTemplate
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaCoreApplicationTemplate", "src\Templates\AvaloniaCoreApplicationTemplate\AvaloniaCoreApplicationTemplate.csproj", "{3EEED146-FC9F-41D6-B536-0CE056E3AC0C}"
 EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Avalonia.Ide.CompletionEngine", "src\external\Avalonia.Ide.build\Avalonia.Ide.CompletionEngine\Avalonia.Ide.CompletionEngine.shproj", "{C704041D-EB66-4C37-B0D5-90B4F58FFD02}"
+EndProject
 Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		src\external\Avalonia.Ide.build\Avalonia.Ide.CompletionEngine\Avalonia.Ide.CompletionEngine.projitems*{378d99a6-57bf-432d-a5a2-82cc4153736a}*SharedItemsImports = 4
+		src\external\Avalonia.Ide.build\Avalonia.Ide.CompletionEngine\Avalonia.Ide.CompletionEngine.projitems*{c704041d-eb66-4c37-b0d5-90b4f58ffd02}*SharedItemsImports = 13
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
