@@ -136,7 +136,9 @@ namespace AvaloniaVS
                         alternatives[targetFw] = targetPath;
                     }
                 }
-            string fullPath = vsProject?.Properties?.Item("FullPath")?.Value?.ToString();
+
+           
+            string fullPath = TryGetProperty(vsProject?.Properties,"FullPath");
 
             string outputPath = vsProject?.ConfigurationManager?.ActiveConfiguration?.Properties?.Item("OutputPath")?.Value?.ToString();
             if (fullPath != null && outputPath != null)
