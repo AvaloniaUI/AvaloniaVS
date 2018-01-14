@@ -80,6 +80,7 @@
       <Generator>MSBuild:Compile</Generator>
     </None>
     <None Include="MainWindow.xaml.cs" />
+    <None Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -88,7 +89,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </None>
-    <None Include="ProjectTemplate.csproj" />
+    <None Include="nuget.config" />
+    <None Include="ProjectTemplate.csproj">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <VSTemplate Include="AvaloniaCoreApplicationTemplate.vstemplate">

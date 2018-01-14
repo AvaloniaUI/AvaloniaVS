@@ -8,8 +8,10 @@ namespace $safeprojectname$
     {
         public MainWindow()
         {
-            this.InitializeComponent();
+            InitializeComponent();
+#if DEBUG
             this.AttachDevTools();
+#endif
         }
 
         private void InitializeComponent()
