@@ -27,7 +27,8 @@
     <TargetFrameworkProfile />
     <StartAction>Program</StartAction>
     <StartProgram>$(DevEnvDir)\devenv.exe</StartProgram>
-    <StartArguments>/rootsuffix Exp</StartArguments>  </PropertyGroup>
+    <StartArguments>/rootsuffix Exp</StartArguments>
+  </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
@@ -414,13 +415,6 @@
     <ProjectReference Include="..\Templates\AvaloniaApplicationTemplate\AvaloniaApplicationTemplate.csproj">
       <Project>{75104AA0-3B1B-47D4-9C4D-501A8185ACFC}</Project>
       <Name>AvaloniaApplicationTemplate</Name>
-      <VSIXSubPath>ProjectTemplates</VSIXSubPath>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
-    </ProjectReference>
-    <ProjectReference Include="..\Templates\AvaloniaCoreApplicationTemplate\AvaloniaCoreApplicationTemplate.csproj">
-      <Project>{3EEED146-FC9F-41D6-B536-0CE056E3AC0C}</Project>
-      <Name>AvaloniaCoreApplicationTemplate</Name>
       <VSIXSubPath>ProjectTemplates</VSIXSubPath>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
