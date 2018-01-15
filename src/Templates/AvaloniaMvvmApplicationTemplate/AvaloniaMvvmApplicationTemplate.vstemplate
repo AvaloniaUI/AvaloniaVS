@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="Project" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" xmlns:sdk="http://schemas.microsoft.com/developer/vstemplate-sdkextension/2010">
+  <TemplateData>
+    <Name>Avalonia MVVM Application</Name>
+    <Description>Avalonia MVVM application</Description>
+    <Icon>AvaloniaMvvmApplicationTemplate.ico</Icon>
+    <ProjectType>CSharp</ProjectType>
+    <RequiredFrameworkVersion>4.5</RequiredFrameworkVersion>
+    <SortOrder>1000</SortOrder>
+    <TemplateID>191cf8ae-cce5-4162-8932-d4f34eec1938</TemplateID>
+    <CreateNewFolder>true</CreateNewFolder>
+    <DefaultName>AvaloniaApplication</DefaultName>
+    <ProvideDefaultName>true</ProvideDefaultName>
+    <CreateInPlace>true</CreateInPlace>
+  </TemplateData>
+  <TemplateContent>
+    <Project File="ProjectTemplate.csproj" ReplaceParameters="true">
+      <Folder Name="Assets"/>
+      <Folder Name="Models"/>
+      <ProjectItem ReplaceParameters="true">ViewModels\MainWindowViewModel.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true">ViewModels\ViewModelBase.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" OpenInEditor="true">Views\MainWindow.xaml</ProjectItem>
+      <ProjectItem ReplaceParameters="true">Views\MainWindow.xaml.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true">App.xaml</ProjectItem>
+      <ProjectItem ReplaceParameters="true">App.xaml.cs</ProjectItem>
+      <ProjectItem>nuget.config</ProjectItem>
+      <ProjectItem ReplaceParameters="true">Program.cs</ProjectItem>
+    </Project>
+  </TemplateContent>
+</VSTemplate>
