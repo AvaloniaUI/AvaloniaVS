@@ -6,16 +6,10 @@
     <Icon>AvaloniaWindowTemplate.ico</Icon>
     <TemplateID>b2dc19ed-2273-47c0-a8cf-b32f8d85640b</TemplateID>
     <ProjectType>CSharp</ProjectType>
-    <RequiredFrameworkVersion>4.5</RequiredFrameworkVersion>
     <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
     <DefaultName>Window.xaml</DefaultName>
   </TemplateData>
   <TemplateContent>
-    <References>
-      <Reference>
-        <Assembly>System</Assembly>
-      </Reference>
-    </References>
     <ProjectItem ReplaceParameters="true" TargetFileName="$fileinputname$.xaml" OpenInEditor="true" ItemType="EmbeddedResource">Window.xaml</ProjectItem>
     <ProjectItem ReplaceParameters="true" TargetFileName="$fileinputname$.xaml\$fileinputname$.xaml.cs">Window.xaml.cs</ProjectItem>
   </TemplateContent>
