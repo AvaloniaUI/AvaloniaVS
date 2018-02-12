@@ -27,7 +27,8 @@
     <TargetFrameworkProfile />
     <StartAction>Program</StartAction>
     <StartProgram>$(DevEnvDir)\devenv.exe</StartProgram>
-    <StartArguments>/rootsuffix Exp</StartArguments>  </PropertyGroup>
+    <StartArguments>/rootsuffix Exp</StartArguments>
+  </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
@@ -387,6 +388,8 @@
     <Content Include="AvaloniaDesignerTheme.pkgdef">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="lib\Avalonia.Designer.HostApp.dll" ><IncludeInVSIX>true</IncludeInVSIX></Content>
+    <Content Include="lib\Avalonia.Designer.HostApp.exe" ><IncludeInVSIX>true</IncludeInVSIX></Content>
     <Content Include="Resources\AvaloniaPackage.ico" />
   </ItemGroup>
   <ItemGroup>

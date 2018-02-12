@@ -10,48 +10,32 @@ namespace AvaloniaVS.Infrastructure
 {
     internal class DesignerKiller
     {
+        static List<Process> s_designers = new List<Process>();
+
 
         public static void KillAllDesigners()
         {
-            Console.WriteLine("KillAllDesigners");
-            var pid = Process.GetCurrentProcess().Id;
-            try
+            lock (s_designers)
             {
-                ManagementObjectSearcher searcher = new ManagementObjectSearcher(
-                    "SELECT * " +
-                    "FROM Win32_Process " +
-                    "WHERE ParentProcessId=" + pid);
-                ManagementObjectCollection collection = searcher.Get();
-                if (collection.Count > 0)
+                foreach (var p in s_designers.ToList())
                 {
-                    foreach (var item in collection)
+                    try
                     {
-                        UInt32 childProcessId = (UInt32) item["ProcessId"];
-                        if ((int) childProcessId != Process.GetCurrentProcess().Id)
-                        {
-                            try
-                            {
-                                Process childProcess = Process.GetProcessById((int) childProcessId);
-                                if (childProcess.ProcessName.Contains("Avalonia.Designer"))
-                                {
-                                    Console.WriteLine("Killing " + childProcess.ProcessName);
-                                    childProcess.Kill();
-                                }
-                                childProcess.Dispose();
-                            }
-                            catch
-                            {
-                                //
-                            }
-                        }
+                        p.Kill();
+                    }
+                    catch
+                    {
+                        // Ignore
                     }
                 }
-            }
-            catch
-            {
-                //
+                s_designers.Clear();
             }
         }
 
+        public static void Register(Process proc)
+        {
+            lock (s_designers)
+                s_designers.Add(proc);
+        }
     }
 }

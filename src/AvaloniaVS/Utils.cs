@@ -102,11 +102,14 @@ namespace AvaloniaVS
         /// </summary>
         /// <param name="vsProject"></param>
         /// <returns>Target Exe path</returns>
-        public static string GetAssemblyPath(this Project vsProject)
+        public static string GetAssemblyPath(this Project vsProject) =>
+            GetProjectOutputInfo(vsProject)?.FirstOrDefault()?.TargetAssembly;
+
+        public static List<ProjectOutputInfo> GetProjectOutputInfo(this Project vsProject)
         {
             try
             {
-                return GetAssemblyPathInternal(vsProject);
+                return GetProjectOutputInfoInternal(vsProject);
             }
             catch (COMException e) when ((uint)e.HResult == 0x80004005)
             {
@@ -114,7 +117,16 @@ namespace AvaloniaVS
             }
         }
 
-        static string GetAssemblyPathInternal(this Project vsProject)
+        public class ProjectOutputInfo
+        {
+            public string TargetAssembly { get; set; }
+            public string OutputType { get; set; }
+            public string TargetFramework { get; set; }
+            public bool IsFullDotNet { get; set; }
+            public bool IsNetCore { get; set; }
+        }
+
+        static List<ProjectOutputInfo> GetProjectOutputInfoInternal(this Project vsProject)
         {
             var alternatives = new Dictionary<string, string>();
             var ucproject = GetUnconfiguredProject(vsProject);
@@ -132,30 +144,79 @@ namespace AvaloniaVS
                     if (!string.IsNullOrWhiteSpace(targetPath))
                     {
                         if (!loaded.ProjectConfiguration.Dimensions.TryGetValue("TargetFramework", out var targetFw))
-                            targetFw = "unknown";
+                            targetFw = task.Result.AllEvaluatedProperties.FirstOrDefault(p => p.Name == "TargetFramework")
+                                           ?.EvaluatedValue ?? "unknown";
                         alternatives[targetFw] = targetPath;
                     }
                 }
 
-           
+            
             string fullPath = TryGetProperty(vsProject?.Properties,"FullPath");
 
             string outputPath = vsProject?.ConfigurationManager?.ActiveConfiguration?.Properties?.Item("OutputPath")?.Value?.ToString();
             if (fullPath != null && outputPath != null)
             {
                 string outputDir = Path.Combine(fullPath, outputPath);
+                /*
+                var dic = new Dictionary<string, string>();
+                foreach(Property prop in vsProject.Properties)
+                {
+                    try
+                    {
+                        dic[prop.Name] = prop.Value?.ToString();
+                    }
+                    catch
+                    {
+                        
+                    }
+                }*/
                 string outputFileName = vsProject.Properties.Item("OutputFileName").Value.ToString();
                 if (!string.IsNullOrWhiteSpace(outputFileName))
                 {
+                    var fw = "net40";
+                    var tfm = TryGetProperty(vsProject.Properties, "TargetFrameworkMoniker");
+                    const string tfmPrefix = ".netframework,version=v";
+                    if (tfm != null && tfm.ToLowerInvariant().StartsWith(tfmPrefix))
+                        fw = "net" + tfm.Substring(tfmPrefix.Length).Replace(".", "");
+
                     string assemblyPath = Path.Combine(outputDir, outputFileName);
-                    alternatives["classic"] = assemblyPath;
+                    alternatives[fw] = assemblyPath;
                 }
             }
-            return alternatives.OrderByDescending(x => x.Key == "classic"
+            var outputType = TryGetProperty(vsProject?.Properties, "OutputType") ??
+                             TryGetProperty(vsProject?.ConfigurationManager?.ActiveConfiguration?.Properties,
+                                 "OutputType");
+
+            outputType = outputType == "0"
+                ? "winexe"
+                : outputType == "1"
+                    ? "exe"
+                    : outputType == "2"
+                        ? "dll"
+                        : "unknown";
+
+            var lst = new List<ProjectOutputInfo>();
+            foreach (var alternative in alternatives.OrderByDescending(x => x.Key == "classic"
                 ? 10
                 : DesktopFrameworkRegex.IsMatch(x.Key)
                     ? 9
-                    : x.Key.StartsWith("netstandard") ? 8 : 0).FirstOrDefault().Value;
+                    : x.Key.StartsWith("netcoreapp")
+                        ? 8
+                        : x.Key.StartsWith("netstandard")
+                            ? 7
+                            : 0))
+            {
+                var nfo = new ProjectOutputInfo
+                {
+                    TargetAssembly = alternative.Value,
+                    OutputType = outputType,
+                    TargetFramework = alternative.Key == "classic" ? "net40" : alternative.Key
+                };
+                nfo.IsNetCore = nfo.TargetFramework.StartsWith("netcoreapp");
+                nfo.IsFullDotNet = DesktopFrameworkRegex.IsMatch(nfo.TargetFramework);
+                lst.Add(nfo);
+            }
+            return lst;
         }
 
         static UnconfiguredProject GetUnconfiguredProject(EnvDTE.Project project)
