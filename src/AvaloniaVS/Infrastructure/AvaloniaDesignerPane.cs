@@ -103,10 +103,18 @@ namespace AvaloniaVS.Infrastructure
 
         private void InitializeDesigner()
         {
-            _designer = new AvaloniaDesigner()
+            var basePath =
+                Path.GetDirectoryName(typeof(AvaloniaDesignerPane).Assembly.GetModules()[0].FullyQualifiedName);
+            basePath = Path.Combine(basePath, "lib");
+            _designer = new AvaloniaDesigner(new DesignerConfiguration
+            {
+                NetFxAppHostPath = Path.Combine(basePath, "Avalonia.Designer.HostApp.exe"),
+                NetCoreAppHostPath = Path.Combine(basePath, "Avalonia.Designer.HostApp.dll")
+            })
             {
                 SourceAssembly = Utils.GetContainerProject(_fileName)?.GetAssemblyPath()
             };
+            _designer.SpawnedProcess += DesignerKiller.Register;
             _designerHost.SourceAssemblyChanged += sa =>
             {
                 if (_designer != null)

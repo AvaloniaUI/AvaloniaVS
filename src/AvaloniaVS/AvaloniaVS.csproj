@@ -388,6 +388,8 @@
     <Content Include="AvaloniaDesignerTheme.pkgdef">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="lib\Avalonia.Designer.HostApp.dll" ><IncludeInVSIX>true</IncludeInVSIX></Content>
+    <Content Include="lib\Avalonia.Designer.HostApp.exe" ><IncludeInVSIX>true</IncludeInVSIX></Content>
     <Content Include="Resources\AvaloniaPackage.ico" />
   </ItemGroup>
   <ItemGroup>

@@ -18,12 +18,17 @@ using PropertyChanged;
 
 namespace AvaloniaVS.ViewModels
 {
-
+    public class PreviewerRunTarget
+    {
+        public string Name { get; set; }
+        public string TargetAssembly { get; set; }
+        public override string ToString() => Name;
+    }
 
     public class AvaloniaDesignerHostViewModel : PropertyChangedBase, IAvaloniaDesignerHostViewModel
     {
         private readonly string _fileName;
-        private ProjectDescriptor _selectedTarget;
+        private PreviewerRunTarget _selectedTarget;
         private string _sourceAssembly;
 
         public object EditView { get; set; }
@@ -31,12 +36,12 @@ namespace AvaloniaVS.ViewModels
         public bool ShowTargetSelector { get; set; }
         public Orientation Orientation { get; set; }
         public bool IsReversed { get; set; }
-        public List<ProjectDescriptor> AvailableTargets { get; set; }
+        public List<PreviewerRunTarget> AvailableTargets { get; set; }
         public ICommand RestartDesigner { get; set; }
         public event Action<string> TargetExeChanged;
         public event Action<string> SourceAssemblyChanged;
 
-        public ProjectDescriptor SelectedTarget
+        public PreviewerRunTarget SelectedTarget
         {
             get { return _selectedTarget; }
             set
@@ -78,14 +83,18 @@ namespace AvaloniaVS.ViewModels
         void PopulateTargetList()
         {
             var containing = Utils.GetContainerProject(_fileName);
-            AvailableTargets = new List<ProjectDescriptor>(
-                ProjectInfoService.Projects.Where(p => p.TargetAssembly?.ToLower()?.EndsWith(".exe") == true
-                                                       && (p.Project == containing || p.References.Contains(containing)))
-                    .OrderBy(p => p.Project == containing));
+            AvailableTargets = new List<PreviewerRunTarget>(
+                ProjectInfoService.Projects.Where(p => p.Project == containing || p.References.Contains(containing))
+                    .OrderBy(p => p.Project == containing)
+                    .SelectMany(p => p.RunnableOutputs.Select(o => new PreviewerRunTarget
+                    {
+                        Name = $"{p.Name} [{o.Key}]",
+                        TargetAssembly = o.Value
+                    })));
 
             SelectedTarget = (SelectedTarget == null
                 ? null
-                : AvailableTargets.FirstOrDefault(a => a.Project == SelectedTarget.Project)) ??
+                : AvailableTargets.FirstOrDefault(a => a.TargetAssembly == SelectedTarget.TargetAssembly)) ??
                              AvailableTargets.FirstOrDefault();
             ShowTargetSelector = AvailableTargets.Count > 1;
         }
