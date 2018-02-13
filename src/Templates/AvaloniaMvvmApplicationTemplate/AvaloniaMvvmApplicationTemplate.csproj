@@ -109,10 +109,10 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Assets\avalonia-logo.ico" />
     <Content Include="AvaloniaMvvmApplicationTemplate.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Assets\" />
     <Folder Include="Models\" />
   </ItemGroup>
   <ItemGroup>

@@ -15,8 +15,8 @@
   </TemplateData>
   <TemplateContent>
     <Project File="ProjectTemplate.csproj" ReplaceParameters="true">
-      <Folder Name="Assets" TargetFolderName="Assets"/>
       <Folder Name="Models" TargetFolderName="Models"/>
+      <ProjectItem>Assets\avalonia-logo.ico</ProjectItem>
       <ProjectItem ReplaceParameters="true">ViewModels\MainWindowViewModel.cs</ProjectItem>
       <ProjectItem ReplaceParameters="true">ViewModels\ViewModelBase.cs</ProjectItem>
       <ProjectItem ReplaceParameters="true" OpenInEditor="true">Views\MainWindow.xaml</ProjectItem>

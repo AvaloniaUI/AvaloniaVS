@@ -4,7 +4,6 @@
     <TargetFrameworks>netcoreapp2.0;net461</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
-    <Folder Include="Assets\" />
     <Folder Include="Models\" />
     <Compile Update="**\*.xaml.cs">
       <DependentUpon>%(Filename)</DependentUpon>
