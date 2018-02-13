@@ -74,8 +74,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="ViewModels\MainWindowViewModel.cs" />
-    <Content Include="ViewModels\ViewModelBase.cs" />
+    <None Include="ViewLocator.cs" />
+    <None Include="ViewModels\MainWindowViewModel.cs" />
+    <None Include="ViewModels\ViewModelBase.cs" />
     <None Include="App.xaml.cs" />
     <None Include="App.xaml">
       <SubType>Designer</SubType>

@@ -1,6 +1,8 @@
 ﻿using System;
 using Avalonia;
 using Avalonia.Logging.Serilog;
+using $safeprojectname$.ViewModels;
+using $safeprojectname$.Views;
 
 namespace $safeprojectname$
 {
