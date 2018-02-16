@@ -13,6 +13,9 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using AvaloniaVS.Internals;
 using AvaloniaVS.Options;
+using System;
+using System.Threading;
+using Task = System.Threading.Tasks.Task;
 
 namespace AvaloniaVS.Infrastructure
 {
@@ -72,22 +75,22 @@ namespace AvaloniaVS.Infrastructure
     [Guid(PackageGuidString)]
     [ComVisible(true)]
     [Export]
-    public sealed class AvaloniaPackage : Package
+    public sealed class AvaloniaPackage : AsyncPackage
     {
         public const string PackageGuidString = "865ba8d5-1180-4bf8-8821-345f72a4cb79";
 
-        protected override void Initialize()
+        protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            base.Initialize();
-            InitializeVisualStudioServices();
+            await base.InitializeAsync(cancellationToken, progress);
+            await InitializeVisualStudioServices();
 
             var pamlEditorFactory = VisualStudioServices.ComponentModel.DefaultExportProvider.GetExportedValue<AvaloniaEditorFactory>();
             base.RegisterEditorFactory(pamlEditorFactory);
         }
 
-        private void InitializeVisualStudioServices()
+        private async Task InitializeVisualStudioServices()
         {
-            var componentModel = (IComponentModel)GetService(typeof(SComponentModel));
+            var componentModel = (IComponentModel)(await GetServiceAsync(typeof(SComponentModel)));
             VisualStudioServices.ComponentModel = componentModel;
             VisualStudioServices.VsEditorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
         }
