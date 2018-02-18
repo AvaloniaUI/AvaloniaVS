@@ -2,14 +2,16 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace $safeprojectname$
+namespace $safeprojectname$.Views
 {
     public class MainWindow : Window
     {
         public MainWindow()
         {
-            this.InitializeComponent();
+            InitializeComponent();
+#if DEBUG
             this.AttachDevTools();
+#endif
         }
 
         private void InitializeComponent()

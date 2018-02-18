@@ -425,9 +425,9 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
     </ProjectReference>
-    <ProjectReference Include="..\Templates\AvaloniaCoreApplicationTemplate\AvaloniaCoreApplicationTemplate.csproj">
-      <Project>{3EEED146-FC9F-41D6-B536-0CE056E3AC0C}</Project>
-      <Name>AvaloniaCoreApplicationTemplate</Name>
+    <ProjectReference Include="..\Templates\AvaloniaMvvmApplicationTemplate\AvaloniaMvvmApplicationTemplate.csproj">
+      <Project>{d458691f-3b40-4e54-8bc2-782d017cfd2b}</Project>
+      <Name>AvaloniaMvvmApplicationTemplate</Name>
       <VSIXSubPath>ProjectTemplates</VSIXSubPath>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>

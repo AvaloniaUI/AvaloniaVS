@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("AvaloniaCoreApplicationTemplate")]
+[assembly: AssemblyTitle("AvaloniaMvvmApplicationTemplate")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Nikita Tsukanov")]
-[assembly: AssemblyProduct("AvaloniaCoreApplicationTemplate")]
+[assembly: AssemblyProduct("AvaloniaMvvmApplicationTemplate")]
 [assembly: AssemblyCopyright("Copyright © Nikita Tsukanov 2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("5a1c2e1a-533d-43d5-8fac-2993fa276510")]
+[assembly: Guid("75104aa0-3b1b-47d4-9c4d-501a8185acfc")]
 
 // Version information for an assembly consists of the following four values:
 //
