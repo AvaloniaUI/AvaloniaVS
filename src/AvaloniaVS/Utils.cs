@@ -120,7 +120,7 @@ namespace AvaloniaVS
         public class ProjectOutputInfo
         {
             public string TargetAssembly { get; set; }
-            public string OutputType { get; set; }
+            public bool OutputTypeIsExecutable { get; set; }
             public string TargetFramework { get; set; }
             public bool IsFullDotNet { get; set; }
             public bool IsNetCore { get; set; }
@@ -186,14 +186,10 @@ namespace AvaloniaVS
             var outputType = TryGetProperty(vsProject?.Properties, "OutputType") ??
                              TryGetProperty(vsProject?.ConfigurationManager?.ActiveConfiguration?.Properties,
                                  "OutputType");
-
-            outputType = outputType == "0"
-                ? "winexe"
-                : outputType == "1"
-                    ? "exe"
-                    : outputType == "2"
-                        ? "dll"
-                        : "unknown";
+            var outputTypeIsExecutable = outputType == "0" || outputType == "1"
+                                         || outputType?.ToLowerInvariant() == "exe" ||
+                                         outputType?.ToLowerInvariant() == "winexe";
+            
 
             var lst = new List<ProjectOutputInfo>();
             foreach (var alternative in alternatives.OrderByDescending(x => x.Key == "classic"
@@ -209,7 +205,7 @@ namespace AvaloniaVS
                 var nfo = new ProjectOutputInfo
                 {
                     TargetAssembly = alternative.Value,
-                    OutputType = outputType,
+                    OutputTypeIsExecutable = outputTypeIsExecutable,
                     TargetFramework = alternative.Key == "classic" ? "net40" : alternative.Key
                 };
                 nfo.IsNetCore = nfo.TargetFramework.StartsWith("netcoreapp");
