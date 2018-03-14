@@ -32,7 +32,7 @@ namespace AvaloniaVS.ViewModels
                     if (o.IsFullDotNet || o.IsNetCore)
                     {
                         if (o.TargetAssembly.ToLowerInvariant().EndsWith(".exe") ||
-                            o.OutputType?.ToLowerInvariant() == "exe")
+                            o.OutputTypeIsExecutable)
                             RunnableOutputs[o.TargetFramework] = o.TargetAssembly;
                     }
                 }
