@@ -1,10 +1,10 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
-using Microsoft.VisualStudio.Shell;
 using AvaloniaVS.Internals;
 using AvaloniaVS.ViewModels;
 using AvaloniaVS.Views;
+using Microsoft.VisualStudio.Shell;
 
 namespace AvaloniaVS.Options
 {
@@ -19,13 +19,16 @@ namespace AvaloniaVS.Options
             get
             {
                 LoadView();
-                return _view;
+                return _view ?? default;
             }
         }
 
         private void LoadView()
         {
-            _view = VisualStudioServices.ComponentModel.DefaultExportProvider.GetExportedValue<AvaloniaDesignerGeneralPageView>();
+            try {
+                _view = VisualStudioServices.ComponentModel.DefaultExportProvider.GetExportedValue<AvaloniaDesignerGeneralPageView>();
+            } catch {
+            }
         }
 
         /// <summary>
@@ -35,9 +38,9 @@ namespace AvaloniaVS.Options
         protected override void OnApply(PageApplyEventArgs e)
         {
             Debug.Assert(_view != null);
-            var viewModel = _view.DataContext as AvaloniaDesignerGeneralPageViewModel;
+            var viewModel = _view?.DataContext as AvaloniaDesignerGeneralPageViewModel;
             Debug.Assert(viewModel != null);
-            viewModel.ApplyChanges();
+            viewModel?.ApplyChanges();
             base.OnApply(e);
         }
     }
