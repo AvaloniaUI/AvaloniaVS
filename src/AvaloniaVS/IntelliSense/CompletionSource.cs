@@ -13,12 +13,12 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
-using VsCompletion = Microsoft.VisualStudio.Language.Intellisense.Completion;
 using CompletionSet = Microsoft.VisualStudio.Language.Intellisense.CompletionSet;
+using VsCompletion = Microsoft.VisualStudio.Language.Intellisense.Completion;
 
 namespace AvaloniaVS.IntelliSense
 {
-    class CompletionSource : ICompletionSource
+    internal class CompletionSource : ICompletionSource
     {
         private readonly ITextBuffer _textBuffer;
         private readonly CompletionSourceProvider _provider;
@@ -36,16 +36,16 @@ namespace AvaloniaVS.IntelliSense
 
         public void AugmentCompletionSession(ICompletionSession session, IList<CompletionSet> completionSets)
         {
-            Metadata metadata;
-            _textBuffer.Properties.TryGetProperty(typeof(Metadata), out metadata);
-            if (metadata == null)
+            _textBuffer.Properties.TryGetProperty(typeof(Metadata), out Metadata metadata);
+            if (metadata == null) {
                 return;
+            }
+
             var pos = session.TextView.Caret.Position.BufferPosition;
             var text = pos.Snapshot.GetText(0, pos.Position);
             var completions = _engine.GetCompletions(metadata, text, pos);
 
-            if (completions != null && completions.Completions.Count != 0)
-            {
+            if (completions != null && completions.Completions.Count != 0) {
                 var curStart = completions.StartPosition;
                 var span = new SnapshotSpan(pos.Snapshot, curStart, pos.Position - curStart);
                 completionSets.Insert(0, new CompletionSet("Avalonia", "Avalonia",
