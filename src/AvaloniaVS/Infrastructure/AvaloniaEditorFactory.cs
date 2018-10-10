@@ -1,15 +1,17 @@
 ﻿using System;
 using System.ComponentModel.Composition;
 using System.IO;
-using Microsoft.VisualStudio.Shell.Interop;
-using IServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 using System.Runtime.InteropServices;
+using AvaloniaVS.Internals;
+using Microsoft;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
-using AvaloniaVS.Internals;
 using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
+
+using IServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 
 namespace AvaloniaVS.Infrastructure
 {
@@ -30,6 +32,7 @@ namespace AvaloniaVS.Infrastructure
 
         public object GetService(Type serviceType)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
             return _serviceProvider.GetService(serviceType);
         }
 
@@ -45,6 +48,7 @@ namespace AvaloniaVS.Infrastructure
                                         out Guid pguidCmdUI,
                                         out int pgrfCDW)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
             ppunkDocView = IntPtr.Zero;
             ppunkDocData = IntPtr.Zero;
             pguidCmdUI = Guids.AvaloniaDesignerGeneralPageGuid;
@@ -52,30 +56,28 @@ namespace AvaloniaVS.Infrastructure
             pbstrEditorCaption = null;
 
             // Validate inputs
-            if ((grfCreateDoc & (VSConstants.CEF_OPENFILE | VSConstants.CEF_SILENT)) == 0)
-            {
+            if ((grfCreateDoc & (VSConstants.CEF_OPENFILE | VSConstants.CEF_SILENT)) == 0) {
                 return VSConstants.E_INVALIDARG;
             }
 
-            if (pszMkDocument.ToLowerInvariant().EndsWith(".xaml"))
-            {
+            if (pszMkDocument.ToLowerInvariant().EndsWith(".xaml")) {
                 //Special handling for xaml documents
-                if (!Utils.CheckAvaloniaRoot(File.ReadAllText(pszMkDocument)))
+                if (!Utils.CheckAvaloniaRoot(File.ReadAllText(pszMkDocument))) {
                     return VSConstants.VS_E_UNSUPPORTEDFORMAT;
+                }
             }
 
             IVsTextLines documentBuffer = null;
 
-            if (punkDocDataExisting == IntPtr.Zero)
-            {
+            if (punkDocDataExisting == IntPtr.Zero) {
                 // create an invisible editor
                 var invisibleEditorManager = (IVsInvisibleEditorManager)_serviceProvider.GetService(typeof(IVsInvisibleEditorManager));
-                IVsInvisibleEditor invisibleEditor;
+                Assumes.Present(invisibleEditorManager);
                 ErrorHandler.ThrowOnFailure(invisibleEditorManager.RegisterInvisibleEditor(pszMkDocument,
                     null,
-                    (uint) _EDITORREGFLAGS.RIEF_ENABLECACHING,
+                    (uint)_EDITORREGFLAGS.RIEF_ENABLECACHING,
                     null,
-                    out invisibleEditor));
+                    out var invisibleEditor));
 
                 var docDataPointer = IntPtr.Zero;
                 var guidIVSTextLines = typeof(IVsTextLines).GUID;
@@ -83,24 +85,18 @@ namespace AvaloniaVS.Infrastructure
                 documentBuffer = (IVsTextLines)Marshal.GetObjectForIUnknown(docDataPointer);
 
                 //It is important to site the TextBuffer object
-                var objWSite = documentBuffer as IObjectWithSite;
-                if (objWSite != null)
-                {
+                if (documentBuffer is IObjectWithSite objWSite) {
                     var oleServiceProvider = (IOleServiceProvider)GetService(typeof(IOleServiceProvider));
                     objWSite.SetSite(oleServiceProvider);
                 }
-            }
-            else
-            {
+            } else {
                 documentBuffer = Marshal.GetObjectForIUnknown(punkDocDataExisting) as IVsTextLines;
-                if (documentBuffer == null)
-                {
+                if (documentBuffer == null) {
                     return VSConstants.VS_E_INCOMPATIBLEDOCDATA;
                 }
             }
 
-            if (documentBuffer == null)
-            {
+            if (documentBuffer == null) {
                 return VSConstants.S_FALSE;
             }
 
@@ -116,11 +112,11 @@ namespace AvaloniaVS.Infrastructure
 
         internal object GetDocumentView(IVsTextLines documentBuffer, string filePath)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
             var codeWindow = CreateVsCodeWindow(documentBuffer);
 
             // in case the designer is not supported, we return the current VsCodeWindow that we just created.
-            if (!_designerSettings.IsDesignerEnabled)
-            {
+            if (!_designerSettings.IsDesignerEnabled) {
                 return codeWindow;
             }
 
@@ -131,8 +127,8 @@ namespace AvaloniaVS.Infrastructure
 
         private void SiteObject(IObjectWithSite objectWithSite)
         {
-            if (objectWithSite == null)
-            {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            if (objectWithSite == null) {
                 return;
             }
 
@@ -145,8 +141,8 @@ namespace AvaloniaVS.Infrastructure
             // Create a code window adapter.
             var codeWindow = VisualStudioServices.VsEditorAdaptersFactoryService.CreateVsCodeWindowAdapter(_oleServiceProvider);
 
-            // Disable the splitter control on the editor as leaving it enabled causes a crash if the user
-            // tries to use it here :(
+            // Disable the splitter control on the editor as leaving it enabled causes a crash if the
+            // user tries to use it here :(
             var codeWindowEx = (IVsCodeWindowEx)codeWindow;
             var initView = new INITVIEW[1];
             codeWindowEx.Initialize((uint)_codewindowbehaviorflags.CWB_DEFAULT, VSUSERCONTEXTATTRIBUTEUSAGE.VSUC_Usage_Filter, "", "", 0, initView);
@@ -159,7 +155,7 @@ namespace AvaloniaVS.Infrastructure
         public int SetSite(IServiceProvider psp)
         {
             _oleServiceProvider = psp;
-            _serviceProvider =new ServiceProvider(psp);
+            _serviceProvider = new ServiceProvider(psp);
             return VSConstants.S_OK;
         }
 
@@ -177,8 +173,7 @@ namespace AvaloniaVS.Infrastructure
                 rguidLogicalView == VSConstants.LOGVIEWID_Code ||
                 rguidLogicalView == VSConstants.LOGVIEWID_Debugging ||
                 rguidLogicalView == VSConstants.LOGVIEWID_TextView ||
-                rguidLogicalView == VSConstants.LOGVIEWID_Designer)
-            {
+                rguidLogicalView == VSConstants.LOGVIEWID_Designer) {
                 return VSConstants.S_OK;
             }
 
@@ -187,10 +182,9 @@ namespace AvaloniaVS.Infrastructure
 
         public void Dispose()
         {
-            lock (this)
-            {
-                if (_serviceProvider != null)
-                {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            lock (this) {
+                if (_serviceProvider != null) {
                     _serviceProvider.Dispose();
                     _serviceProvider = null;
                 }

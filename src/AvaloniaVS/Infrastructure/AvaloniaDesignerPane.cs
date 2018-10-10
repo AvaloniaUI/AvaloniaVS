@@ -5,25 +5,17 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
-using EnvDTE;
-using EnvDTE80;
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.TextManager.Interop;
 using Avalonia.Designer;
 using Avalonia.Ide.CompletionEngine;
 using Avalonia.Ide.CompletionEngine.AssemblyMetadata;
 using Avalonia.Ide.CompletionEngine.SrmMetadataProvider;
-using AvaloniaVS.Controls;
 using AvaloniaVS.Helpers;
-using AvaloniaVS.IntelliSense;
-using AvaloniaVS.Internals;
 using AvaloniaVS.ViewModels;
 using AvaloniaVS.Views;
-using Debugger = System.Diagnostics.Debugger;
+using EnvDTE;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.TextManager.Interop;
 using HorizontalAlignment = System.Windows.HorizontalAlignment;
 
 namespace AvaloniaVS.Infrastructure
@@ -59,7 +51,7 @@ namespace AvaloniaVS.Infrastructure
             RegisterMenuCommands();
         }
 
-        object GetContent(object adapter)
+        private object GetContent(object adapter)
         {
             return adapter.GetType().GetProperties(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
                 .FirstOrDefault(p => p.Name == "Content").GetMethod.Invoke(adapter, null);
@@ -67,7 +59,6 @@ namespace AvaloniaVS.Infrastructure
 
         private void InitializePane()
         {
-            
             // initialize the designer host view.
             _designerHost = new AvaloniaDesignerHostViewModel(_fileName)
             {
@@ -78,19 +69,19 @@ namespace AvaloniaVS.Infrastructure
                     : Orientation.Vertical,
                 IsReversed = _designerSettings.IsReversed
             };
-            _designerHostView = new AvaloniaDesignerHostView {DataContext = _designerHost};
+            _designerHostView = new AvaloniaDesignerHostView { DataContext = _designerHost };
             _designerHostView.Init(_designerSettings);
 
             InitializeDesigner();
             _designerHost.TargetExeChanged += UpdateTargetExe;
         }
 
-        void UpdateTargetExe(string exe)
+        private void UpdateTargetExe(string exe)
         {
             _targetExe = exe;
             _designer.TargetExe = exe;
             _designerHost.DesignView = _targetExe == null
-                ? (object) new TextBlock
+                ? (object)new TextBlock
                 {
                     VerticalAlignment = VerticalAlignment.Center,
                     HorizontalAlignment = HorizontalAlignment.Center,
@@ -115,14 +106,13 @@ namespace AvaloniaVS.Infrastructure
                 SourceAssembly = Utils.GetContainerProject(_fileName)?.GetAssemblyPath()
             };
             _designer.SpawnedProcess += DesignerKiller.Register;
-            _designerHost.SourceAssemblyChanged += sa =>
-            {
-                if (_designer != null)
+            _designerHost.SourceAssemblyChanged += sa => {
+                if (_designer != null) {
                     _designer.SourceAssembly = sa;
+                }
             };
             UpdateTargetExe(_designerHost.TargetExe);
-            _designerHost.RestartDesigner = new RelayCommand(() =>
-            {
+            _designerHost.RestartDesigner = new RelayCommand(() => {
                 Restart();
                 ReloadMetadata();
             });
@@ -144,17 +134,16 @@ namespace AvaloniaVS.Infrastructure
             base.OnClose();
         }
 
-        void ReloadMetadata()
+        private void ReloadMetadata()
         {
-            if (_targetExe == null || !File.Exists(_targetExe))
+            if (_targetExe == null || !File.Exists(_targetExe)) {
                 return;
-            try
-            {
+            }
+
+            try {
                 _textBuffer.Properties[typeof(Metadata)] = new MetadataReader(new SrmMetadataProvider())
                     .GetForTargetAssembly(_targetExe);
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 //TODO: Log
             }
         }
@@ -169,31 +158,32 @@ namespace AvaloniaVS.Infrastructure
         private void OnModeChanged()
         {
             var dte = (DTE)Package.GetGlobalService(typeof(DTE));
-            if (dte.Mode == vsIDEMode.vsIDEModeDesign)
+            if (dte.Mode == vsIDEMode.vsIDEModeDesign) {
                 Restart();
+            }
         }
 
         private async void Restart()
         {
-            long token = ++_lastRestartToken;
+            var token = ++_lastRestartToken;
             Console.WriteLine("Designer restart requested, waiting");
             await System.Threading.Tasks.Task.Delay(1000);
-            if (token != _lastRestartToken)
+            if (token != _lastRestartToken) {
                 return;
+            }
+
             var dte = (DTE)Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof(DTE));
-            if (dte.Mode != vsIDEMode.vsIDEModeDesign || AvaloniaBuildEvents.IsBuilding)
+            if (dte.Mode != vsIDEMode.vsIDEModeDesign || AvaloniaBuildEvents.IsBuilding) {
                 return;
-            try
-            {
+            }
+
+            try {
                 Console.WriteLine("Restarting designer");
                 _designer?.RestartProcess();
-            }
-            catch
-            {
+            } catch {
                 //TODO: Log
             }
             ReloadMetadata();
-
         }
 
         protected override void Dispose(bool disposing)
@@ -204,8 +194,7 @@ namespace AvaloniaVS.Infrastructure
 
         private void PaneDispose(bool disposing)
         {
-            if (disposing)
-            {
+            if (disposing) {
                 AvaloniaBuildEvents.Instance.BuildEnd -= Restart;
                 AvaloniaBuildEvents.Instance.ModeChanged -= OnModeChanged;
                 _designer?.KillProcess();

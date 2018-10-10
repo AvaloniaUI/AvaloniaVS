@@ -1,26 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 using AvaloniaVS.Helpers;
 using AvaloniaVS.ViewModels;
 using EnvDTE;
-using EnvDTE100;
 using EnvDTE80;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using VSLangProj;
-using VSLangProj140;
 
 namespace AvaloniaVS.Infrastructure
 {
     public sealed class ProjectInfoService
     {
-        static readonly ProjectInfoService Instance = new ProjectInfoService();
+        private static readonly ProjectInfoService Instance = new ProjectInfoService();
         private readonly DTE2 _dte;
+
         public static IEnumerable<ProjectDescriptor> Projects => Instance._cached;
 
         private bool _solutionRescanQueued = true;
@@ -29,27 +27,29 @@ namespace AvaloniaVS.Infrastructure
         private ProjectItemsEvents _solutionItemEvents;
         private SolutionEvents _solutionEvents;
 
-
-        class ProjectEntry
+        private class ProjectEntry
         {
             private readonly ProjectInfoService _service;
             private ReferencesEvents _events;
+
             public Project Project { get; }
+
             public HashSet<Project> References = new HashSet<Project>();
+
             public ProjectDescriptor Descriptor { get; }
+
             public bool RescanQueued { get; private set; }
+
             public bool TargetPathUpdateQueued { get; private set; }
 
             public void CheckForLoadedStateChanges()
             {
                 var project = Project.GetObjectSafe<VSProject>();
-                if (project != null && _events == null)
-                {
+                if (project != null && _events == null) {
                     SetupEvents(project);
                     Rescan();
                 }
-                if (project == null && _events != null)
-                {
+                if (project == null && _events != null) {
                     _events = null;
                     References.Clear();
                     _service._treeRebuildQueued = true;
@@ -57,37 +57,40 @@ namespace AvaloniaVS.Infrastructure
                 }
             }
 
-            void SetupEvents(VSProject vsProject)
+            private void SetupEvents(VSProject vsProject)
             {
                 _events = vsProject.Events.ReferencesEvents;
-                _events.ReferenceAdded += r =>
-                {
+                _events.ReferenceAdded += r => {
                     var p = r.SourceProject;
-                    if (p != null)
+                    if (p != null) {
                         References.Add(p);
+                    }
+
                     _service._treeRebuildQueued = true;
                 };
-                _events.ReferenceRemoved += r =>
-                {
+                _events.ReferenceRemoved += r => {
                     var p = r.SourceProject;
-                    if (p != null)
+                    if (p != null) {
                         References.Remove(p);
+                    }
+
                     _service._treeRebuildQueued = true;
                 };
-                _events.ReferenceChanged += delegate
-                {
+                _events.ReferenceChanged += delegate {
                     RescanQueued = true;
                 };
             }
 
-            public ProjectEntry(ProjectInfoService service,  Project project)
+            public ProjectEntry(ProjectInfoService service, Project project)
             {
                 _service = service;
                 Project = project;
                 Descriptor = new ProjectDescriptor(project);
                 var vsProject = project.GetObjectSafe<VSProject>();
-                if (vsProject != null)
+                if (vsProject != null) {
                     SetupEvents(vsProject);
+                }
+
                 RescanQueued = TargetPathUpdateQueued = true;
             }
 
@@ -95,13 +98,15 @@ namespace AvaloniaVS.Infrastructure
             {
                 References.Clear();
                 var vsProject = Project.GetObjectSafe<VSProject>();
-                if (vsProject != null)
-                    foreach (Reference r in vsProject.References)
-                    {
+                if (vsProject != null) {
+                    foreach (Reference r in vsProject.References) {
                         var p = r.SourceProject;
-                        if (p != null)
+                        if (p != null) {
                             References.Add(p);
+                        }
                     }
+                }
+
                 RescanQueued = false;
                 _service._treeRebuildQueued = true;
             }
@@ -110,8 +115,7 @@ namespace AvaloniaVS.Infrastructure
             {
                 var n = Project.GetAssemblyPath();
                 TargetPathUpdateQueued = false;
-                if (n != Descriptor.TargetAssembly)
-                {
+                if (n != Descriptor.TargetAssembly) {
                     Descriptor.TargetAssembly = n;
                     return true;
                 }
@@ -124,6 +128,7 @@ namespace AvaloniaVS.Infrastructure
 
         private ProjectInfoService()
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
             _dte = (DTE2)Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof(SDTE));
             _solutionItemEvents = _dte.Events.SolutionItemsEvents;
             _solutionItemEvents.ItemAdded += delegate { _solutionRescanQueued = true; };
@@ -134,76 +139,73 @@ namespace AvaloniaVS.Infrastructure
 
             new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 1), IsEnabled = true }.Tick += OnTick;
             OnTick(null, null);
-            AvaloniaBuildEvents.Instance.BuildEnd += delegate
-            {
+            AvaloniaBuildEvents.Instance.BuildEnd += delegate {
                 _targetPathRescanQueued = true;
             };
         }
-        
-        IEnumerable<Project> Collect(ProjectEntry desc)
+
+        private IEnumerable<Project> Collect(ProjectEntry desc)
         {
-            foreach (var r in desc.References)
-            {
+            foreach (var r in desc.References) {
                 yield return r;
-                if(_projects.TryGetValue(r, out var found))
-                    foreach (var ch in Collect(found))
+                if (_projects.TryGetValue(r, out var found)) {
+                    foreach (var ch in Collect(found)) {
                         yield return ch;
+                    }
+                }
             }
         }
 
-        public static ICommand ReloadAll => new RelayCommand(() =>
-        {
+        public static ICommand ReloadAll => new RelayCommand(() => {
+            ThreadHelper.ThrowIfNotOnUIThread();
             Instance._projects = new Dictionary<Project, ProjectEntry>();
             Instance._solutionRescanQueued = Instance._treeRebuildQueued = Instance._targetPathRescanQueued = true;
             Instance.OnTick(null, null);
         });
 
-
         private void OnTick(object sender, EventArgs e)
         {
-
+            ThreadHelper.ThrowIfNotOnUIThread();
             var dic = new Dictionary<Project, ProjectEntry>();
 
-            foreach(var p in GetProjects(_dte.Solution.Projects.OfType<Project>()))
-            {
-                if (_projects.TryGetValue(p, out var existing))
+            foreach (var p in GetProjects(_dte.Solution.Projects.OfType<Project>())) {
+                if (_projects.TryGetValue(p, out var existing)) {
                     dic[p] = existing;
-                else
-                {
+                } else {
                     dic[p] = new ProjectEntry(this, p);
                     _treeRebuildQueued = true;
                 }
             }
-            if (dic.Count != _projects.Count)
+            if (dic.Count != _projects.Count) {
                 _treeRebuildQueued = true;
+            }
+
             _projects = dic;
-                
-            
-            bool targetPathsChanged = false;
-            foreach (var p in _projects.Values)
-            {
+
+            var targetPathsChanged = false;
+            foreach (var p in _projects.Values) {
                 p.CheckForLoadedStateChanges();
-                if (p.RescanQueued)
+                if (p.RescanQueued) {
                     p.Rescan();
-                if (_targetPathRescanQueued || p.TargetPathUpdateQueued)
+                }
+
+                if (_targetPathRescanQueued || p.TargetPathUpdateQueued) {
                     targetPathsChanged |= p.UpdateTargetPath();
-                
+                }
             }
             _targetPathRescanQueued = false;
-            if (_treeRebuildQueued)
-            {
-                foreach (var p in _projects.Values)
-                {
+            if (_treeRebuildQueued) {
+                foreach (var p in _projects.Values) {
                     p.Descriptor.References = Collect(p).Distinct().ToList();
                 }
                 _cached = _projects.Values.Select(d => d.Descriptor).ToList();
-                
             }
-            if (targetPathsChanged || _treeRebuildQueued)
+            if (targetPathsChanged || _treeRebuildQueued) {
                 Changed?.Invoke(this, new EventArgs());
+            }
+
             _treeRebuildQueued = false;
         }
-
 
         public static void AddChangedHandler(EventHandler<EventArgs> handler)
         {
@@ -212,19 +214,20 @@ namespace AvaloniaVS.Infrastructure
 
         public event EventHandler<EventArgs> Changed;
 
-
-        static IEnumerable<Project> GetProjects(IEnumerable<Project> en)
+        private static IEnumerable<Project> GetProjects(IEnumerable<Project> en)
         {
-            foreach (var p in en)
-            {
-                if (p.GetObjectSafe<VSProject>() != null)
+            ThreadHelper.ThrowIfNotOnUIThread();
+            foreach (var p in en) {
+                if (p.GetObjectSafe<VSProject>() != null) {
                     yield return p;
+                }
 
-                if (p.GetObjectSafe<SolutionFolder>() != null)
-                    foreach (var item in GetProjects(p.ProjectItems.OfType<ProjectItem>().Select(i => i.SubProject)))
+                if (p.GetObjectSafe<SolutionFolder>() != null) {
+                    foreach (var item in GetProjects(p.ProjectItems.OfType<ProjectItem>().Select(i => { Microsoft.VisualStudio.Shell.ThreadHelper.ThrowIfNotOnUIThread(); return i.SubProject; }))) {
                         yield return item;
+                    }
+                }
             }
-
         }
     }
 }

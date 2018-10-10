@@ -13,6 +13,7 @@ namespace AvaloniaVS.Infrastructure
         private BuildEvents _buildEvents;
 
         public static AvaloniaBuildEvents Instance { get; } = new AvaloniaBuildEvents();
+
         /// <summary>
         /// Raised when a build operation is started
         /// </summary>
@@ -29,9 +30,12 @@ namespace AvaloniaVS.Infrastructure
 
         private AvaloniaBuildEvents()
         {
-            if (Equals(Registry.GetValue(@"HKEY_CURRENT_USER\Software\AvaloniaUI\Designer", "AllocConsole", 0), 1))
+            ThreadHelper.ThrowIfNotOnUIThread();
+            if (Equals(Registry.GetValue(@"HKEY_CURRENT_USER\Software\AvaloniaUI\Designer", "AllocConsole", 0), 1)) {
                 CreateConsole();
-            var dte = (DTE) Package.GetGlobalService(typeof (DTE));
+            }
+
+            var dte = (DTE)Package.GetGlobalService(typeof(DTE));
             _buildEvents = dte.Events.BuildEvents;
             _buildEvents.OnBuildBegin += PdbeBuildBegin;
             _buildEvents.OnBuildDone += NotifyBuildEnd;
@@ -49,17 +53,21 @@ namespace AvaloniaVS.Infrastructure
         }
 
         // P/Invoke required:
-        private const UInt32 StdOutputHandle = 0xFFFFFFF5;
+        private const uint StdOutputHandle = 0xFFFFFFF5;
+
         [DllImport("kernel32.dll")]
-        private static extern IntPtr GetStdHandle(UInt32 nStdHandle);
+        private static extern IntPtr GetStdHandle(uint nStdHandle);
+
         [DllImport("kernel32.dll")]
-        private static extern void SetStdHandle(UInt32 nStdHandle, IntPtr handle);
+        private static extern void SetStdHandle(uint nStdHandle, IntPtr handle);
+
         [DllImport("kernel32")]
-        static extern bool AllocConsole();
+        private static extern bool AllocConsole();
 
         private void NotifyModeChanged(vsIDEMode lastmode)
         {
-            Console.WriteLine("Mode: " + ((DTE) Package.GetGlobalService(typeof (DTE))).Mode);
+            ThreadHelper.ThrowIfNotOnUIThread();
+            Console.WriteLine("Mode: " + ((DTE)Package.GetGlobalService(typeof(DTE))).Mode);
             DesignerKiller.KillAllDesigners();
             ModeChanged?.Invoke();
         }
@@ -73,8 +81,7 @@ namespace AvaloniaVS.Infrastructure
         {
             IsBuilding = false;
             Console.WriteLine("BuildEnd: " + scope + "/" + action);
-            if (action < vsBuildAction.vsBuildActionBuild || action > vsBuildAction.vsBuildActionRebuildAll)
-            {
+            if (action < vsBuildAction.vsBuildActionBuild || action > vsBuildAction.vsBuildActionRebuildAll) {
                 //Not an actual build event, we are here if user hits Start and there is nothing to build
                 DesignerKiller.KillAllDesigners();
                 return;
