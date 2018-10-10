@@ -1,16 +1,17 @@
-﻿<UserControl x:Class="AvaloniaVS.Views.AvaloniaDesignerHostView"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:lc="clr-namespace:AvaloniaVS.Controls;assembly=AvaloniaVS.Controls"
-             xmlns:viewModels="clr-namespace:AvaloniaVS.ViewModels"
-             xmlns:infrastructure="clr-namespace:AvaloniaVS.Infrastructure"
-             Background="White"
-             mc:Ignorable="d" 
-             d:DesignHeight="300"
-             d:DesignWidth="300"
-             d:DataContext="{d:DesignInstance viewModels:AvaloniaDesignerHostViewModelMock}">
+﻿<UserControl
+    x:Class="AvaloniaVS.Views.AvaloniaDesignerHostView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:infrastructure="clr-namespace:AvaloniaVS.Infrastructure"
+    xmlns:lc="clr-namespace:AvaloniaVS.Controls;assembly=AvaloniaVS.Controls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:viewModels="clr-namespace:AvaloniaVS.ViewModels"
+    d:DataContext="{d:DesignInstance viewModels:AvaloniaDesignerHostViewModelMock}"
+    d:DesignHeight="300"
+    d:DesignWidth="300"
+    Background="White"
+    mc:Ignorable="d">
 
     <UserControl.Resources>
         <Geometry x:Key="MarkupIconShape">
@@ -26,67 +27,94 @@
 
         <Geometry x:Key="DesignIconShape">
             M 0,0 L9,0 L9,5 L8,5 L8,1 L1,1 L1,8 L5,8 L5,9 L0,9 Z
-                M 7,6 L9,6 L9,7 L10,7 L10,9 L9,9 L9,10 L7,10 L7,9 L6,9 L6,7 L7,7 Z
+            M 7,6 L9,6 L9,7 L10,7 L10,9 L9,9 L9,10 L7,10 L7,9 L6,9 L6,7 L7,7 Z
         </Geometry>
 
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
     </UserControl.Resources>
     <Border x:Name="Root">
-        <lc:SplitterContainer x:Name="Container" Orientation="{Binding Orientation, Mode=TwoWay}" IsReversed="{Binding IsReversed, Mode=TwoWay}">
+        <lc:SplitterContainer
+            x:Name="Container"
+            IsReversed="{Binding IsReversed, Mode=TwoWay}"
+            Orientation="{Binding Orientation, Mode=TwoWay}">
             <lc:SplitterContainer.DesignerHeader>
                 <DockPanel>
-                    <Path Fill="{Binding RelativeSource={x:Static RelativeSource.Self}, Path=(TextElement.Foreground), Mode=OneWay}"
-                      Width="10"
-                      DockPanel.Dock="Left"
-                      Height="10"
-                      Data="{StaticResource DesignIconShape}"
-                      SnapsToDevicePixels="True" />
-                    <TextBlock Text="Design"
-                           Margin="2,0,0,0" 
-                           Visibility="{Binding ElementName=Container, Path=IsHorizontal, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                    <Path
+                        Width="10"
+                        Height="10"
+                        Data="{StaticResource DesignIconShape}"
+                        DockPanel.Dock="Left"
+                        Fill="{Binding RelativeSource={x:Static RelativeSource.Self}, Path=(TextElement.Foreground), Mode=OneWay}"
+                        SnapsToDevicePixels="True" />
+                    <TextBlock
+                        Margin="2,0,0,0"
+                        Text="Design"
+                        Visibility="{Binding ElementName=Container, Path=IsHorizontal, Converter={StaticResource BooleanToVisibilityConverter}}" />
                 </DockPanel>
             </lc:SplitterContainer.DesignerHeader>
             <lc:SplitterContainer.EditorHeader>
                 <DockPanel>
-                    <Path Fill="{Binding RelativeSource={x:Static RelativeSource.Self}, Path=(TextElement.Foreground), Mode=OneWay}"
-                      Width="10"
-                      Height="10"
-                      DockPanel.Dock="Left"
-                      Data="{StaticResource MarkupIconShape}"
-                      SnapsToDevicePixels="True" />
-                    <TextBlock Text="XAML"
-                           Margin="2,0,0,0"
-                           Visibility="{Binding ElementName=Container, Path=IsHorizontal, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                    <Path
+                        Width="10"
+                        Height="10"
+                        Data="{StaticResource MarkupIconShape}"
+                        DockPanel.Dock="Left"
+                        Fill="{Binding RelativeSource={x:Static RelativeSource.Self}, Path=(TextElement.Foreground), Mode=OneWay}"
+                        SnapsToDevicePixels="True" />
+                    <TextBlock
+                        Margin="2,0,0,0"
+                        Text="XAML"
+                        Visibility="{Binding ElementName=Container, Path=IsHorizontal, Converter={StaticResource BooleanToVisibilityConverter}}" />
                 </DockPanel>
             </lc:SplitterContainer.EditorHeader>
             <lc:SplitterContainer.Designer>
                 <DockPanel DataContext="{Binding DataContext, ElementName=Root}">
                     <DockPanel Dock="Top" Visibility="{Binding ShowTargetSelector, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <TextBlock VerticalAlignment="Center">Target project</TextBlock>
-                        <ComboBox Margin="5,0,0,0" ItemsSource="{Binding AvailableTargets}" SelectedItem="{Binding SelectedTarget}"/>
+                        <ComboBox
+                            Margin="5,0,0,0"
+                            ItemsSource="{Binding AvailableTargets}"
+                            SelectedItem="{Binding SelectedTarget}" />
                     </DockPanel>
-                    <Rectangle DockPanel.Dock="Top" Stroke="DimGray" Height="0.6"></Rectangle>
+                    <Rectangle
+                        Height="0.6"
+                        DockPanel.Dock="Top"
+                        Stroke="DimGray" />
                     <lc:FocusableContentPresenter Content="{Binding DesignView}" />
                 </DockPanel>
             </lc:SplitterContainer.Designer>
             <lc:SplitterContainer.Editor>
-                <lc:FocusableContentPresenter TextOptions.TextFormattingMode="{Binding (TextOptions.TextFormattingMode), RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type FrameworkElement}}}"
-                                              DataContext="{Binding DataContext, ElementName=Root}"
-                                              Content="{Binding EditView}" />
+                <lc:FocusableContentPresenter
+                    Content="{Binding EditView}"
+                    DataContext="{Binding DataContext, ElementName=Root}"
+                    TextOptions.TextFormattingMode="{Binding (TextOptions.TextFormattingMode), RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type FrameworkElement}}}" />
             </lc:SplitterContainer.Editor>
             <lc:SplitterContainer.ExtraPanel>
-                <StackPanel Orientation="Horizontal" DataContext="{Binding ElementName=Root, Path=DataContext}">
-                    <TextBlock FontSize="10" VerticalAlignment="Center" Margin="0,0,10,0">
-                        <Hyperlink Focusable="False" NavigateUri="https://github.com/AvaloniaUI/Avalonia/wiki/Visual-Studio-Extension-Previewer"
-                                   RequestNavigate="Hyperlink_OnRequestNavigate">Help</Hyperlink>
+                <StackPanel DataContext="{Binding ElementName=Root, Path=DataContext}" Orientation="Horizontal">
+                    <TextBlock
+                        Margin="0,0,10,0"
+                        VerticalAlignment="Center"
+                        FontSize="10">
+                        <Hyperlink
+                            Focusable="False"
+                            NavigateUri="https://github.com/AvaloniaUI/Avalonia/wiki/Visual-Studio-Extension-Previewer"
+                            RequestNavigate="Hyperlink_OnRequestNavigate">
+                            Help
+                        </Hyperlink>
                     </TextBlock>
-                    <Button x:Name="FixMe" Background="Transparent" BorderThickness="0" FontSize="10" Padding="0"
-                            infrastructure:TriggerMenuOnLeftClickBehavior.Enabled="True" Focusable="False">
+                    <Button
+                        x:Name="FixMe"
+                        Padding="0"
+                        infrastructure:TriggerMenuOnLeftClickBehavior.Enabled="True"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Focusable="False"
+                        FontSize="10">
                         Fix Me ▼
                         <Button.ContextMenu>
                             <ContextMenu>
-                                <MenuItem Command="{Binding RestartDesigner}" Header="Restart"/>
-                                <MenuItem Command="{x:Static infrastructure:ProjectInfoService.ReloadAll}" Header="Reload solution info"/>
+                                <MenuItem Command="{Binding RestartDesigner}" Header="Restart" />
+                                <MenuItem Command="{x:Static infrastructure:ProjectInfoService.ReloadAll}" Header="Reload solution info" />
                             </ContextMenu>
                         </Button.ContextMenu>
                     </Button>

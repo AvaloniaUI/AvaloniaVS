@@ -18,15 +18,15 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
 
 namespace AvaloniaVS
 {
-    static class Utils
+    internal static class Utils
     {
         public static string GetFilePath(this ITextView textView)
         {
-            ITextDocument document;
-            return !textView.TextBuffer.Properties.TryGetProperty(typeof (ITextDocument), out document)
+            return !textView.TextBuffer.Properties.TryGetProperty(typeof(ITextDocument), out ITextDocument document)
                 ? null
                 : document.FilePath;
         }
@@ -34,9 +34,8 @@ namespace AvaloniaVS
         public static bool IsAvaloniaMarkup(ITextView textView)
         {
             var file = textView.GetFilePath()?.ToLower();
-            bool edit = file?.EndsWith(".paml") == true;
-            if (!edit && file?.EndsWith(".xaml") == true)
-            {
+            var edit = file?.EndsWith(".paml") == true;
+            if (!edit && file?.EndsWith(".xaml") == true) {
                 edit = Utils.CheckAvaloniaRoot(File.ReadAllText(file));
             }
             return edit;
@@ -47,27 +46,22 @@ namespace AvaloniaVS
 
         public static bool CheckAvaloniaRoot(XmlReader reader)
         {
-            try
-            {
-                while (!reader.IsStartElement())
-                {
+            try {
+                while (!reader.IsStartElement()) {
                     reader.Read();
                 }
-                if (!reader.MoveToFirstAttribute())
+                if (!reader.MoveToFirstAttribute()) {
                     return false;
-                do
-                {
-                    if (reader.Name == "xmlns")
-                    {
+                }
+
+                do {
+                    if (reader.Name == "xmlns") {
                         reader.ReadAttributeValue();
                         return reader.Value.ToLower() == AvaloniaNamespace;
                     }
-
                 } while (reader.MoveToNextAttribute());
                 return false;
-            }
-            catch
-            {
+            } catch {
                 return false;
             }
         }
@@ -76,21 +70,23 @@ namespace AvaloniaVS
 
         public static Project GetContainingProject(this IWpfTextView textView)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
             var fileName = textView.GetFilePath();
-            if (string.IsNullOrWhiteSpace(fileName)) return null;
+            if (string.IsNullOrWhiteSpace(fileName)) {
+                return null;
+            }
+
             var dte2 = (DTE2)Package.GetGlobalService(typeof(SDTE));
             var projItem = dte2?.Solution.FindProjectItem(fileName);
             return projItem?.ContainingProject;
         }
 
-        static string TryGetProperty(Properties props, string name)
+        private static string TryGetProperty(Properties props, string name)
         {
-            try
-            {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            try {
                 return props.Item(name).Value.ToString();
-            }
-            catch
-            {
+            } catch {
                 return null;
             }
         }
@@ -102,17 +98,18 @@ namespace AvaloniaVS
         /// </summary>
         /// <param name="vsProject"></param>
         /// <returns>Target Exe path</returns>
-        public static string GetAssemblyPath(this Project vsProject) =>
-            GetProjectOutputInfo(vsProject)?.FirstOrDefault()?.TargetAssembly;
+        public static string GetAssemblyPath(this Project vsProject)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            return GetProjectOutputInfo(vsProject)?.FirstOrDefault()?.TargetAssembly;
+        }
 
         public static List<ProjectOutputInfo> GetProjectOutputInfo(this Project vsProject)
         {
-            try
-            {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            try {
                 return GetProjectOutputInfoInternal(vsProject);
-            }
-            catch (COMException e) when ((uint)e.HResult == 0x80004005)
-            {
+            } catch (COMException e) when ((uint)e.HResult == 0x80004005) {
                 return null;
             }
         }
@@ -120,43 +117,52 @@ namespace AvaloniaVS
         public class ProjectOutputInfo
         {
             public string TargetAssembly { get; set; }
+
             public bool OutputTypeIsExecutable { get; set; }
+
             public string TargetFramework { get; set; }
+
             public bool IsFullDotNet { get; set; }
+
             public bool IsNetCore { get; set; }
         }
 
-        static List<ProjectOutputInfo> GetProjectOutputInfoInternal(this Project vsProject)
+        private static List<ProjectOutputInfo> GetProjectOutputInfoInternal(this Project vsProject)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
             var alternatives = new Dictionary<string, string>();
             var ucproject = GetUnconfiguredProject(vsProject);
-            if (ucproject != null)
-                foreach (var loaded in ucproject.LoadedConfiguredProjects)
-                {
-                    var task = loaded.GetType()
-                        .GetProperty("MSBuildProject",
-                            BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
-                        .GetMethod.Invoke(loaded, null) as Task<Microsoft.Build.Evaluation.Project>;
-                    if (task?.IsCompleted != true)
+            if (ucproject != null) {
+                foreach (var loaded in ucproject.LoadedConfiguredProjects) {
+                    var task = loaded?.GetType()?
+                    .GetProperty("MSBuildProject",
+                        BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)?
+                    .GetMethod.Invoke(loaded, null) as Task<Microsoft.Build.Evaluation.Project>;
+                    if (task?.IsCompleted != true) {
                         continue;
+                    }
 
+#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
                     var targetPath = task.Result.AllEvaluatedProperties.FirstOrDefault(p => p.Name == "TargetPath")?.EvaluatedValue;
-                    if (!string.IsNullOrWhiteSpace(targetPath))
-                    {
-                        if (!loaded.ProjectConfiguration.Dimensions.TryGetValue("TargetFramework", out var targetFw))
+#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
+                    if (!string.IsNullOrWhiteSpace(targetPath)) {
+                        if (!loaded.ProjectConfiguration.Dimensions.TryGetValue("TargetFramework", out var targetFw)) {
+#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
                             targetFw = task.Result.AllEvaluatedProperties.FirstOrDefault(p => p.Name == "TargetFramework")
-                                           ?.EvaluatedValue ?? "unknown";
+#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
+                                               ?.EvaluatedValue ?? "unknown";
+                        }
+
                         alternatives[targetFw] = targetPath;
                     }
                 }
+            }
 
-            
-            string fullPath = TryGetProperty(vsProject?.Properties,"FullPath");
+            var fullPath = TryGetProperty(vsProject?.Properties, "FullPath");
 
-            string outputPath = vsProject?.ConfigurationManager?.ActiveConfiguration?.Properties?.Item("OutputPath")?.Value?.ToString();
-            if (fullPath != null && outputPath != null)
-            {
-                string outputDir = Path.Combine(fullPath, outputPath);
+            var outputPath = vsProject?.ConfigurationManager?.ActiveConfiguration?.Properties?.Item("OutputPath")?.Value?.ToString();
+            if (fullPath != null && outputPath != null) {
+                var outputDir = Path.Combine(fullPath, outputPath);
                 /*
                 var dic = new Dictionary<string, string>();
                 foreach(Property prop in vsProject.Properties)
@@ -167,19 +173,18 @@ namespace AvaloniaVS
                     }
                     catch
                     {
-                        
                     }
                 }*/
-                string outputFileName = vsProject.Properties.Item("OutputFileName").Value.ToString();
-                if (!string.IsNullOrWhiteSpace(outputFileName))
-                {
-                    var fw = "net40";
+                var outputFileName = vsProject.Properties.Item("OutputFileName").Value.ToString();
+                if (!string.IsNullOrWhiteSpace(outputFileName)) {
+                    var fw = "net46";
                     var tfm = TryGetProperty(vsProject.Properties, "TargetFrameworkMoniker");
                     const string tfmPrefix = ".netframework,version=v";
-                    if (tfm != null && tfm.ToLowerInvariant().StartsWith(tfmPrefix))
+                    if (tfm != null && tfm.ToLowerInvariant().StartsWith(tfmPrefix)) {
                         fw = "net" + tfm.Substring(tfmPrefix.Length).Replace(".", "");
+                    }
 
-                    string assemblyPath = Path.Combine(outputDir, outputFileName);
+                    var assemblyPath = Path.Combine(outputDir, outputFileName);
                     alternatives[fw] = assemblyPath;
                 }
             }
@@ -189,7 +194,6 @@ namespace AvaloniaVS
             var outputTypeIsExecutable = outputType == "0" || outputType == "1"
                                          || outputType?.ToLowerInvariant() == "exe" ||
                                          outputType?.ToLowerInvariant() == "winexe";
-            
 
             var lst = new List<ProjectOutputInfo>();
             foreach (var alternative in alternatives.OrderByDescending(x => x.Key == "classic"
@@ -200,13 +204,12 @@ namespace AvaloniaVS
                         ? 8
                         : x.Key.StartsWith("netstandard")
                             ? 7
-                            : 0))
-            {
+                            : 0)) {
                 var nfo = new ProjectOutputInfo
                 {
                     TargetAssembly = alternative.Value,
                     OutputTypeIsExecutable = outputTypeIsExecutable,
-                    TargetFramework = alternative.Key == "classic" ? "net40" : alternative.Key
+                    TargetFramework = alternative.Key == "classic" ? "net46" : alternative.Key
                 };
                 nfo.IsNetCore = nfo.TargetFramework.StartsWith("netcoreapp");
                 nfo.IsFullDotNet = DesktopFrameworkRegex.IsMatch(nfo.TargetFramework);
@@ -215,15 +218,15 @@ namespace AvaloniaVS
             return lst;
         }
 
-        static UnconfiguredProject GetUnconfiguredProject(EnvDTE.Project project)
+        private static UnconfiguredProject GetUnconfiguredProject(EnvDTE.Project project)
         {
             return project.GetObjectSafe<IVsBrowseObjectContext>()?.UnconfiguredProject;
         }
 
         public static Project GetContainerProject(string fileName)
         {
-            if (string.IsNullOrWhiteSpace(fileName) || !File.Exists(fileName))
-            {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            if (string.IsNullOrWhiteSpace(fileName) || !File.Exists(fileName)) {
                 return null;
             }
 
@@ -235,25 +238,28 @@ namespace AvaloniaVS
         public static TValue GetOrCreate<TKey, TValue>(this Dictionary<TKey, TValue> dic, TKey key,
             Func<TKey, TValue> getter)
         {
-            TValue rv;
-            if (!dic.TryGetValue(key, out rv))
+            if (!dic.TryGetValue(key, out var rv)) {
                 dic[key] = rv = getter(key);
+            }
+
             return rv;
         }
 
-        public static TValue GetOrCreate<TKey, TValue>(this Dictionary<TKey, TValue> dic, TKey key) where TValue :new()
+        public static TValue GetOrCreate<TKey, TValue>(this Dictionary<TKey, TValue> dic, TKey key) where TValue : new()
         {
-            TValue rv;
-            if (!dic.TryGetValue(key, out rv))
+            if (!dic.TryGetValue(key, out var rv)) {
                 dic[key] = rv = new TValue();
+            }
+
             return rv;
         }
 
-        public static TValue GetValueOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dic, TKey key) 
+        public static TValue GetValueOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dic, TKey key)
         {
-            TValue rv;
-            if (!dic.TryGetValue(key, out rv))
-                return default(TValue);
+            if (!dic.TryGetValue(key, out var rv)) {
+                return default;
+            }
+
             return rv;
         }
     }
