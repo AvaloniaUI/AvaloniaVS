@@ -1,10 +1,10 @@
 ﻿using System.Runtime.InteropServices;
+using AvaloniaVS.Internals;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Settings;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
-using AvaloniaVS.Internals;
 
 namespace AvaloniaVS.Helpers
 {
@@ -21,14 +21,11 @@ namespace AvaloniaVS.Helpers
             return VisualStudioServices.VsEditorAdaptersFactoryService.GetDataBuffer(vsTextBuffer);
         }
 
-        internal static T GetObjectSafe<T>(this EnvDTE.Project project) where T:class
+        internal static T GetObjectSafe<T>(this EnvDTE.Project project) where T : class
         {
-            try
-            {
+            try {
                 return project as T ?? project?.Object as T;
-            }
-            catch (COMException e)
-            {
+            } catch (COMException) {
                 return null;
             }
         }
