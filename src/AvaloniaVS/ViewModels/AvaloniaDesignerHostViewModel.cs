@@ -13,6 +13,7 @@ using System.Windows.Input;
 using AvaloniaVS.Infrastructure;
 using EnvDTE;
 using EnvDTE80;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using PropertyChanged;
 
@@ -21,7 +22,9 @@ namespace AvaloniaVS.ViewModels
     public class PreviewerRunTarget
     {
         public string Name { get; set; }
+
         public string TargetAssembly { get; set; }
+
         public override string ToString() => Name;
     }
 
@@ -32,18 +35,30 @@ namespace AvaloniaVS.ViewModels
         private string _sourceAssembly;
 
         public object EditView { get; set; }
+
         public object DesignView { get; set; }
+
         public bool ShowTargetSelector { get; set; }
+
         public Orientation Orientation { get; set; }
+
         public bool IsReversed { get; set; }
+
         public List<PreviewerRunTarget> AvailableTargets { get; set; }
+
         public ICommand RestartDesigner { get; set; }
+
         public event Action<string> TargetExeChanged;
+
         public event Action<string> SourceAssemblyChanged;
 
         public PreviewerRunTarget SelectedTarget
         {
-            get { return _selectedTarget; }
+            get
+            {
+                return _selectedTarget;
+            }
+
             set
             {
                 _selectedTarget = value;
@@ -57,10 +72,14 @@ namespace AvaloniaVS.ViewModels
 
         public string SourceAssembly
         {
-            get { return _sourceAssembly; }
+            get
+            {
+                return _sourceAssembly;
+            }
+
             set
             {
-                _sourceAssembly = value; 
+                _sourceAssembly = value;
                 OnPropertyChanged();
                 SourceAssemblyChanged?.Invoke(value);
             }
@@ -68,6 +87,7 @@ namespace AvaloniaVS.ViewModels
 
         public AvaloniaDesignerHostViewModel(string fileName)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
             _fileName = fileName;
             PopulateTargetList();
             ProjectInfoService.AddChangedHandler(OnProjectInfoChanged);
@@ -75,13 +95,14 @@ namespace AvaloniaVS.ViewModels
 
         private void OnProjectInfoChanged(object sender, EventArgs e)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
             PopulateTargetList();
             SourceAssembly = Utils.GetContainerProject(_fileName).GetAssemblyPath();
         }
 
-
-        void PopulateTargetList()
+        private void PopulateTargetList()
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
             var containing = Utils.GetContainerProject(_fileName);
             AvailableTargets = new List<PreviewerRunTarget>(
                 ProjectInfoService.Projects.Where(p => p.Project == containing || p.References.Contains(containing))
@@ -98,7 +119,5 @@ namespace AvaloniaVS.ViewModels
                              AvailableTargets.FirstOrDefault();
             ShowTargetSelector = AvailableTargets.Count > 1;
         }
-
-        
     }
 }
