@@ -19,15 +19,13 @@ namespace AvaloniaVS.Converters
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (EnumType == null || value == null)
-            {
+            if (EnumType == null || value == null) {
                 return value;
             }
 
             var fieldInfo = EnumType.GetField(System.Convert.ToString(value));
             var descriptionAttribute = fieldInfo.GetCustomAttributes<DescriptionAttribute>().FirstOrDefault();
-            if (descriptionAttribute == null)
-            {
+            if (descriptionAttribute == null) {
                 return value;
             }
 
