@@ -5,25 +5,17 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
-using EnvDTE;
-using EnvDTE80;
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.TextManager.Interop;
 using Avalonia.Designer;
 using Avalonia.Ide.CompletionEngine;
 using Avalonia.Ide.CompletionEngine.AssemblyMetadata;
 using Avalonia.Ide.CompletionEngine.SrmMetadataProvider;
-using AvaloniaVS.Controls;
 using AvaloniaVS.Helpers;
-using AvaloniaVS.IntelliSense;
-using AvaloniaVS.Internals;
 using AvaloniaVS.ViewModels;
 using AvaloniaVS.Views;
-using Debugger = System.Diagnostics.Debugger;
+using EnvDTE;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.TextManager.Interop;
 using HorizontalAlignment = System.Windows.HorizontalAlignment;
 
 namespace AvaloniaVS.Infrastructure
@@ -99,6 +91,7 @@ namespace AvaloniaVS.Infrastructure
                 }
                 : _designer;
             ReloadMetadata();
+            SetDesignerXaml();
         }
 
         private void InitializeDesigner()
@@ -124,18 +117,45 @@ namespace AvaloniaVS.Infrastructure
             _designerHost.RestartDesigner = new RelayCommand(() =>
             {
                 Restart();
-                ReloadMetadata();
             });
-            _designer.Xaml = _textBuffer.CurrentSnapshot.GetText();
+            SetDesignerXaml(_textBuffer.CurrentSnapshot.GetText());
             AvaloniaBuildEvents.Instance.BuildEnd += Restart;
             AvaloniaBuildEvents.Instance.ModeChanged += OnModeChanged;
             _textBuffer.PostChanged += OnTextBufferPostChanged;
+
+            _designerHostView.Container.ActiveViewChanged += (s, e) => SetDesignerXaml();
         }
 
         private void OnTextBufferPostChanged(object sender, EventArgs e)
         {
             var buffer = (ITextBuffer)sender;
-            _designer.Xaml = buffer.CurrentSnapshot.GetText();
+
+            SetDesignerXaml(buffer.CurrentSnapshot.GetText());
+        }
+
+        private bool IsDesignerVisible()
+        {
+            return _designerHostView?.Container?.IsCollapsed == false;
+        }
+
+        private string _lastXaml;
+
+        private void SetDesignerXaml(string xaml = null)
+        {
+            if (xaml == null) xaml = _lastXaml;
+
+            //we don't need preview in source only view
+            if (!IsDesignerVisible())
+            {
+                _designer.Xaml = "";
+                _designer?.KillProcess();
+            }
+            else
+            {
+                _designer.Xaml = xaml;
+            }
+
+            _lastXaml = xaml;
         }
 
         protected override void OnClose()
@@ -144,7 +164,7 @@ namespace AvaloniaVS.Infrastructure
             base.OnClose();
         }
 
-        void ReloadMetadata()
+        private void ReloadMetadata()
         {
             if (_targetExe == null || !File.Exists(_targetExe))
                 return;
@@ -185,8 +205,15 @@ namespace AvaloniaVS.Infrastructure
                 return;
             try
             {
-                Console.WriteLine("Restarting designer");
-                _designer?.RestartProcess();
+                if (!IsDesignerVisible())
+                {
+                    Console.WriteLine("Designer suspended in SourceView");
+                }
+                else
+                {
+                    Console.WriteLine("Restarting designer");
+                    _designer?.RestartProcess();
+                }
             }
             catch
             {
