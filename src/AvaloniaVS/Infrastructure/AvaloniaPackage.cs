@@ -23,7 +23,7 @@ namespace AvaloniaVS.Infrastructure
     // folder
     [ProvideBindingPath]
 
-    [PackageRegistration(UseManagedResourcesOnly = true)]
+    [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading =true)]
     [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)] // Info on this package for Help/About
 
     [ProvideXmlEditorChooserDesignerView("Avalonia",
@@ -82,17 +82,15 @@ namespace AvaloniaVS.Infrastructure
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             await base.InitializeAsync(cancellationToken, progress);
-            await InitializeVisualStudioServices();
 
-            var pamlEditorFactory = VisualStudioServices.ComponentModel.DefaultExportProvider.GetExportedValue<AvaloniaEditorFactory>();
-            base.RegisterEditorFactory(pamlEditorFactory);
-        }
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-        private async Task InitializeVisualStudioServices()
-        {
-            var componentModel = (IComponentModel)(await GetServiceAsync(typeof(SComponentModel)));
+            var componentModel = (IComponentModel)await GetServiceAsync(typeof(SComponentModel));
             VisualStudioServices.ComponentModel = componentModel;
             VisualStudioServices.VsEditorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
+
+            var editorFactory = componentModel.GetService<AvaloniaEditorFactory>();
+            RegisterEditorFactory(editorFactory);
         }
     }
 }

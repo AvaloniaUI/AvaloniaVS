@@ -13,7 +13,6 @@ using EnvDTE100;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell.Interop;
 using VSLangProj;
-using VSLangProj140;
 
 namespace AvaloniaVS.Infrastructure
 {

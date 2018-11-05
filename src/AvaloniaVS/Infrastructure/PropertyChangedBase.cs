@@ -9,7 +9,7 @@ using PropertyChanged;
 
 namespace AvaloniaVS.Infrastructure
 {
-    [ImplementPropertyChanged]
+    [AddINotifyPropertyChangedInterface]
     public class PropertyChangedBase : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;

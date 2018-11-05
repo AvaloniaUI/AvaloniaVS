@@ -57,7 +57,10 @@ namespace AvaloniaVS.IntelliSense
 
     [Export(typeof(ICompletionSourceProvider))]
     [ContentType("xml")]
-    [Name("token completion")]
+    //problem in vs 15.8 token completition is already used in some internal stuff
+    //https://developercommunity.visualstudio.com/content/problem/319949/icompletionsourceprovider-not-getting-called-anymo.html
+    //[Name("token completion")]
+    [Name("avalonia token completion")]
     internal class CompletionSourceProvider : ICompletionSourceProvider
     {
         [Import]
