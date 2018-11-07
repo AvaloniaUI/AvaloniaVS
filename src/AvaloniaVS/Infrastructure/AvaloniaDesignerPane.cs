@@ -123,7 +123,7 @@ namespace AvaloniaVS.Infrastructure
             AvaloniaBuildEvents.Instance.ModeChanged += OnModeChanged;
             _textBuffer.PostChanged += OnTextBufferPostChanged;
 
-            _designerHostView.Container.ActiveViewChanged += (s, e) => SetDesignerXaml();
+            _designerHostView.IsDesingerVisibleChanged = () => SetDesignerXaml();
         }
 
         private void OnTextBufferPostChanged(object sender, EventArgs e)
@@ -135,10 +135,12 @@ namespace AvaloniaVS.Infrastructure
 
         private bool IsDesignerVisible()
         {
-            return _designerHostView?.Container?.IsCollapsed == false;
+            return _designerHostView?.IsDesingerVisible ?? false;
         }
 
         private string _lastXaml;
+
+        private bool _lastIsDesignerVisible = false;
 
         private void SetDesignerXaml(string xaml = null)
         {
@@ -153,8 +155,9 @@ namespace AvaloniaVS.Infrastructure
             else
             {
                 _designer.Xaml = xaml;
+                if (!_lastIsDesignerVisible) Restart();
             }
-
+            _lastIsDesignerVisible = IsDesignerVisible();
             _lastXaml = xaml;
         }
 

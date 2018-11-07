@@ -470,6 +470,7 @@ namespace AvaloniaVS.Controls
             container.ActivateView((SplitterViews)e.Parameter);
         }
 
+        FrameworkElement _toActivate;
         private void ActivateView(SplitterViews views)
         {
             if (views == SplitterViews.Design)
@@ -480,6 +481,7 @@ namespace AvaloniaVS.Controls
                 }
 
                 MoveFocusTo(InternalView1);
+                _toActivate = InternalView1;
                 InvalidateActiveView();
             }
             else
@@ -490,6 +492,7 @@ namespace AvaloniaVS.Controls
                 }
 
                 MoveFocusTo(InternalView2);
+                _toActivate = InternalView2;
                 InvalidateActiveView();
             }
 
@@ -859,10 +862,10 @@ namespace AvaloniaVS.Controls
         private void InvalidateActiveView(bool raiseEvent = true)
         {
             var view1 = InternalView1;
-            IsDesignerActive = view1 != null && view1.IsKeyboardFocusWithin;
+            IsDesignerActive = view1 != null && view1 == _toActivate;
 
             var view2 = InternalView2;
-            IsEditorActive = view2 != null && view2.IsKeyboardFocusWithin;
+            IsEditorActive = view2 != null && view2 == _toActivate;
 
             if (raiseEvent)
             {
