@@ -28,7 +28,7 @@ namespace AvaloniaVS.Views
         internal Action IsDesingerVisibleChanged;
 
         internal bool IsDesingerVisible
-            => Container?.IsCollapsed == false || Container?.IsDesignerActive == true;
+            => Container?.IsDesignerVisible ?? false;
 
         private void Hyperlink_OnRequestNavigate(object sender, RequestNavigateEventArgs e)
         {

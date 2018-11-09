@@ -150,10 +150,12 @@ namespace AvaloniaVS.Infrastructure
             if (!IsDesignerVisible())
             {
                 _designer.Xaml = "";
+                _designer.Visibility = Visibility.Collapsed;
                 _designer?.KillProcess();
             }
             else
             {
+                _designer.Visibility = Visibility.Visible;
                 _designer.Xaml = xaml;
                 if (!_lastIsDesignerVisible) Restart();
             }
