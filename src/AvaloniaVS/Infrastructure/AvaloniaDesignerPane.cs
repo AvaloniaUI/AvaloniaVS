@@ -171,6 +171,12 @@ namespace AvaloniaVS.Infrastructure
 
         private void ReloadMetadata()
         {
+            try
+            {
+                _textBuffer.Properties["AssemblyName"] = Utils.GetContainerProject(_fileName)?.GetAssemblyName();
+            }
+            catch { }
+
             if (_targetExe == null || !File.Exists(_targetExe))
                 return;
             try

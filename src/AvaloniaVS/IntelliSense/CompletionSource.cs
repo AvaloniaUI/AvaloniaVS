@@ -37,12 +37,15 @@ namespace AvaloniaVS.IntelliSense
         public void AugmentCompletionSession(ICompletionSession session, IList<CompletionSet> completionSets)
         {
             Metadata metadata;
+            string currentAssemblyName;
             _textBuffer.Properties.TryGetProperty(typeof(Metadata), out metadata);
             if (metadata == null)
                 return;
+
+            _textBuffer.Properties.TryGetProperty("AssemblyName", out currentAssemblyName);
             var pos = session.TextView.Caret.Position.BufferPosition;
             var text = pos.Snapshot.GetText(0, pos.Position);
-            var completions = _engine.GetCompletions(metadata, text, pos);
+            var completions = _engine.GetCompletions(metadata, text, pos, currentAssemblyName);
 
             if (completions != null && completions.Completions.Count != 0)
             {

@@ -105,6 +105,9 @@ namespace AvaloniaVS
         public static string GetAssemblyPath(this Project vsProject) =>
             GetProjectOutputInfo(vsProject)?.FirstOrDefault()?.TargetAssembly;
 
+        public static string GetAssemblyName(this Project vsProject) =>
+           vsProject?.Properties.Item("AssemblyName")?.Value?.ToString();
+
         public static List<ProjectOutputInfo> GetProjectOutputInfo(this Project vsProject)
         {
             try
