@@ -177,12 +177,16 @@ namespace AvaloniaVS.Infrastructure
             }
             catch { }
 
-            if (_targetExe == null || !File.Exists(_targetExe))
+            string metadataAssembly = string.IsNullOrEmpty(_targetExe) || !File.Exists(_targetExe) ?
+               Utils.GetContainerProject(_fileName).GetAssemblyPath() : _targetExe;
+
+            if (string.IsNullOrEmpty(metadataAssembly) || !File.Exists(metadataAssembly))
                 return;
+
             try
             {
                 _textBuffer.Properties[typeof(Metadata)] = new MetadataReader(new SrmMetadataProvider())
-                    .GetForTargetAssembly(_targetExe);
+                    .GetForTargetAssembly(metadataAssembly);
             }
             catch (Exception e)
             {
