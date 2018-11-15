@@ -237,20 +237,23 @@
     <PackageReference Include="EnvDTE100">
       <Version>10.0.3</Version>
     </PackageReference>
+    <PackageReference Include="Microsoft.Build">
+      <Version>15.1.548</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost">
-      <Version>15.8.525</Version>
+      <Version>15.0.26201</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Editor">
-      <Version>15.8.525</Version>
+      <Version>15.0.26201</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense">
-      <Version>15.8.525</Version>
+      <Version>15.0.26201</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Package.LanguageService.15.0">
-      <Version>15.8.28010</Version>
+      <Version>15.0.26201</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.ProjectSystem.Sdk">
-      <Version>15.8.243</Version>
+      <Version>15.0.737</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.SDK.VsixSuppression">
       <Version>14.1.37</Version>
@@ -258,23 +261,25 @@
     <PackageReference Include="Microsoft.VisualStudio.Shell.Immutable.14.0">
       <Version>15.0.25405</Version>
     </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.15.8.DesignTime">
-      <Version>15.8.1</Version>
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.15.0.DesignTime">
+      <Version>15.0.26932</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Text.Data">
-      <Version>15.8.525</Version>
+      <Version>15.0.26201</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf">
-      <Version>15.8.525</Version>
+      <Version>15.0.26201</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.TextManager.Interop.12.0">
       <Version>12.0.30112</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers">
-      <Version>15.8.168</Version>
+      <Version>15.0.240</Version>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.VSSDK.BuildTools">
-      <Version>15.8.3252</Version>
+      <Version>15.0.26201</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -285,7 +290,7 @@
       <Version>2.5.13</Version>
     </PackageReference>
     <PackageReference Include="System.Reflection.Metadata">
-      <Version>1.6.0</Version>
+      <Version>1.4.2</Version>
     </PackageReference>
     <PackageReference Include="VSLangProj">
       <Version>7.0.3301</Version>

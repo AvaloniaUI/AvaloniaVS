@@ -61,7 +61,7 @@
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Framework">
-      <Version>15.8.28010</Version>
+      <Version>15.0.26201</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
