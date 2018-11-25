@@ -1,20 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml;
 using Avalonia.Ide.CompletionEngine;
+using Microsoft.VisualStudio.Imaging;
+using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
-using VsCompletion = Microsoft.VisualStudio.Language.Intellisense.Completion;
 using CompletionSet = Microsoft.VisualStudio.Language.Intellisense.CompletionSet;
+using VsCompletion = Microsoft.VisualStudio.Language.Intellisense.Completion3;
 
 namespace AvaloniaVS.IntelliSense
 {
@@ -53,7 +48,23 @@ namespace AvaloniaVS.IntelliSense
                 var span = new SnapshotSpan(pos.Snapshot, curStart, pos.Position - curStart);
                 completionSets.Insert(0, new CompletionSet("Avalonia", "Avalonia",
                     pos.Snapshot.CreateTrackingSpan(span, SpanTrackingMode.EdgeInclusive), completions.Completions
-                        .Select(c => new VsCompletion(c.DisplayText, c.InsertText, c.Description, null, null)), null));
+                        .Select(c => new VsCompletion(c.DisplayText, c.InsertText, c.Description, ToImageMoniker(c.Kind), null)), null));
+            }
+        }
+
+        private static ImageMoniker ToImageMoniker(CompletionKind kind)
+        {
+            switch (kind)
+            {
+                case CompletionKind.Class: return KnownMonikers.Namespace;
+                case CompletionKind.Property: return KnownMonikers.PropertyPublic;
+                case CompletionKind.AttachedProperty: return KnownMonikers.ExtendedProperty;
+                case CompletionKind.StaticProperty: return KnownMonikers.EnumerationItemPublic;
+                case CompletionKind.Enum: return KnownMonikers.Enumeration;
+                case CompletionKind.Namespace: return KnownMonikers.EnumerationItemPublic;
+                case CompletionKind.MarkupExtension: return KnownMonikers.AddNamespace;
+                case CompletionKind.None: return KnownMonikers.None;
+                default: return KnownMonikers.UnknownMember;
             }
         }
     }
