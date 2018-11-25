@@ -48,8 +48,20 @@ namespace AvaloniaVS.IntelliSense
                 var span = new SnapshotSpan(pos.Snapshot, curStart, pos.Position - curStart);
                 completionSets.Insert(0, new CompletionSet("Avalonia", "Avalonia",
                     pos.Snapshot.CreateTrackingSpan(span, SpanTrackingMode.EdgeInclusive), completions.Completions
-                        .Select(c => new VsCompletion(c.DisplayText, c.InsertText, c.Description, ToImageMoniker(c.Kind), null)), null));
+                        .Select(c => ToVsCompletion(c)), null));
             }
+        }
+
+        private static VsCompletion ToVsCompletion(Avalonia.Ide.CompletionEngine.Completion c)
+        {
+            var result = new VsCompletion(c.DisplayText, c.InsertText, c.Description, ToImageMoniker(c.Kind), null);
+
+            if (c.RecommendedCursorOffset != null)
+            {
+                result.Properties["RecommendedCursorOffset"] = c.RecommendedCursorOffset.Value;
+            }
+
+            return result;
         }
 
         private static ImageMoniker ToImageMoniker(CompletionKind kind)

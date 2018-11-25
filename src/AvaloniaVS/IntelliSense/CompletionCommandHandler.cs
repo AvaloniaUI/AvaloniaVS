@@ -109,11 +109,23 @@ namespace AvaloniaVS.IntelliSense
                     //if the selection is fully selected, commit the current session 
                     if (_session.SelectedCompletionSet.SelectionStatus.IsSelected)
                     {
-                        if (
+                        var completion = _session.SelectedCompletionSet.SelectionStatus.Completion;
+                        if (completion.InsertionText != null &&
                             typedChar != ':' &&
-                            (typedChar != '.' || !_session.SelectedCompletionSet.SelectionStatus.Completion.InsertionText.Contains('.')))
+                            (typedChar != '.' || !completion.InsertionText.Contains('.')))
                         {
                             _session.Commit();
+
+                            if (completion.Properties.ContainsProperty("RecommendedCursorOffset"))
+                            {
+                                int offset = (int)completion.Properties["RecommendedCursorOffset"];
+
+                                var currp = _textView.Caret.Position.BufferPosition;
+                                var newp = currp - (completion.InsertionText.Length - offset);
+
+                                _textView.Caret.MoveTo(newp);
+                            }
+
                             //also, don't add the character to the buffer 
                             return VSConstants.S_OK;
                         }
