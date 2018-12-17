@@ -8,7 +8,7 @@ using System.Windows.Controls;
 using Avalonia.Designer;
 using Avalonia.Ide.CompletionEngine;
 using Avalonia.Ide.CompletionEngine.AssemblyMetadata;
-using Avalonia.Ide.CompletionEngine.SrmMetadataProvider;
+using Avalonia.Ide.CompletionEngine.DnlibMetadataProvider;
 using AvaloniaVS.Helpers;
 using AvaloniaVS.ViewModels;
 using AvaloniaVS.Views;
@@ -185,7 +185,7 @@ namespace AvaloniaVS.Infrastructure
 
             try
             {
-                _textBuffer.Properties[typeof(Metadata)] = new MetadataReader(new SrmMetadataProvider())
+                _textBuffer.Properties[typeof(Metadata)] = new MetadataReader(new DnlibMetadataProvider())
                     .GetForTargetAssembly(metadataAssembly);
             }
             catch (Exception e)
