@@ -174,19 +174,12 @@ namespace AvaloniaVS.Controls
         private double _previousGripOffset;
 
         /// <summary>
-        /// a flag that indicates that the view must be reversed after exiting the collapse
-        /// mode, due to the user swaping views.
-        /// </summary>
-        private bool _reverseAfterCollapse = false;
-
-        /// <summary>
         /// Initializes static members of the <see cref="SplitterContainer"/> class.
         /// </summary>
         static SplitterContainer()
         {
             ClipToBoundsProperty.OverrideMetadata(typeof(SplitterContainer), new FrameworkPropertyMetadata(BooleanBoxes.True));
             InitCommands();
-            InitEventHandlers();
         }
 
         /// <summary>
@@ -380,13 +373,7 @@ namespace AvaloniaVS.Controls
 
             if (IsCollapsed)
             {
-                _reverseAfterCollapse = false;
-                ActivateView(SplitterViews.Design);
-            }
-
-            if (_reverseAfterCollapse)
-            {
-                IsReversed = !IsReversed;
+                ActivateView(_activeViewType);
             }
 
             InvalidateFocus();
@@ -405,41 +392,6 @@ namespace AvaloniaVS.Controls
 
             var rags = new RoutedEventArgs { RoutedEvent = ActiveViewChangedEvent };
             target.RaiseEvent(rags);
-        }
-
-        private static void InitEventHandlers()
-        {
-            EventManager.RegisterClassHandler(typeof(SplitterContainer), Keyboard.GotKeyboardFocusEvent, new KeyboardFocusChangedEventHandler(OnGotKeyboardFocusHandler), true);
-        }
-
-        private static void OnGotKeyboardFocusHandler(object sender, KeyboardFocusChangedEventArgs e)
-        {
-            var container = (SplitterContainer)sender;
-            container.OnGotKeyboardFocusPrivate(e);
-        }
-
-        private void OnGotKeyboardFocusPrivate(KeyboardFocusChangedEventArgs e)
-        {
-            if (e.NewFocus is Hyperlink)
-                return;
-            var focus = e.NewFocus as DependencyObject;
-            if (focus == null)
-                return;
-
-
-            var view1 = InternalView1;
-            if (view1 != null && view1.IsAncestorOf(focus))
-            {
-                IsDesignerActive = true;
-                IsEditorActive = false;
-            }
-
-            var view2 = InternalView2;
-            if (view2 != null && view2.IsAncestorOf(focus))
-            {
-                IsEditorActive = true;
-                IsDesignerActive = false;
-            }
         }
 
         private static void InitCommands()
@@ -470,28 +422,14 @@ namespace AvaloniaVS.Controls
             container.ActivateView((SplitterViews)e.Parameter);
         }
 
+        SplitterViews _activeViewType = SplitterViews.Editor;
+
         private void ActivateView(SplitterViews views)
         {
-            if (views == SplitterViews.Design)
-            {
-                if (IsCollapsed)
-                {
-                    _reverseAfterCollapse = false;
-                }
+            _activeViewType = views;
 
-                MoveFocusTo(InternalView1);
-                InvalidateActiveView();
-            }
-            else
-            {
-                if (IsCollapsed)
-                {
-                    _reverseAfterCollapse = true;
-                }
-
-                MoveFocusTo(InternalView2);
-                InvalidateActiveView();
-            }
+            MoveFocusTo(views == SplitterViews.Design ? InternalView1 : InternalView2);
+            InvalidateActiveView();
 
             // in case we're collapsed, we need to invalidate the arrange to make
             // the currently activated view visible.
@@ -572,7 +510,7 @@ namespace AvaloniaVS.Controls
 
         public void SwapActiveView()
         {
-            ActivateView( IsDesignerActive ? SplitterViews.Editor : SplitterViews.Design);
+            ActivateView(_activeViewType == SplitterViews.Design ? SplitterViews.Editor : SplitterViews.Design);
         }
 
         private void InvalidateOrientationProperties()
@@ -851,18 +789,17 @@ namespace AvaloniaVS.Controls
             if (!IsCollapsed)
                 return;
 
-            var activeView = InternalView1;
-            if (activeView != null && activeView.IsKeyboardFocusWithin)
+            var activeView = _activeViewType == SplitterViews.Editor ? Editor : Designer;
+            if (activeView?.IsKeyboardFocusWithin ?? false)
                 MoveFocusTo(activeView);
         }
 
+        public bool IsDesignerVisible => IsCollapsed == false ? true : (!IsReversed ? IsDesignerActive : IsEditorActive);
+
         private void InvalidateActiveView(bool raiseEvent = true)
         {
-            var view1 = InternalView1;
-            IsDesignerActive = view1 != null && view1.IsKeyboardFocusWithin;
-
-            var view2 = InternalView2;
-            IsEditorActive = view2 != null && view2.IsKeyboardFocusWithin;
+            IsDesignerActive = _activeViewType == SplitterViews.Design;
+            IsEditorActive = _activeViewType == SplitterViews.Editor;
 
             if (raiseEvent)
             {
@@ -880,18 +817,13 @@ namespace AvaloniaVS.Controls
         {
             OnExpandCollapse();
 
-            _requstedActiveView = activeView;
+            _activeViewType = activeView;
             Loaded += OnContainerLoaded;
         }
 
-        // this is a hack, I should stop relying on keyboard focus
-        // to know whether the designer or editor is active, for example
-        // during initialization, keyboard focus is not present 
-        // and the active view is not properly set.
-        private SplitterViews _requstedActiveView;
         private void OnContainerLoaded(object sender, RoutedEventArgs routedEventArgs)
         {
-            ActivateView(_requstedActiveView);
+            ActivateView(_activeViewType);
             Loaded -= OnContainerLoaded;
         }
     }

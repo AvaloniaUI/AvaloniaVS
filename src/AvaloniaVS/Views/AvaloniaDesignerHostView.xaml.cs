@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Windows.Navigation;
 using AvaloniaVS.Controls;
 using AvaloniaVS.Infrastructure;
@@ -20,7 +21,14 @@ namespace AvaloniaVS.Views
                     ? SplitterViews.Design
                     : SplitterViews.Editor);
             }
+
+            Container.ActiveViewChanged += (s, e) => IsDesingerVisibleChanged?.Invoke();
         }
+
+        internal Action IsDesingerVisibleChanged;
+
+        internal bool IsDesingerVisible
+            => Container?.IsDesignerVisible ?? false;
 
         private void Hyperlink_OnRequestNavigate(object sender, RequestNavigateEventArgs e)
         {

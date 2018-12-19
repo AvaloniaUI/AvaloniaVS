@@ -1,20 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml;
 using Avalonia.Ide.CompletionEngine;
+using Microsoft.VisualStudio.Imaging;
+using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
-using VsCompletion = Microsoft.VisualStudio.Language.Intellisense.Completion;
 using CompletionSet = Microsoft.VisualStudio.Language.Intellisense.CompletionSet;
+using VsCompletion = Microsoft.VisualStudio.Language.Intellisense.Completion3;
 
 namespace AvaloniaVS.IntelliSense
 {
@@ -37,12 +32,15 @@ namespace AvaloniaVS.IntelliSense
         public void AugmentCompletionSession(ICompletionSession session, IList<CompletionSet> completionSets)
         {
             Metadata metadata;
+            string currentAssemblyName;
             _textBuffer.Properties.TryGetProperty(typeof(Metadata), out metadata);
             if (metadata == null)
                 return;
+
+            _textBuffer.Properties.TryGetProperty("AssemblyName", out currentAssemblyName);
             var pos = session.TextView.Caret.Position.BufferPosition;
             var text = pos.Snapshot.GetText(0, pos.Position);
-            var completions = _engine.GetCompletions(metadata, text, pos);
+            var completions = _engine.GetCompletions(metadata, text, pos, currentAssemblyName);
 
             if (completions != null && completions.Completions.Count != 0)
             {
@@ -50,14 +48,45 @@ namespace AvaloniaVS.IntelliSense
                 var span = new SnapshotSpan(pos.Snapshot, curStart, pos.Position - curStart);
                 completionSets.Insert(0, new CompletionSet("Avalonia", "Avalonia",
                     pos.Snapshot.CreateTrackingSpan(span, SpanTrackingMode.EdgeInclusive), completions.Completions
-                        .Select(c => new VsCompletion(c.DisplayText, c.InsertText, c.Description, null, null)), null));
+                        .Select(c => ToVsCompletion(c)), null));
+            }
+        }
+
+        private static VsCompletion ToVsCompletion(Avalonia.Ide.CompletionEngine.Completion c)
+        {
+            var result = new VsCompletion(c.DisplayText, c.InsertText, c.Description, ToImageMoniker(c.Kind), null);
+
+            if (c.RecommendedCursorOffset != null)
+            {
+                result.Properties["RecommendedCursorOffset"] = c.RecommendedCursorOffset.Value;
+            }
+
+            return result;
+        }
+
+        private static ImageMoniker ToImageMoniker(CompletionKind kind)
+        {
+            switch (kind)
+            {
+                case CompletionKind.Class: return KnownMonikers.Namespace;
+                case CompletionKind.Property: return KnownMonikers.PropertyPublic;
+                case CompletionKind.AttachedProperty: return KnownMonikers.ExtendedProperty;
+                case CompletionKind.StaticProperty: return KnownMonikers.EnumerationItemPublic;
+                case CompletionKind.Enum: return KnownMonikers.Enumeration;
+                case CompletionKind.Namespace: return KnownMonikers.EnumerationItemPublic;
+                case CompletionKind.MarkupExtension: return KnownMonikers.AddNamespace;
+                case CompletionKind.None: return KnownMonikers.None;
+                default: return KnownMonikers.UnknownMember;
             }
         }
     }
 
     [Export(typeof(ICompletionSourceProvider))]
     [ContentType("xml")]
-    [Name("token completion")]
+    //problem in vs 15.8 token completition is already used in some internal stuff
+    //https://developercommunity.visualstudio.com/content/problem/319949/icompletionsourceprovider-not-getting-called-anymo.html
+    //[Name("token completion")]
+    [Name("avalonia token completion")]
     internal class CompletionSourceProvider : ICompletionSourceProvider
     {
         [Import]
