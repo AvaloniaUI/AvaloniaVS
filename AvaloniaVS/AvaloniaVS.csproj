@@ -52,6 +52,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AvaloniaPackage.cs" />
+    <Compile Include="EditorFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
