@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media.Imaging;
 using AvaloniaVS.Services;
 
 namespace AvaloniaVS.Views
@@ -12,7 +14,7 @@ namespace AvaloniaVS.Views
         public AvaloniaPreviewerView()
         {
             InitializeComponent();
-            ShowLoading();
+            Update(null);
         }
 
         public PreviewerProcess Process
@@ -23,7 +25,6 @@ namespace AvaloniaVS.Views
                 if (_process != null)
                 {
                     _process.FrameReceived -= FrameReceived;
-                    _process.Resized -= Resized;
                 }
 
                 _process = value;
@@ -31,35 +32,29 @@ namespace AvaloniaVS.Views
                 if (_process != null)
                 {
                     _process.FrameReceived += FrameReceived;
-                    _process.Resized += Resized;
                 }
 
-                ShowLoading();
+                Update(_process?.Bitmap);
             }
         }
 
-        private void FrameReceived(object sender, FrameReceivedEventArgs e)
-        {
-            preview.Source = e.Frame;
-            ShowPreviewer();
-        }
+        private void FrameReceived(object sender, FrameReceivedEventArgs e) => Update(e.Bitmap);
 
-        private void Resized(object sender, ResizedEventArgs e)
+        private void Update(BitmapSource bitmap)
         {
-            preview.Width = e.Size.Width;
-            preview.Height = e.Size.Height;
-        }
-
-        private void ShowLoading()
-        {
-            loading.Visibility = Visibility.Visible;
-            previewScroll.Visibility = Visibility.Collapsed;
-        }
-
-        private void ShowPreviewer()
-        {
-            loading.Visibility = Visibility.Collapsed;
-            previewScroll.Visibility = Visibility.Visible;
+            if (bitmap != null)
+            {
+                preview.Source = bitmap;
+                preview.Width = bitmap.Width;
+                preview.Height = bitmap.Height;
+                loading.Visibility = Visibility.Collapsed;
+                previewScroll.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                loading.Visibility = Visibility.Visible;
+                previewScroll.Visibility = Visibility.Collapsed;
+            }
         }
     }
 }

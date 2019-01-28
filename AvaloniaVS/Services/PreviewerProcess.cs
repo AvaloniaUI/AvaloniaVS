@@ -21,16 +21,18 @@ namespace AvaloniaVS.Services
         private Process _process;
         private IAvaloniaRemoteTransportConnection _connection;
         private IDisposable _listener;
+        private WriteableBitmap _bitmap;
 
         public PreviewerProcess(string executablePath)
         {
             _executablePath = executablePath;
         }
 
+        public BitmapSource Bitmap => _bitmap;
+        public string Error { get; set; }
         public bool IsRunning => _process != null && !_process.HasExited;
 
         public event EventHandler<FrameReceivedEventArgs> FrameReceived;
-        public event EventHandler<ResizedEventArgs> Resized;
 
         public async Task StartAsync(string xaml)
         {
@@ -59,7 +61,10 @@ namespace AvaloniaVS.Services
                     {
                         await ConnectionInitializedAsync(t, xaml);
                         tcs.SetResult(null);
-                    } catch { }
+                    } catch (Exception e)
+                    {
+                        Debug.WriteLine("Error initializing connection: " + e);
+                    }
                 });
 #pragma warning restore VSTHRD101
 
@@ -201,20 +206,28 @@ namespace AvaloniaVS.Services
             {
                 Debug.WriteLine($"Frame received {frame.Width}x{frame.Height}.");
 
-                if (FrameReceived != null)
+                if (Error == null)
                 {
                     await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-                    var bitmap = BitmapSource.Create(
-                        frame.Width,
-                        frame.Height,
-                        96,
-                        96,
-                        ToWpf(frame.Format),
-                        null,
+                    if (_bitmap == null || _bitmap.PixelWidth != frame.Width || _bitmap.PixelHeight != frame.Height)
+                    {
+                        _bitmap = new WriteableBitmap(
+                            frame.Width,
+                            frame.Height,
+                            96,
+                            96,
+                            ToWpf(frame.Format),
+                            null);
+                    }
+
+                    _bitmap.WritePixels(
+                        new Int32Rect(0, 0, _bitmap.PixelWidth, _bitmap.PixelHeight),
                         frame.Data,
-                        frame.Stride);
-                    FrameReceived(this, new FrameReceivedEventArgs(bitmap));
+                        frame.Stride,
+                        0);
+
+                    FrameReceived?.Invoke(this, new FrameReceivedEventArgs(_bitmap));
                 }
 
                 await _connection.Send(new FrameReceivedMessage
@@ -222,15 +235,9 @@ namespace AvaloniaVS.Services
                     SequenceId = frame.SequenceId
                 });
             }
-            else if (message is RequestViewportResizeMessage resize)
+            else if (message is UpdateXamlResultMessage update)
             {
-                Debug.WriteLine($"Resized to {resize.Width}x{resize.Height}.");
-
-                if (Resized != null)
-                {
-                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                    Resized(this, new ResizedEventArgs(new Size(resize.Width, resize.Height)));
-                }
+                Error = update.Error;
             }
         }
 

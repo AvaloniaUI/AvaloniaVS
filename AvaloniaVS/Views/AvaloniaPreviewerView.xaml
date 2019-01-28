@@ -6,7 +6,9 @@
              mc:Ignorable="d" d:DesignHeight="450" d:DesignWidth="800"
              Background="{DynamicResource VsBrush.ToolWindowBackground}">
     <Grid>
-        <ScrollViewer Name="previewScroll" VerticalScrollBarVisibility="Auto">
+        <ScrollViewer Name="previewScroll"
+                      HorizontalScrollBarVisibility="Auto"
+                      VerticalScrollBarVisibility="Auto">
             <Grid HorizontalAlignment="Center"
                   VerticalAlignment="Center">
                 <Border BorderBrush="Black" BorderThickness="2">

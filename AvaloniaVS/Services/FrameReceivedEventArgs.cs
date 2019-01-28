@@ -5,7 +5,7 @@ namespace AvaloniaVS.Services
 {
     public class FrameReceivedEventArgs : EventArgs
     {
-        public FrameReceivedEventArgs(BitmapSource frame) => Frame = frame;
-        public BitmapSource Frame { get; }
+        public FrameReceivedEventArgs(BitmapSource bitmap) => Bitmap = bitmap;
+        public BitmapSource Bitmap { get; }
     }
 }
