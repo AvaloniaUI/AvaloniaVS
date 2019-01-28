@@ -66,6 +66,7 @@
       <DependentUpon>AvaloniaPreviewerView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\DesignerPane.cs" />
+    <Compile Include="Views\EditorHostPane.cs" />
     <Compile Include="Views\XamlEditorView.xaml.cs">
       <DependentUpon>XamlEditorView.xaml</DependentUpon>
     </Compile>

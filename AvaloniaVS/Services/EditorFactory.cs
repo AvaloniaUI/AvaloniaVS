@@ -69,8 +69,8 @@ namespace AvaloniaVS.Services
                 return VSConstants.VS_E_INCOMPATIBLEDOCDATA;
             }
 
-            var editor = GetEditorControl(textBuffer);
-            var pane = new DesignerPane(pszMkDocument, editor);
+            var (editorWindow, editorControl) = CreateEditorControl(textBuffer);
+            var pane = new DesignerPane(pszMkDocument, editorWindow, editorControl);
             ppunkDocView = Marshal.GetIUnknownForObject(pane);
             ppunkDocData = Marshal.GetIUnknownForObject(textBuffer);
             return VSConstants.S_OK;
@@ -122,7 +122,7 @@ namespace AvaloniaVS.Services
             return result;
         }
 
-        private Control GetEditorControl(IVsTextLines textBuffer)
+        private (IVsCodeWindow, Control) CreateEditorControl(IVsTextLines textBuffer)
         {
             var componentModel = _serviceProvider.GetService<IComponentModel, SComponentModel>();
             var eafs = componentModel.GetService<IVsEditorAdaptersFactoryService>();
@@ -140,7 +140,7 @@ namespace AvaloniaVS.Services
 
             codeWindow.SetBuffer(textBuffer);
             ErrorHandler.ThrowOnFailure(codeWindow.GetPrimaryView(out var textView));
-            return eafs.GetWpfTextViewHost(textView).HostControl;
+            return (codeWindow, eafs.GetWpfTextViewHost(textView).HostControl);
         }
     }
 }
