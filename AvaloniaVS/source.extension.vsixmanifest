@@ -17,5 +17,6 @@
     </Prerequisites>
     <Assets>
         <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
+        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="File" Path="Avalonia.Designer.HostApp.dll" AssemblyName="Avalonia.Designer.HostApp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" />
     </Assets>
 </PackageManifest>

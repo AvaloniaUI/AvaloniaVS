@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 
-namespace AvaloniaVS
+namespace AvaloniaVS.Services
 {
     public sealed class EditorFactory : IVsEditorFactory, IDisposable
     {
@@ -61,7 +61,7 @@ namespace AvaloniaVS
 
             if (punkDocDataExisting == IntPtr.Zero)
             {
-                var localRegistry = GetService<ILocalRegistry, SLocalRegistry>();
+                var localRegistry = _serviceProvider.GetService<ILocalRegistry, SLocalRegistry>();
 
                 if (localRegistry != null)
                 {
@@ -81,7 +81,7 @@ namespace AvaloniaVS
 
                     if (textBuffer is IObjectWithSite ows)
                     {
-                        var oleServiceProvider = GetService<IOleServiceProvider>();
+                        var oleServiceProvider = _serviceProvider.GetService<IOleServiceProvider>();
                         ows.SetSite(oleServiceProvider);
                     }
                 }
@@ -100,7 +100,7 @@ namespace AvaloniaVS
                 }
             }
 
-            var pane = new DesignerPane();
+            var pane = new DesignerPane(pszMkDocument);
             ppunkDocView = Marshal.GetIUnknownForObject(pane);
             ppunkDocData = Marshal.GetIUnknownForObject(textBuffer);
             return VSConstants.S_OK;
@@ -113,18 +113,6 @@ namespace AvaloniaVS
             ThreadHelper.ThrowIfNotOnUIThread();
             _serviceProvider?.Dispose();
             _serviceProvider = null;
-        }
-
-        private T GetService<T>()
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-            return (T)_serviceProvider.GetService(typeof(T));
-        }
-
-        private TResult GetService<TResult, TService>()
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-            return (TResult)_serviceProvider.GetService(typeof(TService));
         }
     }
 }
