@@ -7,12 +7,12 @@ using Microsoft.VisualStudio.Text.Editor;
 
 namespace AvaloniaVS.Views
 {
-    public partial class XamlEditorView : UserControl
+    public partial class AvaloniaDesigner : UserControl
     {
         private readonly Throttle<string> _throttle;
         private IWpfTextViewHost _xmlEditor;
 
-        public XamlEditorView()
+        public AvaloniaDesigner()
         {
             InitializeComponent();
             _throttle = new Throttle<string>(

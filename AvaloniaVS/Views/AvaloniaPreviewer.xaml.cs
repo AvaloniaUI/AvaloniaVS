@@ -7,11 +7,11 @@ using AvaloniaVS.Services;
 
 namespace AvaloniaVS.Views
 {
-    public partial class AvaloniaPreviewerView : UserControl
+    public partial class AvaloniaPreviewer : UserControl
     {
         private PreviewerProcess _process;
 
-        public AvaloniaPreviewerView()
+        public AvaloniaPreviewer()
         {
             InitializeComponent();
             Update(null);

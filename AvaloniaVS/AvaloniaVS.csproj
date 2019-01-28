@@ -62,13 +62,13 @@
     <Compile Include="Services\PreviewerProcess.cs" />
     <Compile Include="Services\ProjectExtensions.cs" />
     <Compile Include="TaskExtensions.cs" />
-    <Compile Include="Views\AvaloniaPreviewerView.xaml.cs">
-      <DependentUpon>AvaloniaPreviewerView.xaml</DependentUpon>
+    <Compile Include="Views\AvaloniaPreviewer.xaml.cs">
+      <DependentUpon>AvaloniaPreviewer.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\DesignerPane.cs" />
     <Compile Include="Views\EditorHostPane.cs" />
-    <Compile Include="Views\XamlEditorView.xaml.cs">
-      <DependentUpon>XamlEditorView.xaml</DependentUpon>
+    <Compile Include="Views\AvaloniaDesigner.xaml.cs">
+      <DependentUpon>AvaloniaDesigner.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -119,11 +119,11 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="Views\AvaloniaPreviewerView.xaml">
+    <Page Include="Views\AvaloniaPreviewer.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Views\XamlEditorView.xaml">
+    <Page Include="Views\AvaloniaDesigner.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

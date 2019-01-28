@@ -14,7 +14,7 @@ namespace AvaloniaVS.Views
     {
         private readonly string _fileName;
         private readonly IWpfTextViewHost _xmlEditor;
-        private XamlEditorView _content;
+        private AvaloniaDesigner _content;
         private PreviewerProcess _process;
 
         public DesignerPane(string fileName, IVsCodeWindow xmlEditorWindow, IWpfTextViewHost xmlEditor)
@@ -33,7 +33,7 @@ namespace AvaloniaVS.Views
             _process?.Dispose();
             _process = null;
             
-            if (Content is XamlEditorView view)
+            if (Content is AvaloniaDesigner view)
             {
                 view.XmlEditor = null;
             }
@@ -43,7 +43,7 @@ namespace AvaloniaVS.Views
         {
             base.Initialize();
 
-            var xamlEditorView = new XamlEditorView
+            var xamlEditorView = new AvaloniaDesigner
             {
                 XmlEditor = _xmlEditor,
             };
@@ -52,7 +52,7 @@ namespace AvaloniaVS.Views
             StartEditorAsync(xamlEditorView).FireAndForget();
         }
 
-        private async Task StartEditorAsync(XamlEditorView editor)
+        private async Task StartEditorAsync(AvaloniaDesigner editor)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
