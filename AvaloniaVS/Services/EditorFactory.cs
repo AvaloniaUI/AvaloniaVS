@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 
@@ -122,7 +123,7 @@ namespace AvaloniaVS.Services
             return result;
         }
 
-        private (IVsCodeWindow, Control) CreateEditorControl(IVsTextLines textBuffer)
+        private (IVsCodeWindow, IWpfTextViewHost) CreateEditorControl(IVsTextLines textBuffer)
         {
             var componentModel = _serviceProvider.GetService<IComponentModel, SComponentModel>();
             var eafs = componentModel.GetService<IVsEditorAdaptersFactoryService>();
@@ -140,7 +141,7 @@ namespace AvaloniaVS.Services
 
             codeWindow.SetBuffer(textBuffer);
             ErrorHandler.ThrowOnFailure(codeWindow.GetPrimaryView(out var textView));
-            return (codeWindow, eafs.GetWpfTextViewHost(textView).HostControl);
+            return (codeWindow, eafs.GetWpfTextViewHost(textView));
         }
     }
 }

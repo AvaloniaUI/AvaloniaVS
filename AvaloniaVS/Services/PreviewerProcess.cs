@@ -21,7 +21,6 @@ namespace AvaloniaVS.Services
         private Process _process;
         private IAvaloniaRemoteTransportConnection _connection;
         private IDisposable _listener;
-        private string _xaml;
 
         public PreviewerProcess(string executablePath)
         {
@@ -33,7 +32,7 @@ namespace AvaloniaVS.Services
         public event EventHandler<FrameReceivedEventArgs> FrameReceived;
         public event EventHandler<ResizedEventArgs> Resized;
 
-        public void Start(string xaml)
+        public async Task StartAsync(string xaml)
         {
             if (_listener != null)
             {
@@ -48,12 +47,21 @@ namespace AvaloniaVS.Services
             }
 
             var port = FreeTcpPort();
+            var tcs = new TaskCompletionSource<object>();
 
-            _xaml = xaml;
             _listener = new BsonTcpTransport().Listen(
                 IPAddress.Loopback,
                 port,
-                t => ConnectionInitializedAsync(t).FireAndForget());
+#pragma warning disable VSTHRD101
+                async t =>
+                {
+                    try
+                    {
+                        await ConnectionInitializedAsync(t, xaml);
+                        tcs.SetResult(null);
+                    } catch { }
+                });
+#pragma warning restore VSTHRD101
 
             var executableDir = Path.GetDirectoryName(_executablePath);
             var extensionDir = Path.GetDirectoryName(GetType().Assembly.Location);
@@ -89,11 +97,32 @@ namespace AvaloniaVS.Services
             Debug.WriteLine($" - dotnet {args}.");
 
             _process.Start();
+            await tcs.Task;
 
             if (!_process.HasExited)
             {
                 Debug.WriteLine($"Process Id: {_process.Id}.");
             }
+        }
+
+        public async Task UpdateXamlAsync(string xaml)
+        {
+            if (_process == null)
+            {
+                throw new InvalidOperationException("Process not started.");
+            }
+
+            if (_connection == null)
+            {
+                throw new InvalidOperationException("Process not finished initializing.");
+            }
+
+            Debug.WriteLine("Sending UpdateXamlMessage.");
+
+            await _connection.Send(new UpdateXamlMessage
+            {
+                Xaml = xaml,
+            });
         }
 
         public void Dispose()
@@ -116,7 +145,7 @@ namespace AvaloniaVS.Services
             _process = null;
         }
 
-        private async Task ConnectionInitializedAsync(IAvaloniaRemoteTransportConnection connection)
+        private async Task ConnectionInitializedAsync(IAvaloniaRemoteTransportConnection connection, string xaml)
         {
             Debug.WriteLine("Connection initialized.");
 
@@ -128,7 +157,7 @@ namespace AvaloniaVS.Services
 
             await connection.Send(new UpdateXamlMessage
             {
-                Xaml = _xaml,
+                Xaml = xaml,
                 AssemblyPath = _executablePath,
             });
 
@@ -155,7 +184,7 @@ namespace AvaloniaVS.Services
 
             await connection.Send(new UpdateXamlMessage
             {
-                Xaml = _xaml,
+                Xaml = xaml,
             });
         }
 

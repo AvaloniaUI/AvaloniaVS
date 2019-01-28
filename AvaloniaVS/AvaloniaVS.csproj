@@ -53,6 +53,7 @@
   <ItemGroup>
     <Compile Include="AvaloniaPackage.cs" />
     <Compile Include="Models\ProjectOutputInfo.cs" />
+    <Compile Include="Services\Throttle.cs" />
     <Compile Include="Services\EditorFactory.cs" />
     <Compile Include="Guids.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

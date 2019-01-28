@@ -2,58 +2,58 @@
 using System.Windows;
 using System.Windows.Controls;
 using AvaloniaVS.Services;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace AvaloniaVS.Views
 {
     public partial class XamlEditorView : UserControl
     {
-        public static readonly DependencyProperty ProcessProperty =
-            DependencyProperty.Register(
-                nameof(Process),
-                typeof(PreviewerProcess),
-                typeof(XamlEditorView),
-                new PropertyMetadata(ProcessChanged));
+        private readonly Throttle<string> _throttle;
+        private IWpfTextViewHost _xmlEditor;
 
         public XamlEditorView()
         {
             InitializeComponent();
+            _throttle = new Throttle<string>(
+                TimeSpan.FromMilliseconds(300),
+                UpdateXaml);
         }
 
-        public Control XmlEditor
+        public IWpfTextViewHost XmlEditor
         {
-            get => editorHost.Child as Control;
-            set => editorHost.Child = value;
+            get => _xmlEditor;
+            set
+            {
+                if (_xmlEditor?.TextView.TextBuffer is ITextBuffer2 oldBuffer)
+                {
+                    oldBuffer.ChangedOnBackground -= TextChanged;
+                }
+
+                _xmlEditor = value;
+                editorHost.Child = _xmlEditor?.HostControl;
+
+                if (_xmlEditor?.TextView.TextBuffer is ITextBuffer2 newBuffer)
+                {
+                    newBuffer.ChangedOnBackground += TextChanged;
+                }
+            }
         }
 
         public PreviewerProcess Process
         {
-            get => (PreviewerProcess)GetValue(ProcessProperty);
-            set => SetValue(ProcessProperty, value);
+            get => previewer.Process;
+            set => previewer.Process = value;
         }
 
-        private void Subscribe(PreviewerProcess process)
+        private void TextChanged(object sender, TextContentChangedEventArgs e)
         {
-            previewer.Process = process;
+            _throttle.Queue(e.After.GetText());
         }
 
-        private void Unsubscribe(PreviewerProcess process)
+        private void UpdateXaml(string xaml)
         {
-            previewer.Process = null;
-        }
-
-        private static void ProcessChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            var sender = (XamlEditorView)d;
-
-            if (e.OldValue is PreviewerProcess oldProcess)
-            {
-                sender.Unsubscribe(oldProcess);
-            }
-
-            if (e.NewValue is PreviewerProcess newProcess)
-            {
-                sender.Subscribe(newProcess);
-            }
+            Process?.UpdateXamlAsync(xaml).FireAndForget();
         }
     }
 }

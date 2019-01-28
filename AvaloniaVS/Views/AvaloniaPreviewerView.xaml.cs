@@ -7,12 +7,7 @@ namespace AvaloniaVS.Views
 {
     public partial class AvaloniaPreviewerView : UserControl
     {
-        public static readonly DependencyProperty ProcessProperty =
-            DependencyProperty.Register(
-                nameof(Process),
-                typeof(PreviewerProcess),
-                typeof(AvaloniaPreviewerView),
-                new PropertyMetadata(ProcessChanged));
+        private PreviewerProcess _process;
 
         public AvaloniaPreviewerView()
         {
@@ -22,23 +17,25 @@ namespace AvaloniaVS.Views
 
         public PreviewerProcess Process
         {
-            get => (PreviewerProcess)GetValue(ProcessProperty);
-            set => SetValue(ProcessProperty, value);
-        }
+            get => _process;
+            set
+            {
+                if (_process != null)
+                {
+                    _process.FrameReceived -= FrameReceived;
+                    _process.Resized -= Resized;
+                }
 
-        private void Subscribe(PreviewerProcess process)
-        {
-            process.FrameReceived += FrameReceived;
-            process.Resized += Resized;
-            ShowLoading();
-        }
+                _process = value;
 
-        private void Unsubscribe(PreviewerProcess process)
-        {
-            process.FrameReceived -= FrameReceived;
-            process.Resized -= Resized;
-            preview.Source = null;
-            previewScroll.Visibility = Visibility.Collapsed;
+                if (_process != null)
+                {
+                    _process.FrameReceived += FrameReceived;
+                    _process.Resized += Resized;
+                }
+
+                ShowLoading();
+            }
         }
 
         private void FrameReceived(object sender, FrameReceivedEventArgs e)
@@ -63,21 +60,6 @@ namespace AvaloniaVS.Views
         {
             loading.Visibility = Visibility.Collapsed;
             previewScroll.Visibility = Visibility.Visible;
-        }
-
-        private static void ProcessChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            var sender = (AvaloniaPreviewerView)d;
-
-            if (e.OldValue is PreviewerProcess oldProcess)
-            {
-                sender.Unsubscribe(oldProcess);
-            }
-
-            if (e.NewValue is PreviewerProcess newProcess)
-            {
-                sender.Subscribe(newProcess);
-            }
         }
     }
 }

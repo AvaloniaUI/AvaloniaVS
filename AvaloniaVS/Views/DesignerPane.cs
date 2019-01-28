@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Windows.Controls;
 using AvaloniaVS.Services;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Task = System.Threading.Tasks.Task;
 
@@ -12,11 +13,11 @@ namespace AvaloniaVS.Views
     public class DesignerPane : EditorHostPane
     {
         private readonly string _fileName;
-        private readonly Control _xmlEditor;
+        private readonly IWpfTextViewHost _xmlEditor;
         private XamlEditorView _content;
         private PreviewerProcess _process;
 
-        public DesignerPane(string fileName, IVsCodeWindow xmlEditorWindow, Control xmlEditor)
+        public DesignerPane(string fileName, IVsCodeWindow xmlEditorWindow, IWpfTextViewHost xmlEditor)
             : base(xmlEditorWindow)
         {
             _fileName = fileName;
@@ -31,6 +32,11 @@ namespace AvaloniaVS.Views
 
             _process?.Dispose();
             _process = null;
+            
+            if (Content is XamlEditorView view)
+            {
+                view.XmlEditor = null;
+            }
         }
 
         protected override void Initialize()
@@ -58,8 +64,8 @@ namespace AvaloniaVS.Views
                 var xaml = await ReadAllTextAsync(_fileName);
 
                 _process = new PreviewerProcess(executablePath);
+                await _process.StartAsync(xaml);
                 editor.Process = _process;
-                _process.Start(xaml);
             }
         }
 
