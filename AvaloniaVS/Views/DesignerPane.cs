@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 using AvaloniaVS.Services;
 using Microsoft.VisualStudio.Shell;
 using Task = System.Threading.Tasks.Task;
@@ -10,12 +11,14 @@ namespace AvaloniaVS.Views
     public class DesignerPane : WindowPane, IDisposable
     {
         private readonly string _fileName;
+        private readonly Control _xmlEditor;
         private XamlEditorView _content;
         private PreviewerProcess _process;
 
-        public DesignerPane(string fileName)
+        public DesignerPane(string fileName, Control xmlEditor)
         {
             _fileName = fileName;
+            _xmlEditor = xmlEditor;
         }
 
         public override object Content => _content;
@@ -32,9 +35,13 @@ namespace AvaloniaVS.Views
         {
             base.Initialize();
 
-            var editor = new XamlEditorView();
-            _content = editor;
-            StartEditorAsync(editor).FireAndForget();
+            var xamlEditorView = new XamlEditorView
+            {
+                XmlEditor = _xmlEditor,
+            };
+
+            _content = xamlEditorView;
+            StartEditorAsync(xamlEditorView).FireAndForget();
         }
 
         private async Task StartEditorAsync(XamlEditorView editor)

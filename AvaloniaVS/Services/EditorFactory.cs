@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using System.Windows.Controls;
 using AvaloniaVS.Views;
 using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -14,12 +17,14 @@ namespace AvaloniaVS.Services
     {
         const int CLSCTX_INPROC_SERVER = 1;
         readonly AvaloniaPackage _package;
+        IOleServiceProvider _oleServiceProvider;
         ServiceProvider _serviceProvider;
 
         public EditorFactory(AvaloniaPackage package) => _package = package;
 
         public int SetSite(IOleServiceProvider psp)
         {
+            _oleServiceProvider = psp;
             _serviceProvider = new ServiceProvider(psp);
             return VSConstants.S_OK;
         }
@@ -57,50 +62,15 @@ namespace AvaloniaVS.Services
                 return VSConstants.E_INVALIDARG;
             }
 
-            IVsTextLines textBuffer;
+            var textBuffer = GetTextBuffer(pszMkDocument, punkDocDataExisting);
 
-            if (punkDocDataExisting == IntPtr.Zero)
+            if (textBuffer == null)
             {
-                var localRegistry = _serviceProvider.GetService<ILocalRegistry, SLocalRegistry>();
-
-                if (localRegistry != null)
-                {
-                    var iid = typeof(IVsTextLines).GUID;
-                    var CLSID_VsTextBuffer = typeof(VsTextBufferClass).GUID;
-
-                    localRegistry.CreateInstance(CLSID_VsTextBuffer, null, ref iid, CLSCTX_INPROC_SERVER, out var ptr);
-
-                    try
-                    {
-                        textBuffer = Marshal.GetObjectForIUnknown(ptr) as IVsTextLines;
-                    }
-                    finally
-                    {
-                        Marshal.Release(ptr);
-                    }
-
-                    if (textBuffer is IObjectWithSite ows)
-                    {
-                        var oleServiceProvider = _serviceProvider.GetService<IOleServiceProvider>();
-                        ows.SetSite(oleServiceProvider);
-                    }
-                }
-                else
-                {
-                    throw new NotSupportedException("Could not access local registry.");
-                }
-            }
-            else
-            {
-                textBuffer = Marshal.GetObjectForIUnknown(punkDocDataExisting) as IVsTextLines;
-
-                if (textBuffer == null)
-                {
-                    return VSConstants.VS_E_INCOMPATIBLEDOCDATA;
-                }
+                return VSConstants.VS_E_INCOMPATIBLEDOCDATA;
             }
 
-            var pane = new DesignerPane(pszMkDocument);
+            var editor = GetEditorControl(textBuffer);
+            var pane = new DesignerPane(pszMkDocument, editor);
             ppunkDocView = Marshal.GetIUnknownForObject(pane);
             ppunkDocData = Marshal.GetIUnknownForObject(textBuffer);
             return VSConstants.S_OK;
@@ -113,6 +83,64 @@ namespace AvaloniaVS.Services
             ThreadHelper.ThrowIfNotOnUIThread();
             _serviceProvider?.Dispose();
             _serviceProvider = null;
+        }
+
+        private IVsTextLines GetTextBuffer(string fileName, IntPtr punkDocDataExisting)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            IVsTextLines result;
+
+            if (punkDocDataExisting == IntPtr.Zero)
+            {
+                // Get an invisible editor over the file. This is much easier than having to
+                // manually figure out the right content type and language service, and it will
+                // automatically associate the document with its owning project, meaning we will
+                // get intellisense in our editor with no extra work.
+                var iem = _serviceProvider.GetService<IVsInvisibleEditorManager, SVsInvisibleEditorManager>();
+
+                ErrorHandler.ThrowOnFailure(iem.RegisterInvisibleEditor(
+                    fileName,
+                    pProject: null,
+                    dwFlags: (uint)_EDITORREGFLAGS.RIEF_ENABLECACHING,
+                    pFactory: null,
+                    ppEditor: out var invisibleEditor));
+
+                var guidIVSTextLines = typeof(IVsTextLines).GUID;
+                ErrorHandler.ThrowOnFailure(invisibleEditor.GetDocData(
+                    fEnsureWritable: 1,
+                    riid: ref guidIVSTextLines,
+                    ppDocData: out var docDataPointer));
+
+                result = (IVsTextLines)Marshal.GetObjectForIUnknown(docDataPointer);
+            }
+            else
+            {
+                result = Marshal.GetObjectForIUnknown(punkDocDataExisting) as IVsTextLines;
+            }
+
+            return result;
+        }
+
+        private Control GetEditorControl(IVsTextLines textBuffer)
+        {
+            var componentModel = _serviceProvider.GetService<IComponentModel, SComponentModel>();
+            var eafs = componentModel.GetService<IVsEditorAdaptersFactoryService>();
+            var codeWindow = eafs.CreateVsCodeWindowAdapter(_oleServiceProvider);
+
+            // Disable the splitter control on the editor as leaving it enabled causes a crash if the user
+            // tries to use it here.
+            ((IVsCodeWindowEx)codeWindow).Initialize(
+                (uint)_codewindowbehaviorflags.CWB_DISABLESPLITTER,
+                VSUSERCONTEXTATTRIBUTEUSAGE.VSUC_Usage_Filter,
+                szNameAuxUserContext: "",
+                szValueAuxUserContext: "",
+                InitViewFlags: 0,
+                pInitView: new INITVIEW[1]);
+
+            codeWindow.SetBuffer(textBuffer);
+            ErrorHandler.ThrowOnFailure(codeWindow.GetPrimaryView(out var textView));
+            return eafs.GetWpfTextViewHost(textView).HostControl;
         }
     }
 }

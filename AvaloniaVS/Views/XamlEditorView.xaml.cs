@@ -19,6 +19,12 @@ namespace AvaloniaVS.Views
             InitializeComponent();
         }
 
+        public Control XmlEditor
+        {
+            get => editorHost.Child as Control;
+            set => editorHost.Child = value;
+        }
+
         public PreviewerProcess Process
         {
             get => (PreviewerProcess)GetValue(ProcessProperty);
