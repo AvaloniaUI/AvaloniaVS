@@ -52,8 +52,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AvaloniaPackage.cs" />
-    <Compile Include="IntelliSense\VsTextViewCreationListener.cs" />
-    <Compile Include="IntelliSense\XamlCompletionController.cs" />
     <Compile Include="IntelliSense\XamlCompletionSourceProvider.cs" />
     <Compile Include="IntelliSense\XamlCompletionSource.cs" />
     <Compile Include="Models\ProjectOutputInfo.cs" />
