@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using System.Windows.Controls;
 using AvaloniaVS.Views;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
@@ -64,12 +62,6 @@ namespace AvaloniaVS.Services
             }
 
             var textBuffer = GetTextBuffer(pszMkDocument, punkDocDataExisting);
-
-            if (textBuffer == null)
-            {
-                return VSConstants.VS_E_INCOMPATIBLEDOCDATA;
-            }
-
             var (editorWindow, editorControl) = CreateEditorControl(textBuffer);
             var pane = new DesignerPane(pszMkDocument, editorWindow, editorControl);
             ppunkDocView = Marshal.GetIUnknownForObject(pane);
@@ -118,6 +110,11 @@ namespace AvaloniaVS.Services
             else
             {
                 result = Marshal.GetObjectForIUnknown(punkDocDataExisting) as IVsTextLines;
+
+                if (result == null)
+                {
+                    ErrorHandler.ThrowOnFailure(VSConstants.VS_E_INCOMPATIBLEDOCDATA);
+                }
             }
 
             return result;

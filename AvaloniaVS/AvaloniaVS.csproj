@@ -52,7 +52,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AvaloniaPackage.cs" />
+    <Compile Include="IntelliSense\VsTextViewCreationListener.cs" />
+    <Compile Include="IntelliSense\XamlCompletionController.cs" />
+    <Compile Include="IntelliSense\XamlCompletionSourceProvider.cs" />
+    <Compile Include="IntelliSense\XamlCompletionSource.cs" />
     <Compile Include="Models\ProjectOutputInfo.cs" />
+    <Compile Include="Models\XamlBufferMetadata.cs" />
     <Compile Include="Services\Throttle.cs" />
     <Compile Include="Services\EditorFactory.cs" />
     <Compile Include="Guids.cs" />
@@ -78,6 +83,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Avalonia.dnlib">
+      <Version>2018.11.26-git-67c321d7a4219415492a910d22c95f5efb0c30b8</Version>
+    </PackageReference>
     <PackageReference Include="Madskristensen.VisualStudio.SDK">
       <Version>15.8.81-pre</Version>
     </PackageReference>
@@ -103,6 +111,12 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Avalonia.Ide.CompletionEngine">
+      <HintPath>..\lib\Avalonia.Ide.CompletionEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="Avalonia.Ide.CompletionEngine.DnlibMetadataProvider">
+      <HintPath>..\lib\Avalonia.Ide.CompletionEngine.DnlibMetadataProvider.dll</HintPath>
+    </Reference>
     <Reference Include="Avalonia.Remote.Protocol">
       <HintPath>..\lib\Avalonia.Remote.Protocol.dll</HintPath>
     </Reference>
