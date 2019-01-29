@@ -7,7 +7,7 @@ using AvaloniaVS.Services;
 
 namespace AvaloniaVS.Views
 {
-    public partial class AvaloniaPreviewer : UserControl
+    public partial class AvaloniaPreviewer : UserControl, IDisposable
     {
         private PreviewerProcess _process;
 
@@ -38,13 +38,20 @@ namespace AvaloniaVS.Views
             }
         }
 
+        public void Dispose()
+        {
+            Process = null;
+            Update(null);
+        }
+
         private void FrameReceived(object sender, FrameReceivedEventArgs e) => Update(e.Bitmap);
 
         private void Update(BitmapSource bitmap)
         {
+            preview.Source = bitmap;
+
             if (bitmap != null)
             {
-                preview.Source = bitmap;
                 preview.Width = bitmap.Width;
                 preview.Height = bitmap.Height;
                 loading.Visibility = Visibility.Collapsed;

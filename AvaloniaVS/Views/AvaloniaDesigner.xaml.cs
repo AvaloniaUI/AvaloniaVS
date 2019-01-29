@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.Text.Editor;
 
 namespace AvaloniaVS.Views
 {
-    public partial class AvaloniaDesigner : UserControl
+    public partial class AvaloniaDesigner : UserControl, IDisposable
     {
         private readonly Throttle<string> _throttle;
         private IWpfTextViewHost _xmlEditor;
@@ -44,6 +44,13 @@ namespace AvaloniaVS.Views
         {
             get => previewer.Process;
             set => previewer.Process = value;
+        }
+
+        public void Dispose()
+        {
+            _throttle.Dispose();
+            XmlEditor = null;
+            previewer.Dispose();
         }
 
         private void TextChanged(object sender, TextContentChangedEventArgs e)

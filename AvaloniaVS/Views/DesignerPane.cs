@@ -30,13 +30,10 @@ namespace AvaloniaVS.Views
         {
             base.Dispose(disposing);
 
+            _content?.Dispose();
+            _content = null;
             _process?.Dispose();
             _process = null;
-            
-            if (Content is AvaloniaDesigner view)
-            {
-                view.XmlEditor = null;
-            }
         }
 
         protected override void Initialize()
