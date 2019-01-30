@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Utilities;
 namespace AvaloniaVS.IntelliSense
 {
     [Export(typeof(ICompletionSourceProvider))]
-    [ContentType("xaml")]
+    [ContentType("xml")]
     [Name("Avalonia XAML Completion")]
     internal class XamlCompletionSourceProvider : ICompletionSourceProvider
     {

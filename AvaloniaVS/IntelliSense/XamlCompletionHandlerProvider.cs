@@ -15,7 +15,7 @@ namespace AvaloniaVS.IntelliSense
     /// </summary>
     [Export(typeof(IVsTextViewCreationListener))]
     [Name("Avalonia XAML completion handler")]
-    [ContentType("xaml")]
+    [ContentType("xml")]
     [TextViewRole(PredefinedTextViewRoles.Editable)]
     internal class XamlCompletionHandlerProvider : IVsTextViewCreationListener
     {

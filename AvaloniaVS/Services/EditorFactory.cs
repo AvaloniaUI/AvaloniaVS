@@ -16,6 +16,8 @@ namespace AvaloniaVS.Services
     public sealed class EditorFactory : IVsEditorFactory, IDisposable
     {
         const int CLSCTX_INPROC_SERVER = 1;
+        static readonly Guid XmlLanguageServiceGuid = new Guid("f6819a78-a205-47b5-be1c-675b3c7f0b8e");
+
         readonly AvaloniaPackage _package;
         IOleServiceProvider _oleServiceProvider;
         ServiceProvider _serviceProvider;
@@ -118,6 +120,11 @@ namespace AvaloniaVS.Services
                 }
             }
 
+            // Set buffer content type to XML. The default XAML content type will cause blue
+            // squiggly lines to be displayed on the elements, as the XAML language service is
+            // hard-coded as to the XAML dialects it supports and Avalonia isn't one of them :(
+            ErrorHandler.ThrowOnFailure(result.SetLanguageServiceID(XmlLanguageServiceGuid));
+
             return result;
         }
 
@@ -141,7 +148,7 @@ namespace AvaloniaVS.Services
             var buffer = eafs.GetDataBuffer(bufferAdapter);
             buffer.Properties.GetOrCreateSingletonProperty(() => new XamlBufferMetadata());
 
-            codeWindow.SetBuffer(bufferAdapter);
+            ErrorHandler.ThrowOnFailure(codeWindow.SetBuffer(bufferAdapter));
             ErrorHandler.ThrowOnFailure(codeWindow.GetPrimaryView(out var textView));
             return (codeWindow, eafs.GetWpfTextViewHost(textView));
         }
