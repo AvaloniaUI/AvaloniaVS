@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using IServiceProvider = System.IServiceProvider;
@@ -15,10 +15,8 @@ namespace AvaloniaVS.IntelliSense
     /// Handles key presses for the Avalonia XAML intellisense completion.
     /// </summary>
     /// <remarks>
-    /// We rely on the XAML language service to initiate intellisense completion on XAML files,
-    /// but unfortunately that service ignores completion sets that it didn't add itself. This
-    /// class adds a command handler to text views and listens for keypresses which should cause
-    /// a completion to be selected.
+    /// Adds a command handler to text views and listens for keypresses which should cause a
+    /// completion to be opened or comitted.
     /// 
     /// Yes, this is horrible, but it's apparently the official way to do this. Eurgh.
     /// </remarks>
@@ -28,6 +26,7 @@ namespace AvaloniaVS.IntelliSense
         private readonly ICompletionBroker _completionBroker;
         private readonly IOleCommandTarget _nextCommandHandler;
         private readonly ITextView _textView;
+        private ICompletionSession _session;
 
         public XamlCompletionCommandHandler(
             IServiceProvider serviceProvider,
@@ -60,37 +59,88 @@ namespace AvaloniaVS.IntelliSense
                 return _nextCommandHandler.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
             }
 
-            // Get the character if the command represents a typed character.
-            char typedChar = char.MinValue;
-
-            if (pguidCmdGroup == VSConstants.VSStd2K && nCmdID == (uint)VSConstants.VSStd2KCmdID.TYPECHAR)
+            if (TryGetChar(ref pguidCmdGroup, nCmdID, pvaIn, out var c))
             {
-                typedChar = (char)(ushort)Marshal.GetObjectForNativeVariant(pvaIn);
+                if (HandleSessionCompletion(c))
+                {
+                    return VSConstants.S_OK;
+                }
+
+                var result = _nextCommandHandler.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
+
+                if (HandleSessionStart(c))
+                {
+                    return VSConstants.S_OK;
+                }
+
+                if (HandleSessionUpdate(c))
+                {
+                    return VSConstants.S_OK;
+                }
+
+                return result;
             }
 
-            // If the pressed key is a key that can commit a completion session.
-            if (nCmdID == (uint)VSConstants.VSStd2KCmdID.RETURN ||
-                nCmdID == (uint)VSConstants.VSStd2KCmdID.TAB || 
-                char.IsWhiteSpace(typedChar) ||
-                char.IsPunctuation(typedChar) ||
-                typedChar == '=' ||
-                typedChar == '/')
+            return _nextCommandHandler.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
+        }
+
+        private bool HandleSessionStart(char c)
+        {
+            // If the pressed key is a key that can start a completion session.
+            if (char.IsLetterOrDigit(c) ||
+                c == '<' || c == '.' || c == ' ' || c == ':')
             {
-                // Get the completion session for the text view, if any. Note that we didn't start
-                // the completion session: the XAML language service did. However that service
-                // ignores keypresses for our completion sets, so we need to implement that ourselves.
-                var session = _completionBroker.GetSessions(_textView).FirstOrDefault();
-
-                // And commit or dismiss the completion session depending its state.
-                if (session != null && !session.IsDismissed)
+                if (_session == null || _session.IsDismissed)
                 {
-                    if (session.SelectedCompletionSet.SelectionStatus.IsSelected)
+                    if (TriggerCompletion() && c != '<')
                     {
-                        var selected = session.SelectedCompletionSet.SelectionStatus.Completion as XamlCompletion;
+                        _session?.Filter();
+                    }
 
-                        session.Commit();
+                    return true;
+                }
+                else
+                {
+                    _session.Filter();
+                }
+            }
 
-                        if (typedChar == '/' && selected?.IsClass == true)
+            return false;
+        }
+
+        private bool HandleSessionUpdate(char c)
+        {
+            // Update the filter if there is a deletion.
+            if (c == '\b')
+            {
+                if (_session != null && !_session.IsDismissed)
+                {
+                    _session.Filter();
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool HandleSessionCompletion(char c)
+        {
+            // If the pressed key is a key that can commit a completion session.
+            if (char.IsWhiteSpace(c) ||
+                char.IsPunctuation(c) ||
+                c == '\n' || c == '\r' || c == '=' || c == '/')
+            {
+                // And commit or dismiss the completion session depending its state.
+                if (_session != null && !_session.IsDismissed)
+                {
+                    if (_session.SelectedCompletionSet.SelectionStatus.IsSelected)
+                    {
+                        var selected = _session.SelectedCompletionSet.SelectionStatus.Completion as XamlCompletion;
+
+                        _session.Commit();
+
+                        if (c == '/' && selected?.IsClass == true)
                         {
                             // If '/' was typed and this is an element, add the closing "'/>".
                             _textView.TextBuffer.Insert(
@@ -107,16 +157,73 @@ namespace AvaloniaVS.IntelliSense
                         }
 
                         // Don't add the character to the buffer.
-                        return VSConstants.S_OK;
+                        return true;
                     }
                     else
                     {
-                        session.Dismiss();
+                        _session.Dismiss();
                     }
                 }
             }
 
-            return _nextCommandHandler.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
+            return false;
+        }
+
+        private bool TriggerCompletion()
+        {
+            // The caret must be in a non-projection location.
+            var caretPoint = _textView.Caret.Position.Point.GetPoint(
+                x => (!x.ContentType.IsOfType("projection")),
+                PositionAffinity.Predecessor);
+
+            if (!caretPoint.HasValue)
+            {
+                return false;
+            }
+
+            _session = _completionBroker.CreateCompletionSession(
+                _textView,
+                caretPoint?.Snapshot.CreateTrackingPoint(caretPoint.Value.Position, PointTrackingMode.Positive),
+                true);
+
+            // Subscribe to the Dismissed event on the session.
+            _session.Dismissed += SessionDismissed;
+            _session.Start();
+
+            return true;
+        }
+
+        private void SessionDismissed(object sender, EventArgs e)
+        {
+            _session.Dismissed -= SessionDismissed;
+            _session = null;
+        }
+
+        private static bool TryGetChar(ref Guid pguidCmdGroup, uint nCmdID, IntPtr pvaIn, out char c)
+        {
+            c = '\0';
+
+            if (pguidCmdGroup == VSConstants.VSStd2K)
+            {
+                switch ((VSConstants.VSStd2KCmdID)nCmdID)
+                {
+                    case VSConstants.VSStd2KCmdID.TYPECHAR:
+                        c = (char)(ushort)Marshal.GetObjectForNativeVariant(pvaIn);
+                        break;
+                    case VSConstants.VSStd2KCmdID.RETURN:
+                        c = '\n';
+                        break;
+                    case VSConstants.VSStd2KCmdID.TAB:
+                        c = '\t';
+                        break;
+                    case VSConstants.VSStd2KCmdID.BACKSPACE:
+                    case VSConstants.VSStd2KCmdID.DELETE:
+                        c = '\b';
+                        break;
+                }
+            }
+
+            return c != '\0';
         }
     }
 }
