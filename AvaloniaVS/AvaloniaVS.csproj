@@ -52,6 +52,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AvaloniaPackage.cs" />
+    <Compile Include="IntelliSense\XamlCompletion.cs" />
+    <Compile Include="IntelliSense\XamlCompletionCommandHandler.cs" />
+    <Compile Include="IntelliSense\XamlCompletionHandlerProvider.cs" />
     <Compile Include="IntelliSense\XamlCompletionSourceProvider.cs" />
     <Compile Include="IntelliSense\XamlCompletionSource.cs" />
     <Compile Include="Models\ProjectOutputInfo.cs" />

@@ -61,9 +61,7 @@ namespace AvaloniaVS.Views
             var project = ProjectExtensions.GetProjectForFile(_fileName);
             var executablePath = project?.GetAssemblyPath();
             var buffer = _xmlEditor.TextView.TextBuffer;
-            var metadata = buffer.Properties.GetOrCreateSingletonProperty(
-                typeof(XamlBufferMetadata),
-                () => new XamlBufferMetadata());
+            var metadata = buffer.Properties.GetProperty<XamlBufferMetadata>(typeof(XamlBufferMetadata));
 
             if (metadata.CompletionMetadata == null)
             {

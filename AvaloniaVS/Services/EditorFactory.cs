@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using AvaloniaVS.Models;
 using AvaloniaVS.Views;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -120,7 +121,7 @@ namespace AvaloniaVS.Services
             return result;
         }
 
-        private (IVsCodeWindow, IWpfTextViewHost) CreateEditorControl(IVsTextLines textBuffer)
+        private (IVsCodeWindow, IWpfTextViewHost) CreateEditorControl(IVsTextLines bufferAdapter)
         {
             var componentModel = _serviceProvider.GetService<IComponentModel, SComponentModel>();
             var eafs = componentModel.GetService<IVsEditorAdaptersFactoryService>();
@@ -136,7 +137,11 @@ namespace AvaloniaVS.Services
                 InitViewFlags: 0,
                 pInitView: new INITVIEW[1]);
 
-            codeWindow.SetBuffer(textBuffer);
+            // Add metadata to the buffer so we can identify it as containing Avalonia XAML.
+            var buffer = eafs.GetDataBuffer(bufferAdapter);
+            buffer.Properties.GetOrCreateSingletonProperty(() => new XamlBufferMetadata());
+
+            codeWindow.SetBuffer(bufferAdapter);
             ErrorHandler.ThrowOnFailure(codeWindow.GetPrimaryView(out var textView));
             return (codeWindow, eafs.GetWpfTextViewHost(textView));
         }

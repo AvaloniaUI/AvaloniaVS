@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using Avalonia.Ide.CompletionEngine;
 using AvaloniaVS.Models;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
-using Completion = Microsoft.VisualStudio.Language.Intellisense.Completion;
-using CompletionSet = Microsoft.VisualStudio.Language.Intellisense.CompletionSet;
+using CompletionEngine = Avalonia.Ide.CompletionEngine.CompletionEngine;
 
 namespace AvaloniaVS.IntelliSense
 {
@@ -40,7 +37,7 @@ namespace AvaloniaVS.IntelliSense
                         "Avalonia",
                         "Avalonia",
                         applicableTo,
-                        completions.Completions.Select(c => new Completion(c.DisplayText, c.InsertText, c.Description, null, null)),
+                        XamlCompletion.Create(completions.Completions),
                         null));
                 }
             }
