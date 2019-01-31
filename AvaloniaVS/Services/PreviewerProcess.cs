@@ -102,11 +102,17 @@ namespace AvaloniaVS.Services
             Debug.WriteLine($" - dotnet {args}.");
 
             _process.Start();
-            await tcs.Task;
+            _process.BeginErrorReadLine();
+            _process.BeginOutputReadLine();
 
             if (!_process.HasExited)
             {
                 Debug.WriteLine($"Process Id: {_process.Id}.");
+                await tcs.Task;
+            }
+            else
+            {
+                throw new ApplicationException($"The designer process exited unexpectedly with code {_process.ExitCode}.");
             }
         }
 
@@ -243,14 +249,17 @@ namespace AvaloniaVS.Services
 
         private void OnException(IAvaloniaRemoteTransportConnection connection, Exception ex)
         {
+            Debug.WriteLine("Connection error: " + ex.Message);
         }
 
         private void OutputReceived(object sender, DataReceivedEventArgs e)
         {
+            Debug.WriteLine("Designer output: " + e.Data);
         }
 
         private void ErrorReceived(object sender, DataReceivedEventArgs e)
         {
+            Debug.WriteLine("Designer error: " + e.Data);
         }
 
         private void ProcessExited(object sender, EventArgs e)
