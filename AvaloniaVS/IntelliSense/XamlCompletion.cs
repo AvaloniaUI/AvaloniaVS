@@ -18,6 +18,8 @@ namespace AvaloniaVS.IntelliSense
     /// </summary>
     internal class XamlCompletion : Microsoft.VisualStudio.Language.Intellisense.Completion
     {
+        private static ImageSource[] s_images;
+
         public XamlCompletion(Completion completion, IVsImageService2 imageService)
             : base(
                 completion.DisplayText,
@@ -44,12 +46,19 @@ namespace AvaloniaVS.IntelliSense
             return source.Select(x => new XamlCompletion(x, imageService));
         }
 
-        public static ImageSource GetImage(CompletionKind kind, IVsImageService2 imageService)
+        private static ImageSource GetImage(CompletionKind kind, IVsImageService2 imageService)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
+            if (s_images == null)
+            {
+                LoadImages(imageService);
+            }
 
-            Log.Logger.Verbose("Started XamlCompletion.GetImage()");
+            return s_images[(int)kind];
+        }
 
+        private static void LoadImages(IVsImageService2 imageService)
+        {
+            var capacity = Enum.GetValues(typeof(CompletionKind)).Cast<int>().Max() + 1;
             var attributes = new ImageAttributes
             {
                 StructSize = Marshal.SizeOf(typeof(ImageAttributes)),
@@ -60,32 +69,26 @@ namespace AvaloniaVS.IntelliSense
                 Flags = (uint)_ImageAttributesFlags.IAF_RequiredFlags,
             };
 
-            var id = KnownMonikers.None;
+            s_images = new ImageSource[capacity];
+            s_images[(int)CompletionKind.Property] = LoadImage(imageService, KnownMonikers.Property, ref attributes);
+            s_images[(int)CompletionKind.Class] = LoadImage(imageService, KnownMonikers.MarkupTag, ref attributes);
+            s_images[(int)CompletionKind.Enum] = LoadImage(imageService, KnownMonikers.EnumerationItemPublic, ref attributes);
+            s_images[(int)CompletionKind.Namespace] = LoadImage(imageService, KnownMonikers.Namespace, ref attributes);
 
-            switch (kind)
-            {
-                case CompletionKind.AttachedProperty:
-                case CompletionKind.Property:
-                case CompletionKind.StaticProperty:
-                    id = KnownMonikers.Property;
-                    break;
-                case CompletionKind.Class:
-                    id = KnownMonikers.MarkupTag;
-                    break;
-                case CompletionKind.Enum:
-                    id = KnownMonikers.EnumerationItemPublic;
-                    break;
-                case CompletionKind.MarkupExtension:
-                case CompletionKind.Namespace:
-                    id = KnownMonikers.Namespace;
-                    break;
-            }
+            s_images[(int)CompletionKind.AttachedProperty] = s_images[(int)CompletionKind.Property];
+            s_images[(int)CompletionKind.StaticProperty] = s_images[(int)CompletionKind.Property];
+            s_images[(int)CompletionKind.MarkupExtension] = s_images[(int)CompletionKind.Namespace];
+        }
 
-            var image = imageService.GetImage(id, attributes);
+        private static ImageSource LoadImage(
+            IVsImageService2 imageService,
+            ImageMoniker moniker,
+            ref ImageAttributes attributes)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            var image = imageService.GetImage(moniker, attributes);
             ErrorHandler.ThrowOnFailure(image.get_Data(out var data));
-
-            Log.Logger.Verbose("Finished XamlCompletion.GetImage()");
-
             return (ImageSource)data;
         }
     }
