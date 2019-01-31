@@ -11,13 +11,18 @@ using Avalonia.Remote.Protocol;
 using Avalonia.Remote.Protocol.Designer;
 using Avalonia.Remote.Protocol.Viewport;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
+using Serilog;
+using Serilog.Core;
+using Serilog.Events;
 using Task = System.Threading.Tasks.Task;
 
 namespace AvaloniaVS.Services
 {
-    public class PreviewerProcess : IDisposable
+    public class PreviewerProcess : IDisposable, ILogEventEnricher
     {
         private readonly string _executablePath;
+        private readonly ILogger _log;
         private Process _process;
         private IAvaloniaRemoteTransportConnection _connection;
         private IDisposable _listener;
@@ -26,6 +31,12 @@ namespace AvaloniaVS.Services
         public PreviewerProcess(string executablePath)
         {
             _executablePath = executablePath;
+            _log = new LoggerConfiguration()
+                .MinimumLevel.Verbose()
+                .Destructure.ToMaximumStringLength(32)
+                .Enrich.With(this)
+                .WriteTo.Logger(Log.Logger)
+                .CreateLogger();
         }
 
         public BitmapSource Bitmap => _bitmap;
@@ -61,9 +72,9 @@ namespace AvaloniaVS.Services
                     {
                         await ConnectionInitializedAsync(t, xaml);
                         tcs.SetResult(null);
-                    } catch (Exception e)
+                    } catch (Exception ex)
                     {
-                        Debug.WriteLine("Error initializing connection: " + e);
+                        _log.Error(ex, "Error initializing connection");
                     }
                 });
 #pragma warning restore VSTHRD101
@@ -81,38 +92,34 @@ namespace AvaloniaVS.Services
 
             var args = $@"exec --runtimeconfig ""{runtimeConfigPath}"" --depsfile ""{depsPath}"" ""{hostAppPath}"" --transport tcp-bson://127.0.0.1:{port}/ ""{_executablePath}""";
 
-            _process = new Process
+            var processInfo = new ProcessStartInfo
             {
-                StartInfo = new ProcessStartInfo
-                {
-                    Arguments = args,
-                    CreateNoWindow = true,
-                    FileName = "dotnet",
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                }
+                Arguments = args,
+                CreateNoWindow = true,
+                FileName = "dotnet",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
             };
 
+            _log.Information("Starting previewer process for '{ExecutablePath}'", _executablePath);
+            _log.Debug("> dotnet.exe {Args}", args);
+
+            _process = Process.Start(processInfo);
             _process.OutputDataReceived += OutputReceived;
             _process.ErrorDataReceived += ErrorReceived;
             _process.Exited += ProcessExited;
-
-            Debug.WriteLine($"Starting process for '{_executablePath}'.");
-            Debug.WriteLine($" - dotnet {args}.");
-
-            _process.Start();
             _process.BeginErrorReadLine();
             _process.BeginOutputReadLine();
 
             if (!_process.HasExited)
             {
-                Debug.WriteLine($"Process Id: {_process.Id}.");
+                _log.Information("Started previewer process for '{ExecutablePath}'", _executablePath);
                 await tcs.Task;
             }
             else
             {
-                throw new ApplicationException($"The designer process exited unexpectedly with code {_process.ExitCode}.");
+                throw new ApplicationException($"The previewer process exited unexpectedly with code {_process.ExitCode}.");
             }
         }
 
@@ -128,9 +135,7 @@ namespace AvaloniaVS.Services
                 throw new InvalidOperationException("Process not finished initializing.");
             }
 
-            Debug.WriteLine("Sending UpdateXamlMessage.");
-
-            await _connection.Send(new UpdateXamlMessage
+            await SendAsync(new UpdateXamlMessage
             {
                 Xaml = xaml,
             });
@@ -156,25 +161,29 @@ namespace AvaloniaVS.Services
             _process = null;
         }
 
+        void ILogEventEnricher.Enrich(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
+        {
+            if (_process?.HasExited != true)
+            {
+                logEvent.AddOrUpdateProperty(propertyFactory.CreateProperty("Pid", _process?.Id ?? 0));
+            }
+        }
+
         private async Task ConnectionInitializedAsync(IAvaloniaRemoteTransportConnection connection, string xaml)
         {
-            Debug.WriteLine("Connection initialized.");
+            _log.Information("Connection initialized");
 
             _connection = connection;
             _connection.OnException += OnException;
             _connection.OnMessage += OnMessage;
 
-            Debug.WriteLine("Sending UpdateXamlMessage.");
-
-            await connection.Send(new UpdateXamlMessage
+            await SendAsync(new UpdateXamlMessage
             {
                 Xaml = xaml,
                 AssemblyPath = _executablePath,
             });
 
-            Debug.WriteLine("Sending ClientSupportedPixelFormatsMessage.");
-
-            await connection.Send(new ClientSupportedPixelFormatsMessage
+            await SendAsync(new ClientSupportedPixelFormatsMessage
             {
                 Formats = new[]
                 {
@@ -183,20 +192,22 @@ namespace AvaloniaVS.Services
                 }
             });
 
-            Debug.WriteLine("Sending ClientRenderInfoMessage.");
-
-            await connection.Send(new ClientRenderInfoMessage
+            await SendAsync(new ClientRenderInfoMessage
             {
                 DpiX = 96,
                 DpiY = 96,
             });
 
-            Debug.WriteLine("Sending UpdateXamlMessage.");
-
-            await connection.Send(new UpdateXamlMessage
+            await SendAsync(new UpdateXamlMessage
             {
                 Xaml = xaml,
             });
+        }
+
+        private Task SendAsync(object message)
+        {
+            _log.Debug("=> {@Message}", message);
+            return _connection.Send(message);
         }
 
         private void OnMessage(IAvaloniaRemoteTransportConnection connection, object message)
@@ -206,12 +217,10 @@ namespace AvaloniaVS.Services
 
         private async Task OnMessageAsync(object message)
         {
-            Debug.WriteLine($"Message received: '{message.GetType()?.Name}'.");
+            _log.Debug("<= {@Message}", message);
 
             if (message is FrameMessage frame)
             {
-                Debug.WriteLine($"Frame received {frame.Width}x{frame.Height}.");
-
                 if (Error == null)
                 {
                     await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -236,7 +245,7 @@ namespace AvaloniaVS.Services
                     FrameReceived?.Invoke(this, new FrameReceivedEventArgs(_bitmap));
                 }
 
-                await _connection.Send(new FrameReceivedMessage
+                await SendAsync(new FrameReceivedMessage
                 {
                     SequenceId = frame.SequenceId
                 });
@@ -249,22 +258,28 @@ namespace AvaloniaVS.Services
 
         private void OnException(IAvaloniaRemoteTransportConnection connection, Exception ex)
         {
-            Debug.WriteLine("Connection error: " + ex.Message);
+            _log.Error(ex, "Connection error");
         }
 
         private void OutputReceived(object sender, DataReceivedEventArgs e)
         {
-            Debug.WriteLine("Designer output: " + e.Data);
+            if (!string.IsNullOrWhiteSpace(e.Data))
+            {
+                _log.Debug("<= {Data}", e.Data);
+            }
         }
 
         private void ErrorReceived(object sender, DataReceivedEventArgs e)
         {
-            Debug.WriteLine("Designer error: " + e.Data);
+            if (!string.IsNullOrWhiteSpace(e.Data))
+            {
+                _log.Error("<= {Data}", e.Data);
+            }
         }
 
         private void ProcessExited(object sender, EventArgs e)
         {
-            Debug.WriteLine($"Process {_process.Id} exited.");
+            _log.Information("Process exited");
         }
 
         private static void EnsureExists(string path)

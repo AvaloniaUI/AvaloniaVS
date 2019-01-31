@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Avalonia.Ide.CompletionEngine.AssemblyMetadata;
@@ -10,6 +9,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
+using Serilog;
 using CompletionMetadata = Avalonia.Ide.CompletionEngine.Metadata;
 using Task = System.Threading.Tasks.Task;
 
@@ -17,6 +17,7 @@ namespace AvaloniaVS.Views
 {
     public class DesignerPane : EditorHostPane
     {
+        private static readonly ILogger s_log = Log.ForContext<DesignerPane>();
         private readonly string _fileName;
         private readonly IWpfTextViewHost _xmlEditor;
         private AvaloniaDesigner _content;
@@ -86,9 +87,9 @@ namespace AvaloniaVS.Views
                 var metadataReader = new MetadataReader(new DnlibMetadataProvider());
                 return metadataReader.GetForTargetAssembly(executablePath);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Debug.WriteLine("Error creating XAML completion metadata: " + e);
+                s_log.Error(ex, "Error creating XAML completion metadata");
                 return null;
             }
         }

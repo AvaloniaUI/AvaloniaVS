@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace AvaloniaVS
 {
@@ -15,7 +16,7 @@ namespace AvaloniaVS
             {
                 if (t.IsFaulted)
                 {
-                    Debug.WriteLine($"FireAndForget exception: {t.Exception}.");
+                    Log.Error(t.Exception, "Exception caught by FireAndForget");
                 }
             }, TaskScheduler.Default);
         }

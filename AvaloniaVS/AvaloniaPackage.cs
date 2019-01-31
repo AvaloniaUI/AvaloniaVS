@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Avalonia.Remote.Protocol.Designer;
 using AvaloniaVS.Services;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Serilog;
 using Task = System.Threading.Tasks.Task;
 
 namespace AvaloniaVS
@@ -34,8 +37,35 @@ namespace AvaloniaVS
             IProgress<ServiceProgressData> progress)
         {
             await base.InitializeAsync(cancellationToken, progress);
-            await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            InitializeLogging();
             RegisterEditorFactory(new EditorFactory(this));
+
+            Log.Logger.Information("Avalonia Package initialized");
+        }
+
+        private void InitializeLogging()
+        {
+            const string format = "{Timestamp:HH:mm:ss.fff} [{Level}]\t{Pid} {Message}{NewLine}{Exception}";
+            var ouput = this.GetService<IVsOutputWindow, SVsOutputWindow>();
+            var sink = new OutputPaneEventSink(ouput, outputTemplate: format);
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Verbose()
+                .WriteTo.Sink(sink)
+                .WriteTo.Trace(outputTemplate: format)
+                .CreateLogger();
+        }
+
+        private object TransformUpdateXamlMessage(UpdateXamlMessage m)
+        {
+            return new
+            {
+                m.AssemblyPath,
+                m.XamlFileProjectPath,
+                XamlLength = m.Xaml.Length,
+            };
         }
     }
 }
