@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using AvaloniaVS.Models;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
+using Serilog;
 using CompletionEngine = Avalonia.Ide.CompletionEngine.CompletionEngine;
 
 namespace AvaloniaVS.IntelliSense
@@ -26,6 +28,7 @@ namespace AvaloniaVS.IntelliSense
             if (_buffer.Properties.TryGetProperty<XamlBufferMetadata>(typeof(XamlBufferMetadata), out var metadata) &&
                 metadata.CompletionMetadata != null)
             {
+                var sw = Stopwatch.StartNew();
                 var pos = session.TextView.Caret.Position.BufferPosition;
                 var text = pos.Snapshot.GetText(0, pos.Position);
                 var completions = _engine.GetCompletions(metadata.CompletionMetadata, text, pos);
@@ -42,7 +45,11 @@ namespace AvaloniaVS.IntelliSense
                         applicableTo,
                         XamlCompletion.Create(completions.Completions, _imageService),
                         null));
+
+                    Log.Logger.Verbose("XAML completion took {Time}", sw.Elapsed);
                 }
+
+                sw.Stop();
             }
         }
 

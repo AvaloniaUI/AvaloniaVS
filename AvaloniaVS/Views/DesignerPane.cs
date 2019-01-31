@@ -44,6 +44,8 @@ namespace AvaloniaVS.Views
 
         protected override void Initialize()
         {
+            Log.Logger.Verbose("Started DesignerPane.Initialize()");
+
             base.Initialize();
 
             var xamlEditorView = new AvaloniaDesigner
@@ -53,11 +55,15 @@ namespace AvaloniaVS.Views
 
             _content = xamlEditorView;
             StartEditorAsync(xamlEditorView).FireAndForget();
+
+            Log.Logger.Verbose("Finished DesignerPane.Initialize()");
         }
 
         private async Task StartEditorAsync(AvaloniaDesigner editor)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            Log.Logger.Verbose("Started DesignerPane.StartEditorAsync()");
 
             var project = ProjectExtensions.GetProjectForFile(_fileName);
             var executablePath = project?.GetAssemblyPath();
@@ -76,11 +82,15 @@ namespace AvaloniaVS.Views
                 await _process.StartAsync(xaml);
                 editor.Process = _process;
             }
+
+            Log.Logger.Verbose("Finished DesignerPane.StartEditorAsync()");
         }
 
         private static async Task<CompletionMetadata> CreateCompletionMetadataAsync(string executablePath)
         {
             await TaskScheduler.Default;
+
+            Log.Logger.Verbose("Started DesignerPane.CreateCompletionMetadataAsync()");
 
             try
             {
@@ -91,6 +101,10 @@ namespace AvaloniaVS.Views
             {
                 s_log.Error(ex, "Error creating XAML completion metadata");
                 return null;
+            }
+            finally
+            {
+                Log.Logger.Verbose("Finished DesignerPane.CreateCompletionMetadataAsync()");
             }
         }
 

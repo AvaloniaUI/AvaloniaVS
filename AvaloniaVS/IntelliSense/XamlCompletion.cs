@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Serilog;
 
 namespace AvaloniaVS.IntelliSense
 {
@@ -47,6 +48,8 @@ namespace AvaloniaVS.IntelliSense
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
+            Log.Logger.Verbose("Started XamlCompletion.GetImage()");
+
             var attributes = new ImageAttributes
             {
                 StructSize = Marshal.SizeOf(typeof(ImageAttributes)),
@@ -80,6 +83,9 @@ namespace AvaloniaVS.IntelliSense
 
             var image = imageService.GetImage(id, attributes);
             ErrorHandler.ThrowOnFailure(image.get_Data(out var data));
+
+            Log.Logger.Verbose("Finished XamlCompletion.GetImage()");
+
             return (ImageSource)data;
         }
     }

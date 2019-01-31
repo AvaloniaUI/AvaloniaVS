@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Serilog;
 using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 
 namespace AvaloniaVS.Services
@@ -56,6 +57,8 @@ namespace AvaloniaVS.Services
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
+            Log.Logger.Verbose("Started EditorFactory.CreateEditorInstance({Filename})", pszMkDocument);
+
             ppunkDocView = IntPtr.Zero;
             ppunkDocData = IntPtr.Zero;
             pguidCmdUI = Guids.AvaloniaDesignerEditorFactory;
@@ -72,6 +75,8 @@ namespace AvaloniaVS.Services
             var pane = new DesignerPane(pszMkDocument, editorWindow, editorControl);
             ppunkDocView = Marshal.GetIUnknownForObject(pane);
             ppunkDocData = Marshal.GetIUnknownForObject(textBuffer);
+
+            Log.Logger.Verbose("Finished EditorFactory.CreateEditorInstance({Filename})", pszMkDocument);
             return VSConstants.S_OK;
         }
 
@@ -89,6 +94,8 @@ namespace AvaloniaVS.Services
             ThreadHelper.ThrowIfNotOnUIThread();
 
             IVsTextLines result;
+
+            Log.Logger.Verbose("Started EditorFactory.GetTextBuffer({Filename})", fileName);
 
             if (punkDocDataExisting == IntPtr.Zero)
             {
@@ -127,11 +134,15 @@ namespace AvaloniaVS.Services
             // squiggly lines to be displayed on the elements, as the XAML language service is
             // hard-coded as to the XAML dialects it supports and Avalonia isn't one of them :(
             ErrorHandler.ThrowOnFailure(result.SetLanguageServiceID(XmlLanguageServiceGuid));
+
+            Log.Logger.Verbose("Finished EditorFactory.GetTextBuffer({Filename})", fileName);
             return result;
         }
 
         private (IVsCodeWindow, IWpfTextViewHost) CreateEditorControl(IVsTextLines bufferAdapter)
         {
+            Log.Logger.Verbose("Started EditorFactory.CreateEditorControl()");
+
             var componentModel = _serviceProvider.GetService<IComponentModel, SComponentModel>();
             var eafs = componentModel.GetService<IVsEditorAdaptersFactoryService>();
             var codeWindow = eafs.CreateVsCodeWindowAdapter(_oleServiceProvider);
@@ -158,6 +169,7 @@ namespace AvaloniaVS.Services
             var textViewHost = eafs.GetWpfTextViewHost(textViewAdapter);
             _prefsTracker.Track(textViewHost.TextView);
 
+            Log.Logger.Verbose("Finished EditorFactory.CreateEditorControl()");
             return (codeWindow, textViewHost);
         }
     }

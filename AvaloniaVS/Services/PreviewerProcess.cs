@@ -11,7 +11,6 @@ using Avalonia.Remote.Protocol;
 using Avalonia.Remote.Protocol.Designer;
 using Avalonia.Remote.Protocol.Viewport;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Threading;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
@@ -47,6 +46,8 @@ namespace AvaloniaVS.Services
 
         public async Task StartAsync(string xaml)
         {
+            _log.Verbose("Started PreviewerProcess.StartAsync()");
+
             if (_listener != null)
             {
                 throw new InvalidOperationException("Previewer process already started.");
@@ -71,10 +72,13 @@ namespace AvaloniaVS.Services
                     try
                     {
                         await ConnectionInitializedAsync(t, xaml);
-                        tcs.SetResult(null);
                     } catch (Exception ex)
                     {
                         _log.Error(ex, "Error initializing connection");
+                    }
+                    finally
+                    {
+                        tcs.SetResult(null);
                     }
                 });
 #pragma warning restore VSTHRD101
@@ -121,6 +125,8 @@ namespace AvaloniaVS.Services
             {
                 throw new ApplicationException($"The previewer process exited unexpectedly with code {_process.ExitCode}.");
             }
+
+            _log.Verbose("Started PreviewerProcess.StartAsync()");
         }
 
         public async Task UpdateXamlAsync(string xaml)
@@ -171,6 +177,7 @@ namespace AvaloniaVS.Services
 
         private async Task ConnectionInitializedAsync(IAvaloniaRemoteTransportConnection connection, string xaml)
         {
+            _log.Verbose("Started PreviewerProcess.ConnectionInitializedAsync()");
             _log.Information("Connection initialized");
 
             _connection = connection;
@@ -202,6 +209,8 @@ namespace AvaloniaVS.Services
             {
                 Xaml = xaml,
             });
+
+            _log.Verbose("Finished PreviewerProcess.ConnectionInitializedAsync()");
         }
 
         private Task SendAsync(object message)
@@ -217,6 +226,7 @@ namespace AvaloniaVS.Services
 
         private async Task OnMessageAsync(object message)
         {
+            _log.Verbose("Started PreviewerProcess.OnMessageAsync()");
             _log.Debug("<= {@Message}", message);
 
             if (message is FrameMessage frame)
@@ -254,6 +264,8 @@ namespace AvaloniaVS.Services
             {
                 Error = update.Error;
             }
+
+            _log.Verbose("Finished PreviewerProcess.OnMessageAsync()");
         }
 
         private void OnException(IAvaloniaRemoteTransportConnection connection, Exception ex)
@@ -312,44 +324,6 @@ namespace AvaloniaVS.Services
                 default:
                     throw new NotSupportedException("Unsupported pixel format.");
             }
-        }
-
-        private static Process StartProcess(
-            string commandName,
-            string args,
-            Action<object, DataReceivedEventArgs> outputReceivedCallback,
-            Action<object, DataReceivedEventArgs> errorReceivedCallback = null,
-            string workingDirectory = "",
-            params string[] extraPaths)
-        {
-            var shellProc = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    WorkingDirectory = workingDirectory,
-                }
-            };
-
-            shellProc.StartInfo.FileName = commandName;
-            shellProc.StartInfo.Arguments = args;
-            shellProc.StartInfo.CreateNoWindow = true;
-
-            shellProc.OutputDataReceived += (s, a) => outputReceivedCallback(s, a);
-
-            if (errorReceivedCallback != null)
-            {
-                shellProc.ErrorDataReceived += (s, a) => errorReceivedCallback(s, a);
-            }
-
-            shellProc.EnableRaisingEvents = true;
-            shellProc.Start();
-            shellProc.BeginOutputReadLine();
-            shellProc.BeginErrorReadLine();
-
-            return shellProc;
         }
     }
 }

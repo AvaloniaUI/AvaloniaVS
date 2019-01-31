@@ -48,7 +48,7 @@ namespace AvaloniaVS
 
         private void InitializeLogging()
         {
-            const string format = "{Timestamp:HH:mm:ss.fff} [{Level}]\t{Pid} {Message}{NewLine}{Exception}";
+            const string format = "{Timestamp:HH:mm:ss.fff} [{Level}] {Pid} {Message}{NewLine}{Exception}";
             var ouput = this.GetService<IVsOutputWindow, SVsOutputWindow>();
             var sink = new OutputPaneEventSink(ouput, outputTemplate: format);
             Log.Logger = new LoggerConfiguration()
