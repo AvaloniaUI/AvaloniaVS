@@ -6,6 +6,6 @@
     <TieredCompilation>True</TieredCompilation>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Avalonia.Desktop" Version="0.7.1-cibuild0001323-beta" />
+    <ProjectReference Include="..\submodules\Avalonia\src\Avalonia.DesignerSupport\Avalonia.DesignerSupport.csproj" />
   </ItemGroup>
 </Project>

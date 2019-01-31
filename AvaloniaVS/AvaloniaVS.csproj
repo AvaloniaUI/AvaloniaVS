@@ -113,15 +113,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Avalonia.Ide.CompletionEngine">
-      <HintPath>..\lib\Avalonia.Ide.CompletionEngine.dll</HintPath>
-    </Reference>
-    <Reference Include="Avalonia.Ide.CompletionEngine.DnlibMetadataProvider">
-      <HintPath>..\lib\Avalonia.Ide.CompletionEngine.DnlibMetadataProvider.dll</HintPath>
-    </Reference>
-    <Reference Include="Avalonia.Remote.Protocol">
-      <HintPath>..\lib\Avalonia.Remote.Protocol.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -143,6 +134,20 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\submodules\Avalonia.Ide\src\Avalonia.Ide.CompletionEngine.DnlibMetadataProvider\Avalonia.Ide.CompletionEngine.DnlibMetadataProvider.csproj">
+      <Project>{317c91b4-1cb9-4bf2-8d5a-075ca214bf7c}</Project>
+      <Name>Avalonia.Ide.CompletionEngine.DnlibMetadataProvider</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\submodules\Avalonia.Ide\src\Avalonia.Ide.CompletionEngine\Avalonia.Ide.CompletionEngine.csproj">
+      <Project>{152a7aaf-2a76-461f-b05b-e8545bc2a277}</Project>
+      <Name>Avalonia.Ide.CompletionEngine</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\submodules\Avalonia\src\Avalonia.Remote.Protocol\Avalonia.Remote.Protocol.csproj">
+      <Project>{b089e051-a987-4946-ae04-e7eec3f91a7f}</Project>
+      <Name>Avalonia.Remote.Protocol</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
