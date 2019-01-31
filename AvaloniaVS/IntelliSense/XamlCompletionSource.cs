@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using AvaloniaVS.Models;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using CompletionEngine = Avalonia.Ide.CompletionEngine.CompletionEngine;
 
@@ -10,11 +11,13 @@ namespace AvaloniaVS.IntelliSense
     internal class XamlCompletionSource : ICompletionSource
     {
         private readonly ITextBuffer _buffer;
+        private readonly IVsImageService2 _imageService;
         private readonly CompletionEngine _engine;
 
-        public XamlCompletionSource(ITextBuffer textBuffer)
+        public XamlCompletionSource(ITextBuffer textBuffer, IVsImageService2 imageService)
         {
             _buffer = textBuffer;
+            _imageService = imageService;
             _engine = new CompletionEngine();
         }
 
@@ -37,7 +40,7 @@ namespace AvaloniaVS.IntelliSense
                         "Avalonia",
                         "Avalonia",
                         applicableTo,
-                        XamlCompletion.Create(completions.Completions),
+                        XamlCompletion.Create(completions.Completions, _imageService),
                         null));
                 }
             }
@@ -45,7 +48,6 @@ namespace AvaloniaVS.IntelliSense
 
         public void Dispose()
         {
-            throw new NotImplementedException();
         }
     }
 }
