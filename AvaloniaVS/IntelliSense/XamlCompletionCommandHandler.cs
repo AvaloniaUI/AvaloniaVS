@@ -88,7 +88,7 @@ namespace AvaloniaVS.IntelliSense
         {
             // If the pressed key is a key that can start a completion session.
             if (char.IsLetterOrDigit(c) ||
-                c == '<' || c == '.' || c == ' ' || c == ':')
+                c == '\a' || c == '<' || c == '.' || c == ' ' || c == ':' || c == '{')
             {
                 if (_session == null || _session.IsDismissed)
                 {
@@ -128,7 +128,7 @@ namespace AvaloniaVS.IntelliSense
         {
             // If the pressed key is a key that can commit a completion session.
             if (char.IsWhiteSpace(c) ||
-                char.IsPunctuation(c) ||
+                (char.IsPunctuation(c) && c != ':') ||
                 c == '\n' || c == '\r' || c == '=' || c == '/')
             {
                 // And commit or dismiss the completion session depending its state.
@@ -219,6 +219,10 @@ namespace AvaloniaVS.IntelliSense
                     case VSConstants.VSStd2KCmdID.BACKSPACE:
                     case VSConstants.VSStd2KCmdID.DELETE:
                         c = '\b';
+                        break;
+                    // Translate Ctrl+Space into a '\a'.
+                    case VSConstants.VSStd2KCmdID.COMPLETEWORD:
+                        c = ' ';
                         break;
                 }
             }
