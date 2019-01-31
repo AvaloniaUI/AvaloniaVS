@@ -28,6 +28,11 @@ namespace AvaloniaVS.Views
                 if (_xmlEditor?.TextView.TextBuffer is ITextBuffer2 oldBuffer)
                 {
                     oldBuffer.ChangedOnBackground -= TextChanged;
+
+                    if (!_xmlEditor.IsClosed)
+                    {
+                        _xmlEditor.Close();
+                    }
                 }
 
                 _xmlEditor = value;

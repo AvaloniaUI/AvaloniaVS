@@ -17,8 +17,10 @@ namespace AvaloniaVS.Services
     {
         const int CLSCTX_INPROC_SERVER = 1;
         static readonly Guid XmlLanguageServiceGuid = new Guid("f6819a78-a205-47b5-be1c-675b3c7f0b8e");
-
+        static readonly Guid XamlLanguageServiceGuid = new Guid("cd53c9a1-6bc2-412b-be36-cc715ed8dd41");
+        
         readonly AvaloniaPackage _package;
+        LanguagePreferencesTracker _prefsTracker;
         IOleServiceProvider _oleServiceProvider;
         ServiceProvider _serviceProvider;
 
@@ -28,6 +30,9 @@ namespace AvaloniaVS.Services
         {
             _oleServiceProvider = psp;
             _serviceProvider = new ServiceProvider(psp);
+            _prefsTracker = new LanguagePreferencesTracker(
+                _serviceProvider.GetService<IVsTextManager, SVsTextManager>(),
+                XamlLanguageServiceGuid);
             return VSConstants.S_OK;
         }
 
@@ -124,7 +129,6 @@ namespace AvaloniaVS.Services
             // squiggly lines to be displayed on the elements, as the XAML language service is
             // hard-coded as to the XAML dialects it supports and Avalonia isn't one of them :(
             ErrorHandler.ThrowOnFailure(result.SetLanguageServiceID(XmlLanguageServiceGuid));
-
             return result;
         }
 
@@ -149,8 +153,14 @@ namespace AvaloniaVS.Services
             buffer.Properties.GetOrCreateSingletonProperty(() => new XamlBufferMetadata());
 
             ErrorHandler.ThrowOnFailure(codeWindow.SetBuffer(bufferAdapter));
-            ErrorHandler.ThrowOnFailure(codeWindow.GetPrimaryView(out var textView));
-            return (codeWindow, eafs.GetWpfTextViewHost(textView));
+            ErrorHandler.ThrowOnFailure(codeWindow.GetPrimaryView(out var textViewAdapter));
+
+            // Because we've switched the buffer to XML, we need to manually set the XAML options
+            // on the text view in order to get the user's XAML tab size etc.
+            var textViewHost = eafs.GetWpfTextViewHost(textViewAdapter);
+            _prefsTracker.Track(textViewHost.TextView);
+
+            return (codeWindow, textViewHost);
         }
     }
 }

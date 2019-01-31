@@ -59,6 +59,7 @@
     <Compile Include="IntelliSense\XamlCompletionSource.cs" />
     <Compile Include="Models\ProjectOutputInfo.cs" />
     <Compile Include="Models\XamlBufferMetadata.cs" />
+    <Compile Include="Services\LanguagePreferencesTracker.cs" />
     <Compile Include="Services\Throttle.cs" />
     <Compile Include="Services\EditorFactory.cs" />
     <Compile Include="Guids.cs" />
