@@ -100,8 +100,8 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Avalonia.Designer.HostApp.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <Content Include="..\Avalonia.Designer.HostApp\bin\Debug\netcoreapp2.0\Avalonia.Designer.HostApp.dll">
+      <Link>Avalonia.Designer.HostApp.dll</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Resources\AvaloniaPackage.ico" />
