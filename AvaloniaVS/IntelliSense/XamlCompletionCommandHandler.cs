@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using Avalonia.Ide.CompletionEngine;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.OLE.Interop;
@@ -140,7 +141,7 @@ namespace AvaloniaVS.IntelliSense
 
                         _session.Commit();
 
-                        if (c == '/' && selected?.IsClass == true)
+                        if (c == '/' && selected?.Kind == CompletionKind.Class)
                         {
                             // If '/' was typed and this is an element, add the closing "'/>".
                             _textView.TextBuffer.Insert(
@@ -154,6 +155,13 @@ namespace AvaloniaVS.IntelliSense
                             var cursorPos = _textView.Caret.Position.BufferPosition;
                             var newCursorPos = cursorPos - selected.CursorOffset;
                             _textView.Caret.MoveTo(newCursorPos);
+                        }
+
+                        // If the inserted text is an XML attribute then pop up a new completion
+                        // session to show the valid values for the attribute.
+                        if (selected.InsertionText.EndsWith("=\"\""))
+                        {
+                            TriggerCompletion();
                         }
 
                         // Don't add the character to the buffer.

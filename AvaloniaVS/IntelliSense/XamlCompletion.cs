@@ -30,11 +30,11 @@ namespace AvaloniaVS.IntelliSense
                 CursorOffset = completion.InsertText.Length - completion.RecommendedCursorOffset.Value;
             }
 
-            IsClass = completion.Kind == CompletionKind.Class;
+            Kind = completion.Kind;
         }
 
         public int CursorOffset { get; }
-        public bool IsClass { get; }
+        public CompletionKind Kind { get; }
 
         public static IEnumerable<XamlCompletion> Create(
             IEnumerable<Completion> source,
