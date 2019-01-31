@@ -15,14 +15,12 @@ namespace AvaloniaVS.Services
 {
     public sealed class EditorFactory : IVsEditorFactory, IDisposable
     {
-        const int CLSCTX_INPROC_SERVER = 1;
-        static readonly Guid XmlLanguageServiceGuid = new Guid("f6819a78-a205-47b5-be1c-675b3c7f0b8e");
-        static readonly Guid XamlLanguageServiceGuid = new Guid("cd53c9a1-6bc2-412b-be36-cc715ed8dd41");
-        
-        readonly AvaloniaPackage _package;
-        LanguagePreferencesTracker _prefsTracker;
-        IOleServiceProvider _oleServiceProvider;
-        ServiceProvider _serviceProvider;
+        private static readonly Guid XmlLanguageServiceGuid = new Guid("f6819a78-a205-47b5-be1c-675b3c7f0b8e");
+        private static readonly Guid XamlLanguageServiceGuid = new Guid("cd53c9a1-6bc2-412b-be36-cc715ed8dd41");
+        private readonly AvaloniaPackage _package;
+        private LanguagePreferencesTracker _prefsTracker;
+        private IOleServiceProvider _oleServiceProvider;
+        private ServiceProvider _serviceProvider;
 
         public EditorFactory(AvaloniaPackage package) => _package = package;
 

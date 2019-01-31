@@ -2,7 +2,7 @@
 
 namespace Avalonia.Designer.HostApp
 {
-    class Program
+    internal class Program
     {
         public static void Main(string[] args) 
             => Avalonia.DesignerSupport.Remote.RemoteDesignerEntryPoint.Main(args);

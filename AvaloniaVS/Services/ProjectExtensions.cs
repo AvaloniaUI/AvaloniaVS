@@ -114,12 +114,12 @@ namespace AvaloniaVS.Services
             return lst;
         }
 
-        static UnconfiguredProject GetUnconfiguredProject(this Project project)
+        private static UnconfiguredProject GetUnconfiguredProject(this Project project)
         {
             return project as UnconfiguredProject ?? project?.Object as UnconfiguredProject;
         }
 
-        static string TryGetProperty(Properties props, string name)
+        private static string TryGetProperty(Properties props, string name)
         {
             try
             {
