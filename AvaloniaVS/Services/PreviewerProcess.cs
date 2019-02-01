@@ -26,6 +26,7 @@ namespace AvaloniaVS.Services
         private IAvaloniaRemoteTransportConnection _connection;
         private IDisposable _listener;
         private WriteableBitmap _bitmap;
+        private ExceptionDetails _error;
 
         public PreviewerProcess(string executablePath)
         {
@@ -39,11 +40,25 @@ namespace AvaloniaVS.Services
         }
 
         public BitmapSource Bitmap => _bitmap;
-        public string Error { get; set; }
+
+        public ExceptionDetails Error
+        {
+            get => _error;
+            private set
+            {
+                if (!Equals(_error, value))
+                {
+                    _error = value;
+                    ErrorChanged?.Invoke(this, EventArgs.Empty);
+                }
+            }
+        }
+
         public bool IsRunning => _process != null && !_process.HasExited;
 
-        public event EventHandler<FrameReceivedEventArgs> FrameReceived;
-
+        public event EventHandler ErrorChanged;
+        public event EventHandler FrameReceived;
+        
         public async Task StartAsync(string xaml)
         {
             _log.Verbose("Started PreviewerProcess.StartAsync()");
@@ -110,8 +125,8 @@ namespace AvaloniaVS.Services
             _log.Debug("> dotnet.exe {Args}", args);
 
             _process = Process.Start(processInfo);
-            _process.OutputDataReceived += OutputReceived;
-            _process.ErrorDataReceived += ErrorReceived;
+            _process.OutputDataReceived += ProcessOutputReceived;
+            _process.ErrorDataReceived += ProcessErrorReceived;
             _process.Exited += ProcessExited;
             _process.BeginErrorReadLine();
             _process.BeginOutputReadLine();
@@ -126,7 +141,7 @@ namespace AvaloniaVS.Services
                 throw new ApplicationException($"The previewer process exited unexpectedly with code {_process.ExitCode}.");
             }
 
-            _log.Verbose("Started PreviewerProcess.StartAsync()");
+            _log.Verbose("Finished PreviewerProcess.StartAsync()");
         }
 
         public async Task UpdateXamlAsync(string xaml)
@@ -149,12 +164,15 @@ namespace AvaloniaVS.Services
 
         public void Dispose()
         {
+            _log.Verbose("Started PreviewerProcess.Dispose()");
+            _log.Information("Closing previewer process");
+
             _listener?.Dispose();
 
             if (_connection != null)
             {
-                _connection.OnMessage -= OnMessage;
-                _connection.OnException -= OnException;
+                _connection.OnMessage -= ConnectionMessageReceived;
+                _connection.OnException -= ConnectionExceptionReceived;
                 _connection.Dispose();
                 _connection = null;
             }
@@ -165,6 +183,8 @@ namespace AvaloniaVS.Services
             }
 
             _process = null;
+
+            _log.Verbose("Finished PreviewerProcess.Dispose()");
         }
 
         void ILogEventEnricher.Enrich(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
@@ -181,8 +201,8 @@ namespace AvaloniaVS.Services
             _log.Information("Connection initialized");
 
             _connection = connection;
-            _connection.OnException += OnException;
-            _connection.OnMessage += OnMessage;
+            _connection.OnException += ConnectionExceptionReceived;
+            _connection.OnMessage += ConnectionMessageReceived;
 
             await SendAsync(new UpdateXamlMessage
             {
@@ -213,15 +233,11 @@ namespace AvaloniaVS.Services
             _log.Verbose("Finished PreviewerProcess.ConnectionInitializedAsync()");
         }
 
-        private Task SendAsync(object message)
+        private async Task SendAsync(object message)
         {
-            _log.Debug("=> {@Message}", message);
-            return _connection.Send(message);
-        }
-
-        private void OnMessage(IAvaloniaRemoteTransportConnection connection, object message)
-        {
-            OnMessageAsync(message).FireAndForget();
+            _log.Debug("=> Sending {@Message}", message);
+            await _connection.Send(message);
+            _log.Debug("=> Sent {@Message}", message);
         }
 
         private async Task OnMessageAsync(object message)
@@ -252,7 +268,7 @@ namespace AvaloniaVS.Services
                         frame.Stride,
                         0);
 
-                    FrameReceived?.Invoke(this, new FrameReceivedEventArgs(_bitmap));
+                    FrameReceived?.Invoke(this, EventArgs.Empty);
                 }
 
                 await SendAsync(new FrameReceivedMessage
@@ -262,18 +278,30 @@ namespace AvaloniaVS.Services
             }
             else if (message is UpdateXamlResultMessage update)
             {
-                Error = update.Error;
+                var error = update.Exception;
+
+                if (error == null && !string.IsNullOrWhiteSpace(update.Error))
+                {
+                    error = new ExceptionDetails { Message = update.Error };
+                }
+
+                Error = error;
             }
 
             _log.Verbose("Finished PreviewerProcess.OnMessageAsync()");
         }
 
-        private void OnException(IAvaloniaRemoteTransportConnection connection, Exception ex)
+        private void ConnectionMessageReceived(IAvaloniaRemoteTransportConnection connection, object message)
+        {
+            OnMessageAsync(message).FireAndForget();
+        }
+
+        private void ConnectionExceptionReceived(IAvaloniaRemoteTransportConnection connection, Exception ex)
         {
             _log.Error(ex, "Connection error");
         }
 
-        private void OutputReceived(object sender, DataReceivedEventArgs e)
+        private void ProcessOutputReceived(object sender, DataReceivedEventArgs e)
         {
             if (!string.IsNullOrWhiteSpace(e.Data))
             {
@@ -281,7 +309,7 @@ namespace AvaloniaVS.Services
             }
         }
 
-        private void ErrorReceived(object sender, DataReceivedEventArgs e)
+        private void ProcessErrorReceived(object sender, DataReceivedEventArgs e)
         {
             if (!string.IsNullOrWhiteSpace(e.Data))
             {
@@ -309,6 +337,19 @@ namespace AvaloniaVS.Services
             int port = ((IPEndPoint)l.LocalEndpoint).Port;
             l.Stop();
             return port;
+        }
+
+        private static bool Equals(ExceptionDetails a, ExceptionDetails b)
+        {
+            if (ReferenceEquals(a, b))
+            {
+                return true;
+            }
+
+            return a?.ExceptionType == b?.ExceptionType &&
+                a?.Message == b?.Message &&
+                a?.LineNumber == b?.LineNumber &&
+                a?.LinePosition == b?.LinePosition;
         }
 
         private System.Windows.Media.PixelFormat ToWpf(Avalonia.Remote.Protocol.Viewport.PixelFormat format)

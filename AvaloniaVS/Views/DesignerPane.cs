@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Avalonia.Ide.CompletionEngine.AssemblyMetadata;
 using Avalonia.Ide.CompletionEngine.DnlibMetadataProvider;
+using Avalonia.Remote.Protocol.Designer;
 using AvaloniaVS.Models;
 using AvaloniaVS.Services;
 using Microsoft.VisualStudio.Shell;
@@ -21,7 +22,6 @@ namespace AvaloniaVS.Views
         private readonly string _fileName;
         private readonly IWpfTextViewHost _xmlEditor;
         private AvaloniaDesigner _content;
-        private PreviewerProcess _process;
 
         public DesignerPane(string fileName, IVsCodeWindow xmlEditorWindow, IWpfTextViewHost xmlEditor)
             : base(xmlEditorWindow)
@@ -31,6 +31,9 @@ namespace AvaloniaVS.Views
         }
 
         public override object Content => _content;
+        public PreviewerProcess Process { get; private set; }
+
+        public event EventHandler Initialized;
 
         protected override void Dispose(bool disposing)
         {
@@ -38,8 +41,8 @@ namespace AvaloniaVS.Views
 
             _content?.Dispose();
             _content = null;
-            _process?.Dispose();
-            _process = null;
+            Process?.Dispose();
+            Process = null;
         }
 
         protected override void Initialize()
@@ -59,8 +62,14 @@ namespace AvaloniaVS.Views
             Log.Logger.Verbose("Finished DesignerPane.Initialize()");
         }
 
-        private async Task StartEditorAsync(AvaloniaDesigner editor)
+        private async Task StartEditorAsync(AvaloniaDesigner designer)
         {
+            // Before switching to the main thread, tag the buffer with this pane so that the
+            // `XamlErrorTagger` can get hold of the designer process.
+            _xmlEditor.TextView.TextBuffer.Properties.AddProperty(
+                typeof(DesignerPane),
+                this);
+
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
             Log.Logger.Verbose("Started DesignerPane.StartEditorAsync()");
@@ -77,11 +86,13 @@ namespace AvaloniaVS.Views
 
             if (executablePath != null)
             {
+                Process = new PreviewerProcess(executablePath);
                 var xaml = await ReadAllTextAsync(_fileName);
-                _process = new PreviewerProcess(executablePath);
-                await _process.StartAsync(xaml);
-                editor.Process = _process;
+                await Process.StartAsync(xaml);
+                designer.Process = Process;
             }
+
+            Initialized?.Invoke(this, EventArgs.Empty);
 
             Log.Logger.Verbose("Finished DesignerPane.StartEditorAsync()");
         }
