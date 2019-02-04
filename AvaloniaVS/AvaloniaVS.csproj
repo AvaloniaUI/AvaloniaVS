@@ -57,10 +57,13 @@
     <Compile Include="IntelliSense\XamlCompletionHandlerProvider.cs" />
     <Compile Include="IntelliSense\XamlCompletionSourceProvider.cs" />
     <Compile Include="IntelliSense\XamlCompletionSource.cs" />
+    <Compile Include="IntelliSense\XamlErrorTableEntry.cs" />
     <Compile Include="IntelliSense\XamlErrorTagger.cs" />
     <Compile Include="IntelliSense\XamlErrorTaggerProvider.cs" />
     <Compile Include="Models\ProjectOutputInfo.cs" />
     <Compile Include="Models\XamlBufferMetadata.cs" />
+    <Compile Include="Services\ErrorFactory.cs" />
+    <Compile Include="Services\ErrorSnapshot.cs" />
     <Compile Include="Services\LanguagePreferencesTracker.cs" />
     <Compile Include="Services\OutputPaneEventSink.cs" />
     <Compile Include="Services\Throttle.cs" />
