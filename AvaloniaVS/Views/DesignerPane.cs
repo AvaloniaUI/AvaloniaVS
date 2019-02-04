@@ -3,9 +3,9 @@ using System.IO;
 using System.Threading.Tasks;
 using Avalonia.Ide.CompletionEngine.AssemblyMetadata;
 using Avalonia.Ide.CompletionEngine.DnlibMetadataProvider;
-using Avalonia.Remote.Protocol.Designer;
 using AvaloniaVS.Models;
 using AvaloniaVS.Services;
+using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -19,13 +19,19 @@ namespace AvaloniaVS.Views
     public class DesignerPane : EditorHostPane
     {
         private static readonly ILogger s_log = Log.ForContext<DesignerPane>();
+        private readonly Project _project;
         private readonly string _fileName;
         private readonly IWpfTextViewHost _xmlEditor;
         private AvaloniaDesigner _content;
 
-        public DesignerPane(string fileName, IVsCodeWindow xmlEditorWindow, IWpfTextViewHost xmlEditor)
+        public DesignerPane(
+            Project project,
+            string fileName,
+            IVsCodeWindow xmlEditorWindow,
+            IWpfTextViewHost xmlEditor)
             : base(xmlEditorWindow)
         {
+            _project = project;
             _fileName = fileName;
             _xmlEditor = xmlEditor;
         }
@@ -74,8 +80,7 @@ namespace AvaloniaVS.Views
 
             Log.Logger.Verbose("Started DesignerPane.StartEditorAsync()");
 
-            var project = ProjectExtensions.GetProjectForFile(_fileName);
-            var executablePath = project?.GetAssemblyPath();
+            var executablePath = _project.GetAssemblyPath();
             var buffer = _xmlEditor.TextView.TextBuffer;
             var metadata = buffer.Properties.GetProperty<XamlBufferMetadata>(typeof(XamlBufferMetadata));
 

@@ -70,9 +70,16 @@ namespace AvaloniaVS.Services
                 return VSConstants.E_INVALIDARG;
             }
 
+            var project = pvHier.GetProject();
+
+            if (project == null)
+            {
+                return VSConstants.S_FALSE;
+            }
+
             var textBuffer = GetTextBuffer(pszMkDocument, punkDocDataExisting);
             var (editorWindow, editorControl) = CreateEditorControl(textBuffer);
-            var pane = new DesignerPane(pszMkDocument, editorWindow, editorControl);
+            var pane = new DesignerPane(project, pszMkDocument, editorWindow, editorControl);
             ppunkDocView = Marshal.GetIUnknownForObject(pane);
             ppunkDocData = Marshal.GetIUnknownForObject(textBuffer);
 

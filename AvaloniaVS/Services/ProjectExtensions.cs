@@ -7,9 +7,11 @@ using System.Threading.Tasks;
 using AvaloniaVS.Models;
 using EnvDTE;
 using EnvDTE80;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Text;
 
 namespace AvaloniaVS.Services
 {
@@ -17,23 +19,31 @@ namespace AvaloniaVS.Services
     {
         private static readonly Regex DesktopFrameworkRegex = new Regex("^net[0-9]+$");
 
-        public static Project GetProjectForFile(string fileName)
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            if (string.IsNullOrWhiteSpace(fileName) || !File.Exists(fileName))
-            {
-                return null;
-            }
-
-            var dte2 = (DTE2)Package.GetGlobalService(typeof(SDTE));
-            var projItem = dte2?.Solution.FindProjectItem(fileName);
-            return projItem?.ContainingProject;
-        }
-
         public static string GetAssemblyPath(this Project project)
         {
             return GetProjectOutputInfo(project)?.FirstOrDefault()?.TargetAssembly;
+        }
+
+        public static ITextDocument GetDocument(this ITextBuffer buffer)
+        {
+            buffer.Properties.TryGetProperty<ITextDocument>(typeof(ITextDocument), out var document);
+            return document;
+        }
+
+        public static Project GetProject(this IVsHierarchy hierarchy)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            ErrorHandler.ThrowOnFailure(hierarchy.GetProperty(
+                VSConstants.VSITEMID_ROOT,
+                (int)__VSHPROPID.VSHPROPID_ExtObject,
+                out var objProj));
+            return objProj as Project;
+        }
+
+        public static Project GetProject(this ITextDocument document)
+        {
+            return GetProjectForFile(document.FilePath);
         }
 
         public static IEnumerable<ProjectOutputInfo> GetProjectOutputInfo(this Project project)
@@ -112,6 +122,20 @@ namespace AvaloniaVS.Services
                 lst.Add(nfo);
             }
             return lst;
+        }
+
+        private static Project GetProjectForFile(string fileName)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            if (string.IsNullOrWhiteSpace(fileName) || !File.Exists(fileName))
+            {
+                return null;
+            }
+
+            var dte2 = (DTE2)Package.GetGlobalService(typeof(SDTE));
+            var projItem = dte2?.Solution.FindProjectItem(fileName);
+            return projItem?.ContainingProject;
         }
 
         private static UnconfiguredProject GetUnconfiguredProject(this Project project)

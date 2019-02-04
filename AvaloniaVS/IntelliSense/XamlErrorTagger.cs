@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Avalonia.Remote.Protocol.Designer;
 using AvaloniaVS.Services;
 using AvaloniaVS.Views;
+using EnvDTE;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
@@ -16,6 +17,8 @@ namespace AvaloniaVS.IntelliSense
     {
         private readonly ITextBuffer _buffer;
         private readonly ITextStructureNavigator _navigator;
+        private readonly string _projectName;
+        private readonly string _path;
         private DesignerPane _pane;
         private PreviewerProcess _process;
         private ExceptionDetails _error;
@@ -40,6 +43,11 @@ namespace AvaloniaVS.IntelliSense
             {
                 pane.Initialized += PaneInitialized;
             }
+
+            // Get the document path and containing project name.
+            var document = buffer.GetDocument();
+            _path = document?.FilePath;
+            _projectName = document?.GetProject()?.Name;
 
             // Register ourselves with the error list.
             var tableManager = tableManagerProvider.GetTableManager(StandardTables.ErrorsTable);
@@ -80,11 +88,11 @@ namespace AvaloniaVS.IntelliSense
                 var startSpan = new SnapshotSpan(start, start + 1);
                 var span = _navigator.GetSpanOfFirstChild(startSpan);
                 var tag = new ErrorTag(PredefinedErrorTypeNames.CompilerError, _error.Message);
-                var tableErrors = new[] { new XamlErrorTableEntry(_error) };
 
-                _sink?.AddEntries(tableErrors, true);
-
-                return new[] { new TagSpan<IErrorTag>(span, tag) };
+                if (spans.OverlapsWith(span))
+                {
+                    return new[] { new TagSpan<IErrorTag>(span, tag) };
+                }
             }
 
             return Array.Empty<ITagSpan<IErrorTag>>();
@@ -96,7 +104,7 @@ namespace AvaloniaVS.IntelliSense
             
             if (_error != null)
             {
-                sink.AddEntries(new[] { new XamlErrorTableEntry(_error) });
+                _sink.AddEntries(new[] { new XamlErrorTableEntry(_projectName, _path, _error) });
             }
 
             return null;
@@ -105,7 +113,18 @@ namespace AvaloniaVS.IntelliSense
         private void HandleErrorChanged(object sender, EventArgs e)
         {
             RaiseTagsChanged(_error);
+
             _error = _process.Error;
+
+            if (_error != null)
+            {
+                _sink.AddEntries(new[] { new XamlErrorTableEntry(_projectName, _path, _error) }, true);
+            }
+            else
+            {
+                _sink.RemoveAllEntries();
+            }
+
             RaiseTagsChanged(_error);
         }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using Avalonia.Remote.Protocol.Designer;
+using EnvDTE;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableManager;
 
@@ -7,10 +8,17 @@ namespace AvaloniaVS.IntelliSense
 {
     internal class XamlErrorTableEntry : TableEntryBase
     {
+        private readonly string _projectName;
+        private readonly string _fileName;
         private readonly ExceptionDetails _error;
 
-        public XamlErrorTableEntry(ExceptionDetails error)
+        public XamlErrorTableEntry(
+            string projectName,
+            string path,
+            ExceptionDetails error)
         {
+            _projectName = projectName;
+            _fileName = path;
             _error = error;
         }
 
@@ -19,13 +27,19 @@ namespace AvaloniaVS.IntelliSense
             switch (keyName)
             {
                 case StandardTableKeyNames.Column:
-                    content = _error.LinePosition - 1;
-                    return true;
+                    content = (_error.LinePosition ?? 1) - 1;
+                    return _error.LinePosition.HasValue;
                 case StandardTableKeyNames.ErrorSeverity:
                     content = __VSERRORCATEGORY.EC_ERROR;
                     return true;
+                case StandardTableKeyNames.DocumentName:
+                    content = _fileName;
+                    return true;
                 case StandardTableKeyNames.Line:
-                    content = _error.LineNumber - 1;
+                    content = (_error.LineNumber ?? 1) - 1;
+                    return _error.LineNumber.HasValue;
+                case StandardTableKeyNames.ProjectName:
+                    content = _projectName;
                     return true;
                 case StandardTableKeyNames.Text:
                     content = _error.Message;
