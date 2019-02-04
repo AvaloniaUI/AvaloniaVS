@@ -55,6 +55,7 @@ namespace AvaloniaVS.IntelliSense
         string ITableDataSource.Identifier => "Avalonia XAML designer errors";
         string ITableDataSource.DisplayName => "Avalonia XAML";
 
+        public event EventHandler Disposed;
         public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
         public void Dispose()
@@ -66,6 +67,8 @@ namespace AvaloniaVS.IntelliSense
             {
                 _process.ErrorChanged -= HandleErrorChanged;
             }
+
+            Disposed?.Invoke(this, EventArgs.Empty);
         }
 
         public IEnumerable<ITagSpan<IErrorTag>> GetTags(NormalizedSnapshotSpanCollection spans)

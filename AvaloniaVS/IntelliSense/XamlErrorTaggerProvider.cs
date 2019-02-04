@@ -30,12 +30,22 @@ namespace AvaloniaVS.IntelliSense
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
+            if (buffer.Properties.TryGetProperty<XamlErrorTagger>(
+                typeof(XamlErrorTagger),
+                out var existing))
+            {
+                return (ITagger<T>)existing;
+            }
+
             if (buffer.Properties.TryGetProperty<DesignerPane>(
                 typeof(DesignerPane),
                 out var pane))
             {
                 var navigator = _navigatorProvider.GetTextStructureNavigator(buffer);
-                return (ITagger<T>)new XamlErrorTagger(_tableManagerProvider, buffer, navigator, pane);
+                var tagger = new XamlErrorTagger(_tableManagerProvider, buffer, navigator, pane);
+                buffer.Properties.AddProperty(typeof(XamlErrorTagger), tagger);
+                tagger.Disposed += (s, e) => buffer.Properties.RemoveProperty(typeof(XamlErrorTagger));
+                return (ITagger<T>)tagger;
             }
 
             return null;
