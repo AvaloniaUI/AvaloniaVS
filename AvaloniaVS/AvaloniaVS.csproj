@@ -62,8 +62,6 @@
     <Compile Include="IntelliSense\XamlErrorTaggerProvider.cs" />
     <Compile Include="Models\ProjectOutputInfo.cs" />
     <Compile Include="Models\XamlBufferMetadata.cs" />
-    <Compile Include="Services\ErrorFactory.cs" />
-    <Compile Include="Services\ErrorSnapshot.cs" />
     <Compile Include="Services\LanguagePreferencesTracker.cs" />
     <Compile Include="Services\OutputPaneEventSink.cs" />
     <Compile Include="Services\Throttle.cs" />
