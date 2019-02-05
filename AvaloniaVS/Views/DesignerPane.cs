@@ -1,45 +1,44 @@
-﻿using System;
-using System.IO;
-using System.Threading.Tasks;
-using Avalonia.Ide.CompletionEngine.AssemblyMetadata;
-using Avalonia.Ide.CompletionEngine.DnlibMetadataProvider;
-using AvaloniaVS.Models;
-using AvaloniaVS.Services;
-using EnvDTE;
+﻿using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Microsoft.VisualStudio.Threading;
 using Serilog;
-using CompletionMetadata = Avalonia.Ide.CompletionEngine.Metadata;
-using Task = System.Threading.Tasks.Task;
 
 namespace AvaloniaVS.Views
 {
-    public class DesignerPane : EditorHostPane
+    /// <summary>
+    /// A <see cref="WindowPane"/> used to host an <see cref="AvaloniaDesigner"/>.
+    /// </summary>
+    internal class DesignerPane : EditorHostPane
     {
-        private static readonly ILogger s_log = Log.ForContext<DesignerPane>();
         private readonly Project _project;
-        private readonly string _fileName;
-        private readonly IWpfTextViewHost _xmlEditor;
+        private readonly string _xamlPath;
+        private readonly IWpfTextViewHost _editorHost;
         private AvaloniaDesigner _content;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DesignerPane"/> class.
+        /// </summary>
+        /// <param name="project">The project containing the XAML file to edit.</param>
+        /// <param name="xamlPath">The path to the XAML file to edit.</param>
+        /// <param name="editorWindow">The editor window to be used by the designer.</param>
+        /// <param name="editorHost">The editor control to be used by the designer.</param>
         public DesignerPane(
             Project project,
-            string fileName,
-            IVsCodeWindow xmlEditorWindow,
-            IWpfTextViewHost xmlEditor)
-            : base(xmlEditorWindow)
+            string xamlPath,
+            IVsCodeWindow editorWindow,
+            IWpfTextViewHost editorHost)
+            : base(editorWindow)
         {
             _project = project;
-            _fileName = fileName;
-            _xmlEditor = xmlEditor;
+            _xamlPath = xamlPath;
+            _editorHost = editorHost;
         }
 
+        /// <summary>
+        /// Gets the content of the window pane.
+        /// </summary>
         public override object Content => _content;
-        public PreviewerProcess Process { get; private set; }
-
-        public event EventHandler Initialized;
 
         protected override void Dispose(bool disposing)
         {
@@ -47,8 +46,6 @@ namespace AvaloniaVS.Views
 
             _content?.Dispose();
             _content = null;
-            Process?.Dispose();
-            Process = null;
         }
 
         protected override void Initialize()
@@ -57,79 +54,11 @@ namespace AvaloniaVS.Views
 
             base.Initialize();
 
-            var xamlEditorView = new AvaloniaDesigner
-            {
-                XmlEditor = _xmlEditor,
-            };
-
+            var xamlEditorView = new AvaloniaDesigner();
+            xamlEditorView.Start(_project, _xamlPath, _editorHost);
             _content = xamlEditorView;
-            StartEditorAsync(xamlEditorView).FireAndForget();
 
             Log.Logger.Verbose("Finished DesignerPane.Initialize()");
-        }
-
-        private async Task StartEditorAsync(AvaloniaDesigner designer)
-        {
-            // Before switching to the main thread, tag the buffer with this pane so that the
-            // `XamlErrorTagger` can get hold of the designer process.
-            _xmlEditor.TextView.TextBuffer.Properties.AddProperty(
-                typeof(DesignerPane),
-                this);
-
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-
-            Log.Logger.Verbose("Started DesignerPane.StartEditorAsync()");
-
-            var executablePath = _project.GetAssemblyPath();
-            var buffer = _xmlEditor.TextView.TextBuffer;
-            var metadata = buffer.Properties.GetProperty<XamlBufferMetadata>(typeof(XamlBufferMetadata));
-
-            if (metadata.CompletionMetadata == null)
-            {
-                metadata.CompletionMetadata = await CreateCompletionMetadataAsync(executablePath);
-            }
-
-            if (executablePath != null)
-            {
-                Process = new PreviewerProcess(executablePath);
-                var xaml = await ReadAllTextAsync(_fileName);
-                await Process.StartAsync(xaml);
-                designer.Process = Process;
-            }
-
-            Initialized?.Invoke(this, EventArgs.Empty);
-
-            Log.Logger.Verbose("Finished DesignerPane.StartEditorAsync()");
-        }
-
-        private static async Task<CompletionMetadata> CreateCompletionMetadataAsync(string executablePath)
-        {
-            await TaskScheduler.Default;
-
-            Log.Logger.Verbose("Started DesignerPane.CreateCompletionMetadataAsync()");
-
-            try
-            {
-                var metadataReader = new MetadataReader(new DnlibMetadataProvider());
-                return metadataReader.GetForTargetAssembly(executablePath);
-            }
-            catch (Exception ex)
-            {
-                s_log.Error(ex, "Error creating XAML completion metadata");
-                return null;
-            }
-            finally
-            {
-                Log.Logger.Verbose("Finished DesignerPane.CreateCompletionMetadataAsync()");
-            }
-        }
-
-        private static async Task<string> ReadAllTextAsync(string fileName)
-        {
-            using (var reader = File.OpenText(fileName))
-            {
-                return await reader.ReadToEndAsync();
-            }
         }
     }
 }

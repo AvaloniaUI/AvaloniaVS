@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using Avalonia.Remote.Protocol.Designer;
 using AvaloniaVS.Services;
-using AvaloniaVS.Views;
-using EnvDTE;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
@@ -19,7 +17,6 @@ namespace AvaloniaVS.IntelliSense
         private readonly ITextStructureNavigator _navigator;
         private readonly string _projectName;
         private readonly string _path;
-        private DesignerPane _pane;
         private PreviewerProcess _process;
         private ExceptionDetails _error;
         private ITableDataSink _sink;
@@ -28,21 +25,12 @@ namespace AvaloniaVS.IntelliSense
             ITableManagerProvider tableManagerProvider,
             ITextBuffer buffer,
             ITextStructureNavigator navigator,
-            DesignerPane pane)
+            PreviewerProcess process)
         {
             _buffer = buffer;
             _navigator = navigator;
-            _pane = pane;
-
-            if (pane.Process != null)
-            {
-                _process = pane.Process;
-                _process.ErrorChanged += HandleErrorChanged;
-            }
-            else
-            {
-                pane.Initialized += PaneInitialized;
-            }
+            _process = process;
+            _process.ErrorChanged += HandleErrorChanged;
 
             // Get the document path and containing project name.
             var document = buffer.GetDocument();
@@ -69,7 +57,6 @@ namespace AvaloniaVS.IntelliSense
         public void Dispose()
         {
             _sink?.RemoveAllEntries();
-            _pane.Initialized -= PaneInitialized;
 
             if (_process != null)
             {
@@ -137,14 +124,6 @@ namespace AvaloniaVS.IntelliSense
                 var line = _buffer.CurrentSnapshot.GetLineFromLineNumber(error.LineNumber.Value - 1);
                 TagsChanged(this, new SnapshotSpanEventArgs(line.Extent));
             }
-        }
-
-        private void PaneInitialized(object sender, EventArgs e)
-        {
-            _process = _pane.Process;
-            _process.ErrorChanged += HandleErrorChanged;
-            RaiseTagsChanged(_process.Error);
-            _pane.Initialized -= PaneInitialized;
         }
     }
 }

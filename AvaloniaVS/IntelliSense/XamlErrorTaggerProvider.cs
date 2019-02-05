@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.Composition;
+using AvaloniaVS.Services;
 using AvaloniaVS.Views;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -37,12 +38,12 @@ namespace AvaloniaVS.IntelliSense
                 return (ITagger<T>)existing;
             }
 
-            if (buffer.Properties.TryGetProperty<DesignerPane>(
-                typeof(DesignerPane),
-                out var pane))
+            if (buffer.Properties.TryGetProperty<PreviewerProcess>(
+                typeof(PreviewerProcess),
+                out var process))
             {
                 var navigator = _navigatorProvider.GetTextStructureNavigator(buffer);
-                var tagger = new XamlErrorTagger(_tableManagerProvider, buffer, navigator, pane);
+                var tagger = new XamlErrorTagger(_tableManagerProvider, buffer, navigator, process);
                 buffer.Properties.AddProperty(typeof(XamlErrorTagger), tagger);
                 tagger.Disposed += (s, e) => buffer.Properties.RemoveProperty(typeof(XamlErrorTagger));
                 return (ITagger<T>)tagger;

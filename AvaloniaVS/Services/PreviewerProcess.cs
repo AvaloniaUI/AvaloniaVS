@@ -20,17 +20,16 @@ namespace AvaloniaVS.Services
 {
     public class PreviewerProcess : IDisposable, ILogEventEnricher
     {
-        private readonly string _executablePath;
         private readonly ILogger _log;
+        private string _executablePath;
         private Process _process;
         private IAvaloniaRemoteTransportConnection _connection;
         private IDisposable _listener;
         private WriteableBitmap _bitmap;
         private ExceptionDetails _error;
 
-        public PreviewerProcess(string executablePath)
+        public PreviewerProcess()
         {
-            _executablePath = executablePath;
             _log = new LoggerConfiguration()
                 .MinimumLevel.Verbose()
                 .Destructure.ToMaximumStringLength(32)
@@ -59,7 +58,7 @@ namespace AvaloniaVS.Services
         public event EventHandler ErrorChanged;
         public event EventHandler FrameReceived;
         
-        public async Task StartAsync(string xaml)
+        public async Task StartAsync(string executablePath)
         {
             _log.Verbose("Started PreviewerProcess.StartAsync()");
 
@@ -68,12 +67,21 @@ namespace AvaloniaVS.Services
                 throw new InvalidOperationException("Previewer process already started.");
             }
 
-            if (!File.Exists(_executablePath))
+            if (string.IsNullOrWhiteSpace(executablePath))
+            {
+                throw new ArgumentException(
+                    "Executable path may not be null or an empty string.",
+                    nameof(executablePath));
+            }
+
+            if (!File.Exists(executablePath))
             {
                 throw new FileNotFoundException(
                     "Could not find executable '{_executablePath}'. " + 
                     "Please build your project to enable previewing and intellisense.");
             }
+
+            _executablePath = executablePath;
 
             var port = FreeTcpPort();
             var tcs = new TaskCompletionSource<object>();
@@ -86,7 +94,7 @@ namespace AvaloniaVS.Services
                 {
                     try
                     {
-                        await ConnectionInitializedAsync(t, xaml);
+                        await ConnectionInitializedAsync(t);
                     } catch (Exception ex)
                     {
                         _log.Error(ex, "Error initializing connection");
@@ -144,6 +152,32 @@ namespace AvaloniaVS.Services
             _log.Verbose("Finished PreviewerProcess.StartAsync()");
         }
 
+        public void Stop()
+        {
+            _log.Verbose("Started PreviewerProcess.Stop()");
+            _log.Information("Stopping previewer process");
+
+            _listener?.Dispose();
+
+            if (_connection != null)
+            {
+                _connection.OnMessage -= ConnectionMessageReceived;
+                _connection.OnException -= ConnectionExceptionReceived;
+                _connection.Dispose();
+                _connection = null;
+            }
+
+            if (_process?.HasExited == false)
+            {
+                _process?.Kill();
+            }
+
+            _process = null;
+            _executablePath = null;
+
+            _log.Verbose("Finished PreviewerProcess.Stop()");
+        }
+
         public async Task UpdateXamlAsync(string xaml)
         {
             if (_process == null)
@@ -162,30 +196,7 @@ namespace AvaloniaVS.Services
             });
         }
 
-        public void Dispose()
-        {
-            _log.Verbose("Started PreviewerProcess.Dispose()");
-            _log.Information("Closing previewer process");
-
-            _listener?.Dispose();
-
-            if (_connection != null)
-            {
-                _connection.OnMessage -= ConnectionMessageReceived;
-                _connection.OnException -= ConnectionExceptionReceived;
-                _connection.Dispose();
-                _connection = null;
-            }
-
-            if (!_process.HasExited)
-            {
-                _process?.Kill();
-            }
-
-            _process = null;
-
-            _log.Verbose("Finished PreviewerProcess.Dispose()");
-        }
+        public void Dispose() => Stop();
 
         void ILogEventEnricher.Enrich(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
         {
@@ -195,7 +206,7 @@ namespace AvaloniaVS.Services
             }
         }
 
-        private async Task ConnectionInitializedAsync(IAvaloniaRemoteTransportConnection connection, string xaml)
+        private async Task ConnectionInitializedAsync(IAvaloniaRemoteTransportConnection connection)
         {
             _log.Verbose("Started PreviewerProcess.ConnectionInitializedAsync()");
             _log.Information("Connection initialized");
@@ -206,7 +217,6 @@ namespace AvaloniaVS.Services
 
             await SendAsync(new UpdateXamlMessage
             {
-                Xaml = xaml,
                 AssemblyPath = _executablePath,
             });
 
@@ -223,11 +233,6 @@ namespace AvaloniaVS.Services
             {
                 DpiX = 96,
                 DpiY = 96,
-            });
-
-            await SendAsync(new UpdateXamlMessage
-            {
-                Xaml = xaml,
             });
 
             _log.Verbose("Finished PreviewerProcess.ConnectionInitializedAsync()");

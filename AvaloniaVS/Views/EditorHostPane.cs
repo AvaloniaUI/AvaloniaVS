@@ -7,7 +7,14 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace AvaloniaVS.Views
 {
-    public class EditorHostPane : WindowPane, IOleCommandTarget
+    /// <summary>
+    /// A <see cref="WindowPane"/> which hosts a VS editor control.
+    /// </summary>
+    /// <remarks>
+    /// This class extends <see cref="WindowPane"/> to implement <see cref="IOleCommandTarget"/>
+    /// and implements the required plumbing to forward commands to the hosted editor.
+    /// </remarks>
+    public abstract class EditorHostPane : WindowPane, IOleCommandTarget
     {
         private const int WM_KEYFIRST = 0x0100;
         private const int WM_KEYLAST = 0x0109;
@@ -16,11 +23,15 @@ namespace AvaloniaVS.Views
         private readonly IOleCommandTarget _editorCommandTarget;
         private IVsFilterKeys2 _filterKeys;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EditorHostPane"/> class;
+        /// </summary>
+        /// <param name="editorWindow">The editor window to host.</param>
         public EditorHostPane(IVsCodeWindow editorWindow)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            _editorWindow = editorWindow;
+            _editorWindow = editorWindow ?? throw new ArgumentNullException(nameof(editorWindow));
             _editorCommandTarget = (IOleCommandTarget)editorWindow;
         }
 
