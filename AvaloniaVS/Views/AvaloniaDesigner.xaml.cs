@@ -24,6 +24,8 @@ namespace AvaloniaVS.Views
         private Project _project;
         private IWpfTextViewHost _editor;
         private string _xamlPath;
+        private bool _isStarted;
+        private bool _isPaused;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AvaloniaDesigner"/> class.
@@ -35,6 +37,36 @@ namespace AvaloniaVS.Views
             _throttle = new Throttle<string>(TimeSpan.FromMilliseconds(300), UpdateXaml);
             Process = new PreviewerProcess();
             previewer.Process = Process;
+        }
+
+        /// <summary>
+        /// Gets or sets the paused state of the designer.
+        /// </summary>
+        public bool IsPaused
+        {
+            get => _isPaused;
+            set
+            {
+                if (_isPaused != value)
+                {
+                    Log.Logger.Debug("Setting pause state to {State}", value);
+
+                    _isPaused = value;
+                    IsEnabled = !value;
+
+                    if (_isStarted)
+                    {
+                        if (value)
+                        {
+                            Process.Stop();
+                        }
+                        else
+                        {
+                            StartAsync().FireAndForget();
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -52,7 +84,7 @@ namespace AvaloniaVS.Views
         {
             Log.Logger.Verbose("Started AvaloniaDesigner.Start()");
 
-            if (_editor != null)
+            if (_isStarted)
             {
                 throw new InvalidOperationException("The designer has already been started.");
             }
@@ -61,6 +93,7 @@ namespace AvaloniaVS.Views
             _xamlPath = xamlPath ?? throw new ArgumentNullException(nameof(xamlPath));
             _editor = editor ?? throw new ArgumentNullException(nameof(editor));
 
+            _isStarted = true;
             InitializeEditor();
             StartAsync().FireAndForget();
 
@@ -114,8 +147,18 @@ namespace AvaloniaVS.Views
                 metadata.CompletionMetadata = await CreateCompletionMetadataAsync(executablePath);
             }
 
-            await Process.StartAsync(executablePath);
-            await Process.UpdateXamlAsync(await ReadAllTextAsync(_xamlPath));
+            try
+            {
+                if (!IsPaused)
+                {
+                    await Process.StartAsync(executablePath);
+                    await Process.UpdateXamlAsync(await ReadAllTextAsync(_xamlPath));
+                }
+            }
+            catch (ApplicationException ex) when (IsPaused)
+            {
+                Log.Logger.Debug(ex, "Process.StartAsync terminated due to pause");
+            }
 
             Log.Logger.Verbose("Finished AvaloniaDesigner.StartEditorAsync()");
         }

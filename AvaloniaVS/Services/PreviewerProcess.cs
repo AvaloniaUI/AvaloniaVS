@@ -158,6 +158,7 @@ namespace AvaloniaVS.Services
             _log.Information("Stopping previewer process");
 
             _listener?.Dispose();
+            _listener = null;
 
             if (_connection != null)
             {
@@ -167,12 +168,21 @@ namespace AvaloniaVS.Services
                 _connection = null;
             }
 
-            if (_process?.HasExited == false)
+            if (_process != null && !_process.HasExited)
             {
-                _process?.Kill();
+                _log.Debug("Killing previewer process");
+
+                try
+                {
+                    // Kill the process. Do not set _process to null here, wait for ProcessExited to be called.
+                    _process.Kill();
+                }
+                catch (InvalidOperationException ex)
+                {
+                    _log.Debug(ex, "Failed to kill previewer process");
+                }
             }
 
-            _process = null;
             _executablePath = null;
 
             _log.Verbose("Finished PreviewerProcess.Stop()");
@@ -325,6 +335,7 @@ namespace AvaloniaVS.Services
         private void ProcessExited(object sender, EventArgs e)
         {
             _log.Information("Process exited");
+            _process = null;
         }
 
         private static void EnsureExists(string path)

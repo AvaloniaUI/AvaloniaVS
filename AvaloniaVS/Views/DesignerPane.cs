@@ -15,6 +15,9 @@ namespace AvaloniaVS.Views
         private readonly string _xamlPath;
         private readonly IWpfTextViewHost _editorHost;
         private AvaloniaDesigner _content;
+        private DTEEvents _dteEvents;
+        private BuildEvents _buildEvents;
+        private bool _isPaused;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DesignerPane"/> class.
@@ -30,9 +33,20 @@ namespace AvaloniaVS.Views
             IWpfTextViewHost editorHost)
             : base(editorWindow)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             _project = project;
             _xamlPath = xamlPath;
             _editorHost = editorHost;
+
+            var dte = (DTE)Package.GetGlobalService(typeof(DTE));
+            _buildEvents = dte.Events.BuildEvents;
+            _dteEvents = dte.Events.DTEEvents;
+            _isPaused = dte.Mode == vsIDEMode.vsIDEModeDebug;
+
+            _buildEvents.OnBuildBegin += HandleBuildBegin;
+            _buildEvents.OnBuildDone += HandleBuildDone;
+            _dteEvents.ModeChanged += HandleModeChanged;
         }
 
         /// <summary>
@@ -55,10 +69,40 @@ namespace AvaloniaVS.Views
             base.Initialize();
 
             var xamlEditorView = new AvaloniaDesigner();
+            xamlEditorView.IsPaused = _isPaused;
             xamlEditorView.Start(_project, _xamlPath, _editorHost);
             _content = xamlEditorView;
 
             Log.Logger.Verbose("Finished DesignerPane.Initialize()");
+        }
+
+        private void HandleModeChanged(vsIDEMode lastMode)
+        {
+            _content.IsPaused = _isPaused = lastMode == vsIDEMode.vsIDEModeDesign;
+        }
+
+        private void HandleBuildBegin(vsBuildScope Scope, vsBuildAction Action)
+        {
+            Log.Logger.Debug("Build started");
+
+            _isPaused = true;
+
+            if (_content != null)
+            {
+                _content.IsPaused = _isPaused;
+            }
+        }
+
+        private void HandleBuildDone(vsBuildScope Scope, vsBuildAction Action)
+        {
+            Log.Logger.Debug("Build finished");
+
+            _isPaused = false;
+
+            if (_content != null)
+            {
+                _content.IsPaused = _isPaused;
+            }
         }
     }
 }
