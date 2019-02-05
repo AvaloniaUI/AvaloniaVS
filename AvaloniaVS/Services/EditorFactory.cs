@@ -14,6 +14,10 @@ using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 
 namespace AvaloniaVS.Services
 {
+    /// <summary>
+    /// Implements <see cref="IVsEditorFactory"/> to create <see cref="DesignerPane"/>s containing
+    /// an Avalonia XAML designer.
+    /// </summary>
     public sealed class EditorFactory : IVsEditorFactory, IDisposable
     {
         private static readonly Guid XmlLanguageServiceGuid = new Guid("f6819a78-a205-47b5-be1c-675b3c7f0b8e");
@@ -23,8 +27,13 @@ namespace AvaloniaVS.Services
         private IOleServiceProvider _oleServiceProvider;
         private ServiceProvider _serviceProvider;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EditorFactory"/> class.
+        /// </summary>
+        /// <param name="package">The package that the factory belongs to.</param>
         public EditorFactory(AvaloniaPackage package) => _package = package;
 
+        /// <inheritdoc/>
         public int SetSite(IOleServiceProvider psp)
         {
             _oleServiceProvider = psp;
@@ -35,6 +44,7 @@ namespace AvaloniaVS.Services
             return VSConstants.S_OK;
         }
 
+        /// <inheritdoc/>
         public int MapLogicalView(ref Guid rguidLogicalView, out string pbstrPhysicalView)
         {
             pbstrPhysicalView = null;
@@ -42,6 +52,7 @@ namespace AvaloniaVS.Services
                 VSConstants.S_OK : VSConstants.E_NOTIMPL;
         }
 
+        /// <inheritdoc/>
         public int CreateEditorInstance(
             uint grfCreateDoc,
             string pszMkDocument,
@@ -87,8 +98,10 @@ namespace AvaloniaVS.Services
             return VSConstants.S_OK;
         }
 
+        /// <inheritdoc/>
         public int Close() => VSConstants.S_OK;
 
+        /// <inheritdoc/>
         public void Dispose()
         {
             ThreadHelper.ThrowIfNotOnUIThread();

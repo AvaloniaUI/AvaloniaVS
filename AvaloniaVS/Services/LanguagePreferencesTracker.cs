@@ -7,6 +7,15 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace AvaloniaVS.Services
 {
+    /// <summary>
+    /// Tracks the preferences for a language and applies these preferences to registered text
+    /// views.
+    /// </summary>
+    /// <remarks>
+    /// The Avalonia designer uses a text view with the content type "XML" but we want to use the
+    /// editor preferences for the XAML language. This class is used to apply the XAML preferences
+    /// to those editors.
+    /// </remarks>
     internal class LanguagePreferencesTracker : IVsTextManagerEvents
     {
         private readonly IVsTextManager _textManager;
@@ -15,6 +24,11 @@ namespace AvaloniaVS.Services
         private readonly int _cookie;
         private LANGPREFERENCES _prefs;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LanguagePreferencesTracker"/> class.
+        /// </summary>
+        /// <param name="textManager">The VS text manager.</param>
+        /// <param name="language">The language to track.</param>
         public LanguagePreferencesTracker(IVsTextManager textManager, Guid language)
         {
             _textManager = textManager;
@@ -34,6 +48,14 @@ namespace AvaloniaVS.Services
             connection.Advise(this, out _cookie);
         }
 
+        /// <summary>
+        /// Registers a text view with the class. 
+        /// </summary>
+        /// <param name="textView">The text view.</param>
+        /// <remarks>
+        /// When a text view is registered, the language preferences for the language requested in
+        /// the constructor will be applied and tracked until the text view is closed.
+        /// </remarks>
         public void Track(ITextView textView)
         {
             _textViews.Add(textView);

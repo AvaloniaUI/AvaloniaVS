@@ -18,6 +18,9 @@ using Task = System.Threading.Tasks.Task;
 
 namespace AvaloniaVS.Services
 {
+    /// <summary>
+    /// Manages running a XAML previewer process.
+    /// </summary>
     public class PreviewerProcess : IDisposable, ILogEventEnricher
     {
         private readonly ILogger _log;
@@ -28,6 +31,9 @@ namespace AvaloniaVS.Services
         private WriteableBitmap _bitmap;
         private ExceptionDetails _error;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PreviewerProcess"/> class.
+        /// </summary>
         public PreviewerProcess()
         {
             _log = new LoggerConfiguration()
@@ -38,8 +44,14 @@ namespace AvaloniaVS.Services
                 .CreateLogger();
         }
 
+        /// <summary>
+        /// Gets the current preview as a <see cref="BitmapSource"/>.
+        /// </summary>
         public BitmapSource Bitmap => _bitmap;
 
+        /// <summary>
+        /// Gets the current error state as returned from the previewer process.
+        /// </summary>
         public ExceptionDetails Error
         {
             get => _error;
@@ -53,11 +65,26 @@ namespace AvaloniaVS.Services
             }
         }
 
+        /// <summary>
+        /// Gets a value indicating whether the previewer process is currently running.
+        /// </summary>
         public bool IsRunning => _process != null && !_process.HasExited;
 
+        /// <summary>
+        /// Raised when the <see cref="Error"/> state changes.
+        /// </summary>
         public event EventHandler ErrorChanged;
+
+        /// <summary>
+        /// Raised when a new frame is available in <see cref="Bitmap"/>.
+        /// </summary>
         public event EventHandler FrameReceived;
         
+        /// <summary>
+        /// Starts the previewer process.
+        /// </summary>
+        /// <param name="executablePath">The path to the executable to preview.</param>
+        /// <returns>A task tracking the startup operation.</returns>
         public async Task StartAsync(string executablePath)
         {
             _log.Verbose("Started PreviewerProcess.StartAsync()");
@@ -152,6 +179,9 @@ namespace AvaloniaVS.Services
             _log.Verbose("Finished PreviewerProcess.StartAsync()");
         }
 
+        /// <summary>
+        /// Stops the previewer process.
+        /// </summary>
         public void Stop()
         {
             _log.Verbose("Started PreviewerProcess.Stop()");
@@ -188,6 +218,11 @@ namespace AvaloniaVS.Services
             _log.Verbose("Finished PreviewerProcess.Stop()");
         }
 
+        /// <summary>
+        /// Updates the XAML to be previewed.
+        /// </summary>
+        /// <param name="xaml">The XAML.</param>
+        /// <returns>A task tracking the operation.</returns>
         public async Task UpdateXamlAsync(string xaml)
         {
             if (_process == null)
@@ -206,6 +241,9 @@ namespace AvaloniaVS.Services
             });
         }
 
+        /// <summary>
+        /// Stops the process and disposes of all resources.
+        /// </summary>
         public void Dispose() => Stop();
 
         void ILogEventEnricher.Enrich(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
