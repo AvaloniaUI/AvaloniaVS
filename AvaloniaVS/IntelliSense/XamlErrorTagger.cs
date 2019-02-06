@@ -31,6 +31,7 @@ namespace AvaloniaVS.IntelliSense
             _navigator = navigator;
             _process = process;
             _process.ErrorChanged += HandleErrorChanged;
+            _error = process.Error;
 
             // Get the document path and containing project name.
             var document = buffer.GetDocument();
