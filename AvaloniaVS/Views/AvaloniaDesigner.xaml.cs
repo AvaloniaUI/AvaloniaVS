@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using Avalonia.Ide.CompletionEngine;
 using Avalonia.Ide.CompletionEngine.AssemblyMetadata;
@@ -8,10 +9,12 @@ using Avalonia.Ide.CompletionEngine.DnlibMetadataProvider;
 using AvaloniaVS.Models;
 using AvaloniaVS.Services;
 using EnvDTE;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Threading;
 using Serilog;
+using Task = System.Threading.Tasks.Task;
 
 namespace AvaloniaVS.Views
 {
@@ -36,6 +39,8 @@ namespace AvaloniaVS.Views
 
             _throttle = new Throttle<string>(TimeSpan.FromMilliseconds(300), UpdateXaml);
             Process = new PreviewerProcess();
+            Process.ErrorChanged += ErrorChanged;
+            Process.FrameReceived += FrameReceived;
             previewer.Process = Process;
         }
 
@@ -94,6 +99,7 @@ namespace AvaloniaVS.Views
             _editor = editor ?? throw new ArgumentNullException(nameof(editor));
 
             _isStarted = true;
+
             InitializeEditor();
             StartAsync().FireAndForget();
 
@@ -114,6 +120,8 @@ namespace AvaloniaVS.Views
             {
                 _editor.Close();
             }
+
+            Process.FrameReceived -= FrameReceived;
 
             _throttle.Dispose();
             previewer.Dispose();
@@ -136,6 +144,8 @@ namespace AvaloniaVS.Views
         {
             Log.Logger.Verbose("Started AvaloniaDesigner.StartAsync()");
 
+            ShowPreview();
+
             var executablePath = _project.GetAssemblyPath();
             var buffer = _editor.TextView.TextBuffer;
             var metadata = buffer.Properties.GetOrCreateSingletonProperty(
@@ -144,7 +154,7 @@ namespace AvaloniaVS.Views
 
             if (metadata.CompletionMetadata == null)
             {
-                metadata.CompletionMetadata = await CreateCompletionMetadataAsync(executablePath);
+                CreateCompletionMetadataAsync(executablePath, metadata).FireAndForget();
             }
 
             try
@@ -159,11 +169,23 @@ namespace AvaloniaVS.Views
             {
                 Log.Logger.Debug(ex, "Process.StartAsync terminated due to pause");
             }
+            catch (FileNotFoundException ex)
+            {
+                ShowError("Build Required", ex.Message);
+                Log.Logger.Debug(ex, "StartAsync could not find executable");
+            }
+            catch (Exception ex)
+            {
+                ShowError("Error", ex.Message);
+                Log.Logger.Debug(ex, "StartAsync exception");
+            }
 
             Log.Logger.Verbose("Finished AvaloniaDesigner.StartEditorAsync()");
         }
 
-        private static async Task<Metadata> CreateCompletionMetadataAsync(string executablePath)
+        private static async Task CreateCompletionMetadataAsync(
+            string executablePath,
+            XamlBufferMetadata target)
         {
             await TaskScheduler.Default;
 
@@ -172,17 +194,54 @@ namespace AvaloniaVS.Views
             try
             {
                 var metadataReader = new MetadataReader(new DnlibMetadataProvider());
-                return metadataReader.GetForTargetAssembly(executablePath);
+                target.CompletionMetadata = metadataReader.GetForTargetAssembly(executablePath);
             }
             catch (Exception ex)
             {
                 Log.Logger.Error(ex, "Error creating XAML completion metadata");
-                return null;
             }
             finally
             {
                 Log.Logger.Verbose("Finished AvaloniaDesigner.CreateCompletionMetadataAsync()");
             }
+        }
+
+        private async void ErrorChanged(object sender, EventArgs e)
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            if (Process.Bitmap == null && Process.Error != null)
+            {
+                ShowError("Invalid Markup", "Check the Error List for more information");
+            }
+            else if (Process.Error == null)
+            {
+                ShowPreview();
+            }
+        }
+
+        private async void FrameReceived(object sender, EventArgs e)
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            if (Process.Bitmap != null)
+            {
+                ShowPreview();
+            }
+        }
+
+        private void ShowError(string heading, string message)
+        {
+            previewer.Visibility = Visibility.Collapsed;
+            error.Visibility = Visibility.Visible;
+            errorHeading.Text = heading;
+            errorMessage.Text = message;
+        }
+
+        private void ShowPreview()
+        {
+            previewer.Visibility = Visibility.Visible;
+            error.Visibility = Visibility.Collapsed;
         }
 
         private void TextChanged(object sender, TextContentChangedEventArgs e)

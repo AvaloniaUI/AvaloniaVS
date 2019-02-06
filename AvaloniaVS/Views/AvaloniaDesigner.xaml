@@ -16,6 +16,14 @@
 
         <local:AvaloniaPreviewer x:Name="previewer"/>
 
+        <StackPanel Name="error"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Visibility="Collapsed">
+            <TextBlock Name="errorHeading" FontSize="18" HorizontalAlignment="Center"/>
+            <TextBlock Name="errorMessage" Margin="0,20,0,0"/>
+        </StackPanel>
+        
         <GridSplitter Grid.Row="1"
                       Height="5"
                       HorizontalAlignment="Stretch"/>

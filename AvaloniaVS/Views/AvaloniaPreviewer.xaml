@@ -28,20 +28,5 @@
                    Visibility="Collapsed">
             The designer is loading...
         </TextBlock>
-
-        <Border Name="invalidMarkup"
-                Width="500"
-                Height="250"
-                Visibility="Collapsed">
-            <StackPanel HorizontalAlignment="Center"
-                        VerticalAlignment="Center">
-                <TextBlock FontSize="18" HorizontalAlignment="Center">Invalid Markup</TextBlock>
-                <TextBlock Margin="0,20,0,0">Check the Error List for more information</TextBlock>
-            </StackPanel>
-        </Border>
-        <TextBlock Name="error"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   Visibility="Collapsed"/>
     </Grid>
 </UserControl>

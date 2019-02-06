@@ -104,7 +104,7 @@ namespace AvaloniaVS.Services
             if (!File.Exists(executablePath))
             {
                 throw new FileNotFoundException(
-                    "Could not find executable '{_executablePath}'. " + 
+                    $"Could not find executable '{executablePath}'. " + 
                     "Please build your project to enable previewing and intellisense.");
             }
 
