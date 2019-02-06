@@ -251,7 +251,7 @@ namespace AvaloniaVS.Views
 
         private void UpdateXaml(string xaml)
         {
-            if (Process.IsRunning)
+            if (Process.IsReady)
             {
                 Process.UpdateXamlAsync(xaml).FireAndForget();
             }

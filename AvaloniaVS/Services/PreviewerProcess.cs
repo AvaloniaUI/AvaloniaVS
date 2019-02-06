@@ -71,6 +71,11 @@ namespace AvaloniaVS.Services
         public bool IsRunning => _process != null && !_process.HasExited;
 
         /// <summary>
+        /// Gets a value indicating whether the previewer process is ready to receive messages.
+        /// </summary>
+        public bool IsReady => IsRunning && _connection != null;
+
+        /// <summary>
         /// Raised when the <see cref="Error"/> state changes.
         /// </summary>
         public event EventHandler ErrorChanged;
