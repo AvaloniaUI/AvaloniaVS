@@ -5,8 +5,15 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:AvaloniaVS.Views"
+             xmlns:conv="clr-namespace:AvaloniaVS.Converters"
              mc:Ignorable="d" d:DesignHeight="450" d:DesignWidth="800"
+             Name="root"
              Background="{DynamicResource VsBrush.ToolWindowBackground}">
+
+    <UserControl.Resources>
+        <conv:NotNullOrEmptyToVisibilityConverter x:Key="NotNullOrEmpty"/>
+    </UserControl.Resources>
+    
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -19,12 +26,14 @@
                    Grid.Row="0"
                    Margin="4"
                    VerticalAlignment="Top">
-            <ComboBox Name="targets"
-                      DockPanel.Dock="Right"
+            <ComboBox DockPanel.Dock="Right"
+                      ItemsSource="{Binding Targets, ElementName=root}"
+                      SelectedItem="{Binding SelectedTarget, ElementName=root}"
                       DisplayMemberPath="Name"
                       Padding="2"
-                      local:VsTheme.UseVsTheme="True"
-                      SelectionChanged="TargetsSelectionChanged"/>
+                      Visibility="{Binding Targets, ElementName=root, Converter={StaticResource NotNullOrEmpty}}"
+                      local:VsTheme.UseVsTheme="True" >
+            </ComboBox>
             <Control/>
         </DockPanel>
 
@@ -38,7 +47,7 @@
             <TextBlock Name="errorHeading" FontSize="18" HorizontalAlignment="Center"/>
             <TextBlock Name="errorMessage" Margin="0,20,0,0"/>
         </StackPanel>
-        
+
         <GridSplitter Grid.Row="2"
                       Height="5"
                       HorizontalAlignment="Stretch"/>

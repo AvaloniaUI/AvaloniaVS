@@ -25,13 +25,29 @@ namespace AvaloniaVS.Views
     /// </summary>
     internal partial class AvaloniaDesigner : UserControl, IDisposable
     {
+        private static readonly DependencyPropertyKey TargetsPropertyKey =
+            DependencyProperty.RegisterReadOnly(
+                nameof(Targets),
+                typeof(IReadOnlyList<DesignerRunTarget>),
+                typeof(AvaloniaDesigner),
+                new PropertyMetadata());
+
+        public static readonly DependencyProperty SelectedTargetProperty =
+            DependencyProperty.Register(
+                nameof(SelectedTarget),
+                typeof(DesignerRunTarget),
+                typeof(AvaloniaDesigner),
+                new PropertyMetadata(HandleSelectedTargetChanged));
+
+        public static readonly DependencyProperty TargetsProperty =
+            TargetsPropertyKey.DependencyProperty;
+
         private readonly Throttle<string> _throttle;
         private Project _project;
         private IWpfTextViewHost _editor;
         private string _xamlPath;
         private bool _isStarted;
         private bool _isPaused;
-        private bool _isUpdatingTargets;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AvaloniaDesigner"/> class.
@@ -45,6 +61,7 @@ namespace AvaloniaVS.Views
             Process.ErrorChanged += ErrorChanged;
             Process.FrameReceived += FrameReceived;
             previewer.Process = Process;
+            ProjectInfoService.AddChangedHandler(ProjectInfoChanged);
         }
 
         /// <summary>
@@ -85,7 +102,20 @@ namespace AvaloniaVS.Views
         /// <summary>
         /// Gets the list of targets that the designer can use to preview the XAML.
         /// </summary>
-        public IReadOnlyList<DesignerRunTarget> Targets { get; private set; }
+        public IReadOnlyList<DesignerRunTarget> Targets
+        {
+            get => (IReadOnlyList<DesignerRunTarget>)GetValue(TargetsProperty);
+            private set => SetValue(TargetsPropertyKey, value);
+        }
+
+        /// <summary>
+        /// Gets or sets the selected target.
+        /// </summary>
+        public DesignerRunTarget SelectedTarget
+        {
+            get => (DesignerRunTarget)GetValue(SelectedTargetProperty);
+            set => SetValue(SelectedTargetProperty, value);
+        }
 
         /// <summary>
         /// Starts the designer.
@@ -155,38 +185,47 @@ namespace AvaloniaVS.Views
             ShowPreview();
             LoadTargets();
 
-            var executablePath = ((DesignerRunTarget)targets.SelectedItem)?.TargetAssembly;
-            var buffer = _editor.TextView.TextBuffer;
-            var metadata = buffer.Properties.GetOrCreateSingletonProperty(
-                typeof(XamlBufferMetadata),
-                () => new XamlBufferMetadata());
+            var executablePath = SelectedTarget?.TargetAssembly;
 
-            if (metadata.CompletionMetadata == null)
+            if (executablePath != null)
             {
-                CreateCompletionMetadataAsync(executablePath, metadata).FireAndForget();
-            }
+                var buffer = _editor.TextView.TextBuffer;
+                var metadata = buffer.Properties.GetOrCreateSingletonProperty(
+                    typeof(XamlBufferMetadata),
+                    () => new XamlBufferMetadata());
 
-            try
-            {
-                if (!IsPaused)
+                if (metadata.CompletionMetadata == null)
                 {
-                    await Process.StartAsync(executablePath);
-                    await Process.UpdateXamlAsync(await ReadAllTextAsync(_xamlPath));
+                    CreateCompletionMetadataAsync(executablePath, metadata).FireAndForget();
+                }
+
+                try
+                {
+                    if (!IsPaused)
+                    {
+                        await Process.StartAsync(executablePath);
+                        await Process.UpdateXamlAsync(await ReadAllTextAsync(_xamlPath));
+                    }
+                }
+                catch (ApplicationException ex) when (IsPaused)
+                {
+                    Log.Logger.Debug(ex, "Process.StartAsync terminated due to pause");
+                }
+                catch (FileNotFoundException ex)
+                {
+                    ShowError("Build Required", ex.Message);
+                    Log.Logger.Debug(ex, "StartAsync could not find executable");
+                }
+                catch (Exception ex)
+                {
+                    ShowError("Error", ex.Message);
+                    Log.Logger.Debug(ex, "StartAsync exception");
                 }
             }
-            catch (ApplicationException ex) when (IsPaused)
+            else
             {
-                Log.Logger.Debug(ex, "Process.StartAsync terminated due to pause");
-            }
-            catch (FileNotFoundException ex)
-            {
-                ShowError("Build Required", ex.Message);
-                Log.Logger.Debug(ex, "StartAsync could not find executable");
-            }
-            catch (Exception ex)
-            {
-                ShowError("Error", ex.Message);
-                Log.Logger.Debug(ex, "StartAsync exception");
+                Log.Logger.Error("No executable found");
+                ShowError("No Executable", "Reference the library from an executable.");
             }
 
             Log.Logger.Verbose("Finished AvaloniaDesigner.StartEditorAsync()");
@@ -217,8 +256,8 @@ namespace AvaloniaVS.Views
 
         private void LoadTargets()
         {
-            _isUpdatingTargets = true;
-            targets.ItemsSource = ProjectInfoService.Projects
+            var oldTargets = Targets ?? Array.Empty<DesignerRunTarget>();
+            var newTargets = ProjectInfoService.Projects
                 .Where(x => x.Project == _project || x.References.Contains(_project))
                 .OrderBy(x => x.Project == _project)
                 .ThenBy(x => x.Name)
@@ -227,9 +266,19 @@ namespace AvaloniaVS.Views
                     {
                         Name = $"{x.Name} [{o.Key}]",
                         TargetAssembly = o.Value,
+                        IsContainingProject = x.Project == _project,
                     })).ToList();
-            targets.SelectedIndex = 0;
-            _isUpdatingTargets = false;
+
+            Targets = oldTargets
+                .Union(newTargets)
+                .Distinct()
+                .OrderBy(x => x)
+                .ToList();
+
+            if (SelectedTarget == null || !Targets.Contains(SelectedTarget))
+            {
+                SelectedTarget = Targets.FirstOrDefault();
+            }
         }
 
         private async void ErrorChanged(object sender, EventArgs e)
@@ -275,6 +324,11 @@ namespace AvaloniaVS.Views
             _throttle.Queue(e.After.GetText());
         }
 
+        private void ProjectInfoChanged(object sender, EventArgs e)
+        {
+            LoadTargets();
+        }
+
         private void UpdateXaml(string xaml)
         {
             if (Process.IsReady)
@@ -283,13 +337,26 @@ namespace AvaloniaVS.Views
             }
         }
 
-        private void TargetsSelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void SelectedTargetChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            if (!_isUpdatingTargets)
+            var oldValue = (DesignerRunTarget)e.OldValue;
+            var newValue = (DesignerRunTarget)e.NewValue;
+
+            Log.Logger.Debug(
+                "AvaloniaDesigner.SelectedTarget changed from {OldTarget} to {NewTarget}",
+                oldValue?.TargetAssembly,
+                newValue?.TargetAssembly);
+
+            if (oldValue?.TargetAssembly != newValue?.TargetAssembly)
             {
                 Process.Stop();
                 StartAsync().FireAndForget();
             }
+        }
+
+        private static void HandleSelectedTargetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            (d as AvaloniaDesigner)?.SelectedTargetChanged(d, e);
         }
 
         private static async Task<string> ReadAllTextAsync(string fileName)
