@@ -60,10 +60,13 @@
     <Compile Include="IntelliSense\XamlErrorTableEntry.cs" />
     <Compile Include="IntelliSense\XamlErrorTagger.cs" />
     <Compile Include="IntelliSense\XamlErrorTaggerProvider.cs" />
+    <Compile Include="Models\DesignerRunTarget.cs" />
+    <Compile Include="Models\ProjectDescriptor.cs" />
     <Compile Include="Models\ProjectOutputInfo.cs" />
     <Compile Include="Models\XamlBufferMetadata.cs" />
     <Compile Include="Services\LanguagePreferencesTracker.cs" />
     <Compile Include="Services\OutputPaneEventSink.cs" />
+    <Compile Include="Services\ProjectInfoService.cs" />
     <Compile Include="Services\Throttle.cs" />
     <Compile Include="Services\EditorFactory.cs" />
     <Compile Include="Guids.cs" />
@@ -80,6 +83,7 @@
     <Compile Include="Views\AvaloniaDesigner.xaml.cs">
       <DependentUpon>AvaloniaDesigner.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\VsTheme.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Key.snk" />

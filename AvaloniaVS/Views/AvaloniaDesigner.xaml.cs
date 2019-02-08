@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -29,6 +31,7 @@ namespace AvaloniaVS.Views
         private string _xamlPath;
         private bool _isStarted;
         private bool _isPaused;
+        private bool _isUpdatingTargets;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AvaloniaDesigner"/> class.
@@ -78,6 +81,11 @@ namespace AvaloniaVS.Views
         /// Gets the previewer process used by the designer.
         /// </summary>
         public PreviewerProcess Process { get; }
+
+        /// <summary>
+        /// Gets the list of targets that the designer can use to preview the XAML.
+        /// </summary>
+        public IReadOnlyList<DesignerRunTarget> Targets { get; private set; }
 
         /// <summary>
         /// Starts the designer.
@@ -145,8 +153,9 @@ namespace AvaloniaVS.Views
             Log.Logger.Verbose("Started AvaloniaDesigner.StartAsync()");
 
             ShowPreview();
+            LoadTargets();
 
-            var executablePath = _project.GetAssemblyPath();
+            var executablePath = ((DesignerRunTarget)targets.SelectedItem)?.TargetAssembly;
             var buffer = _editor.TextView.TextBuffer;
             var metadata = buffer.Properties.GetOrCreateSingletonProperty(
                 typeof(XamlBufferMetadata),
@@ -206,6 +215,23 @@ namespace AvaloniaVS.Views
             }
         }
 
+        private void LoadTargets()
+        {
+            _isUpdatingTargets = true;
+            targets.ItemsSource = ProjectInfoService.Projects
+                .Where(x => x.Project == _project || x.References.Contains(_project))
+                .OrderBy(x => x.Project == _project)
+                .ThenBy(x => x.Name)
+                .SelectMany(x => x.RunnableOutputs
+                    .Select(o => new DesignerRunTarget
+                    {
+                        Name = $"{x.Name} [{o.Key}]",
+                        TargetAssembly = o.Value,
+                    })).ToList();
+            targets.SelectedIndex = 0;
+            _isUpdatingTargets = false;
+        }
+
         private async void ErrorChanged(object sender, EventArgs e)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -254,6 +280,15 @@ namespace AvaloniaVS.Views
             if (Process.IsReady)
             {
                 Process.UpdateXamlAsync(xaml).FireAndForget();
+            }
+        }
+
+        private void TargetsSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!_isUpdatingTargets)
+            {
+                Process.Stop();
+                StartAsync().FireAndForget();
             }
         }
 

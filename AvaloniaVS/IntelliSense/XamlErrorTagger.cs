@@ -104,13 +104,16 @@ namespace AvaloniaVS.IntelliSense
 
             _error = _process.Error;
 
-            if (_error != null)
+            if (_sink != null)
             {
-                _sink.AddEntries(new[] { new XamlErrorTableEntry(_projectName, _path, _error) }, true);
-            }
-            else
-            {
-                _sink.RemoveAllEntries();
+                if (_error != null)
+                {
+                    _sink.AddEntries(new[] { new XamlErrorTableEntry(_projectName, _path, _error) }, true);
+                }
+                else
+                {
+                    _sink.RemoveAllEntries();
+                }
             }
 
             RaiseTagsChanged(_error);

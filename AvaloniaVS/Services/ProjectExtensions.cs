@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AvaloniaVS.Models;
@@ -9,6 +10,7 @@ using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ProjectSystem;
+using Microsoft.VisualStudio.ProjectSystem.Properties;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -18,6 +20,18 @@ namespace AvaloniaVS.Services
     public static class ProjectExtensions
     {
         private static readonly Regex DesktopFrameworkRegex = new Regex("^net[0-9]+$");
+
+        public static T Cast<T>(this EnvDTE.Project project) where T : class
+        {
+            try
+            {
+                return project as T ?? project?.Object as T;
+            }
+            catch (COMException)
+            {
+                return null;
+            }
+        }
 
         public static string GetAssemblyPath(this Project project)
         {
@@ -140,7 +154,7 @@ namespace AvaloniaVS.Services
 
         private static UnconfiguredProject GetUnconfiguredProject(this Project project)
         {
-            return project as UnconfiguredProject ?? project?.Object as UnconfiguredProject;
+            return (project as IVsBrowseObjectContext)?.UnconfiguredProject;
         }
 
         private static string TryGetProperty(Properties props, string name)
