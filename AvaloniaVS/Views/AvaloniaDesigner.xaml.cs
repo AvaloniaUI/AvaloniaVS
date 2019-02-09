@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -48,6 +49,7 @@ namespace AvaloniaVS.Views
         private string _xamlPath;
         private bool _isStarted;
         private bool _isPaused;
+        private SemaphoreSlim _startingProcess = new SemaphoreSlim(1, 1);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AvaloniaDesigner"/> class.
@@ -87,7 +89,7 @@ namespace AvaloniaVS.Views
                         }
                         else
                         {
-                            StartAsync().FireAndForget();
+                            StartProcessAsync().FireAndForget();
                         }
                     }
                 }
@@ -136,10 +138,12 @@ namespace AvaloniaVS.Views
             _xamlPath = xamlPath ?? throw new ArgumentNullException(nameof(xamlPath));
             _editor = editor ?? throw new ArgumentNullException(nameof(editor));
 
-            _isStarted = true;
 
             InitializeEditor();
-            StartAsync().FireAndForget();
+            LoadTargets();
+
+            _isStarted = true;
+            StartProcessAsync().FireAndForget();
 
             Log.Logger.Verbose("Finished AvaloniaDesigner.Start()");
         }
@@ -178,12 +182,11 @@ namespace AvaloniaVS.Views
             }
         }
 
-        private async Task StartAsync()
+        private async Task StartProcessAsync()
         {
-            Log.Logger.Verbose("Started AvaloniaDesigner.StartAsync()");
+            Log.Logger.Verbose("Started AvaloniaDesigner.StartProcessAsync()");
 
             ShowPreview();
-            LoadTargets();
 
             var executablePath = SelectedTarget?.TargetAssembly;
 
@@ -201,6 +204,8 @@ namespace AvaloniaVS.Views
 
                 try
                 {
+                    await _startingProcess.WaitAsync();
+
                     if (!IsPaused)
                     {
                         await Process.StartAsync(executablePath);
@@ -221,14 +226,23 @@ namespace AvaloniaVS.Views
                     ShowError("Error", ex.Message);
                     Log.Logger.Debug(ex, "StartAsync exception");
                 }
+                finally
+                {
+                    _startingProcess.Release();
+                }
             }
             else
             {
                 Log.Logger.Error("No executable found");
-                ShowError("No Executable", "Reference the library from an executable.");
+
+                // This message is unfortunate but I can't work out how to tell when all references
+                // have finished loading for all projects in the solution.
+                ShowError(
+                    "No Executable",
+                    "Reference the library from an executable or wait for the solution to finish loading.");
             }
 
-            Log.Logger.Verbose("Finished AvaloniaDesigner.StartEditorAsync()");
+            Log.Logger.Verbose("Finished AvaloniaDesigner.StartProcessAsync()");
         }
 
         private static async Task CreateCompletionMetadataAsync(
@@ -337,7 +351,7 @@ namespace AvaloniaVS.Views
             }
         }
 
-        private void SelectedTargetChanged(object sender, DependencyPropertyChangedEventArgs e)
+        private async Task SelectedTargetChangedAsync(object sender, DependencyPropertyChangedEventArgs e)
         {
             var oldValue = (DesignerRunTarget)e.OldValue;
             var newValue = (DesignerRunTarget)e.NewValue;
@@ -347,16 +361,25 @@ namespace AvaloniaVS.Views
                 oldValue?.TargetAssembly,
                 newValue?.TargetAssembly);
 
-            if (oldValue?.TargetAssembly != newValue?.TargetAssembly)
+            if (oldValue?.TargetAssembly != newValue?.TargetAssembly && _isStarted)
             {
-                Process.Stop();
-                StartAsync().FireAndForget();
+                try
+                {
+                    Log.Logger.Debug("Waiting for StartProcessAsync to finish");
+                    await _startingProcess.WaitAsync();
+                    Process.Stop();
+                    StartProcessAsync().FireAndForget();
+                }
+                finally
+                {
+                    _startingProcess.Release();
+                }
             }
         }
 
         private static void HandleSelectedTargetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            (d as AvaloniaDesigner)?.SelectedTargetChanged(d, e);
+            (d as AvaloniaDesigner)?.SelectedTargetChangedAsync(d, e).FireAndForget();
         }
 
         private static async Task<string> ReadAllTextAsync(string fileName)
