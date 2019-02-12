@@ -101,6 +101,7 @@ namespace AvaloniaVS.Views
 
             if (_content != null)
             {
+                _content.InvalidateCompletionMetadata();
                 _content.IsPaused = _isPaused;
             }
         }

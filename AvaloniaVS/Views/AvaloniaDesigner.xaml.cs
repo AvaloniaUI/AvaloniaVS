@@ -149,6 +149,25 @@ namespace AvaloniaVS.Views
         }
 
         /// <summary>
+        /// Invalidates the intellisense completion metadata.
+        /// </summary>
+        /// <remarks>
+        /// Should be called when the designer is paused; when unpaused the completion metadata
+        /// will be updated.
+        /// </remarks>
+        public void InvalidateCompletionMetadata()
+        {
+            var buffer = _editor.TextView.TextBuffer;
+
+            if (buffer.Properties.TryGetProperty<XamlBufferMetadata>(
+                    typeof(XamlBufferMetadata),
+                    out var metadata))
+            {
+                metadata.CompletionMetadata = null;
+            }
+        }
+
+        /// <summary>
         /// Disposes of the designer and all resources.
         /// </summary>
         public void Dispose()
