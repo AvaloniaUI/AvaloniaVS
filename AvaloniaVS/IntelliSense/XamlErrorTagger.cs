@@ -71,8 +71,8 @@ namespace AvaloniaVS.IntelliSense
         {
             if (_error?.LineNumber != null)
             {
-                var line = _buffer.CurrentSnapshot.GetLineFromLineNumber(_error.LineNumber.Value - 1);
-                var start = line.Start + ((_error?.LinePosition ?? 1) - 1);
+                var line = _buffer.CurrentSnapshot.GetLineFromLineNumber(Math.Max(_error.LineNumber.Value - 1, 0));
+                var start = line.Start + Math.Max(((_error?.LinePosition ?? 1) - 1), 0);
                 var startSpan = new SnapshotSpan(start, start + 1);
                 var span = _navigator.GetSpanOfFirstChild(startSpan);
                 var tag = new ErrorTag(PredefinedErrorTypeNames.CompilerError, _error.Message);
@@ -125,7 +125,7 @@ namespace AvaloniaVS.IntelliSense
                 TagsChanged != null &&
                 error.LineNumber.Value < _buffer.CurrentSnapshot.LineCount)
             {
-                var line = _buffer.CurrentSnapshot.GetLineFromLineNumber(error.LineNumber.Value - 1);
+                var line = _buffer.CurrentSnapshot.GetLineFromLineNumber(Math.Max(error.LineNumber.Value - 1, 0));
                 TagsChanged(this, new SnapshotSpanEventArgs(line.Extent));
             }
         }
