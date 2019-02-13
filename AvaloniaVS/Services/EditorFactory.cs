@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using System.Windows.Controls;
 using AvaloniaVS.Models;
 using AvaloniaVS.Views;
 using Microsoft.VisualStudio;
@@ -188,6 +189,14 @@ namespace AvaloniaVS.Services
             // on the text view in order to get the user's XAML tab size etc.
             var textViewHost = eafs.GetWpfTextViewHost(textViewAdapter);
             _prefsTracker.Track(textViewHost.TextView);
+
+            // In VS2019 preview 3, the IWpfTextViewHost.HostControl comes parented. Remove the
+            // control from its parent otherwise we can't reparent it. This is probably a bug
+            // in the preview and can probably be removed later.
+            if (textViewHost.HostControl.Parent is Decorator parent)
+            {
+                parent.Child = null;
+            }
 
             Log.Logger.Verbose("Finished EditorFactory.CreateEditorControl()");
             return (codeWindow, textViewHost);
