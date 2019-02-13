@@ -243,6 +243,7 @@ namespace AvaloniaVS.Services
 
             await SendAsync(new UpdateXamlMessage
             {
+                AssemblyPath = _executablePath,
                 Xaml = xaml,
             });
         }
@@ -288,11 +289,6 @@ namespace AvaloniaVS.Services
             _connection = connection;
             _connection.OnException += ConnectionExceptionReceived;
             _connection.OnMessage += ConnectionMessageReceived;
-
-            await SendAsync(new UpdateXamlMessage
-            {
-                AssemblyPath = _executablePath,
-            });
 
             await SendAsync(new ClientSupportedPixelFormatsMessage
             {
