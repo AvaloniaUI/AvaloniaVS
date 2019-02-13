@@ -9,6 +9,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Avalonia.Remote.Protocol;
 using Avalonia.Remote.Protocol.Designer;
+using Avalonia.Remote.Protocol.Input;
 using Avalonia.Remote.Protocol.Viewport;
 using Microsoft.VisualStudio.Shell;
 using Serilog;
@@ -244,6 +245,26 @@ namespace AvaloniaVS.Services
             {
                 Xaml = xaml,
             });
+        }
+
+        /// <summary>
+        /// Sends an input message to the process.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        /// <returns>A task tracking the operation.</returns>
+        public async Task SendInputAsync(InputEventMessageBase message)
+        {
+            if (_process == null)
+            {
+                throw new InvalidOperationException("Process not started.");
+            }
+
+            if (_connection == null)
+            {
+                throw new InvalidOperationException("Process not finished initializing.");
+            }
+
+            await SendAsync(message);
         }
 
         /// <summary>

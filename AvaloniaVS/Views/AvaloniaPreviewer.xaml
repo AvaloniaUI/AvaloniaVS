@@ -16,7 +16,10 @@
                     </Border.Effect>
                 </Border>
                 <Border Background="White">
-                    <Image Name="preview" Width="100" Height="100"/>
+                    <Image Name="preview" Width="100" Height="100"
+                           MouseMove="Preview_MouseMove"
+                           MouseDown="Preview_MouseDown"
+                           MouseUp="Preview_MouseUp"/>
                 </Border>
             </Grid>
         </ScrollViewer>
