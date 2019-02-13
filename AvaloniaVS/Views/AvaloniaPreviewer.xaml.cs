@@ -29,6 +29,7 @@ namespace AvaloniaVS.Views
             {
                 if (_process != null)
                 {
+                    _process.ErrorChanged -= Update;
                     _process.FrameReceived -= Update;
                 }
 
@@ -36,6 +37,7 @@ namespace AvaloniaVS.Views
 
                 if (_process != null)
                 {
+                    _process.ErrorChanged += Update;
                     _process.FrameReceived += Update;
                 }
 

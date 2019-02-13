@@ -326,29 +326,29 @@ namespace AvaloniaVS.Services
 
             if (message is FrameMessage frame)
             {
-                if (Error == null)
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                if (_bitmap == null || _bitmap.PixelWidth != frame.Width || _bitmap.PixelHeight != frame.Height)
                 {
-                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    _bitmap = new WriteableBitmap(
+                        Math.Max(frame.Width, 1),
+                        Math.Max(frame.Height, 1),
+                        96,
+                        96,
+                        ToWpf(frame.Format),
+                        null);
+                }
 
-                    if (_bitmap == null || _bitmap.PixelWidth != frame.Width || _bitmap.PixelHeight != frame.Height)
-                    {
-                        _bitmap = new WriteableBitmap(
-                            frame.Width,
-                            frame.Height,
-                            96,
-                            96,
-                            ToWpf(frame.Format),
-                            null);
-                    }
-
+                if (frame.Width > 0 && frame.Height > 0)
+                {
                     _bitmap.WritePixels(
                         new Int32Rect(0, 0, _bitmap.PixelWidth, _bitmap.PixelHeight),
                         frame.Data,
                         frame.Stride,
                         0);
-
-                    FrameReceived?.Invoke(this, EventArgs.Empty);
                 }
+
+                FrameReceived?.Invoke(this, EventArgs.Empty);
 
                 await SendAsync(new FrameReceivedMessage
                 {
