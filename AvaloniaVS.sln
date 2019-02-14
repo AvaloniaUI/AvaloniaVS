@@ -44,6 +44,16 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Avalonia.Markup", "submodul
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Avalonia.Markup.Xaml", "submodules\Avalonia\src\Markup\Avalonia.Markup.Xaml\Avalonia.Markup.Xaml.csproj", "{304666FB-BAD4-4332-8433-F5334838E4F3}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "templates", "templates", "{FC634911-168A-4FDD-8758-11FAD5B8696B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaApplicationTemplate", "templates\AvaloniaApplicationTemplate\AvaloniaApplicationTemplate.csproj", "{75104AA0-3B1B-47D4-9C4D-501A8185ACFC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaMvvmApplicationTemplate", "templates\AvaloniaMvvmApplicationTemplate\AvaloniaMvvmApplicationTemplate.csproj", "{D458691F-3B40-4E54-8BC2-782D017CFD2B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaUserControlTemplate", "templates\AvaloniaUserControlTemplate\AvaloniaUserControlTemplate.csproj", "{3BFD12BB-E6D8-46D7-9D5F-119A9896941E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaWindowTemplate", "templates\AvaloniaWindowTemplate\AvaloniaWindowTemplate.csproj", "{C8B3FF98-50A3-4C04-8F8C-ED853EC0760C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -122,6 +132,22 @@ Global
 		{304666FB-BAD4-4332-8433-F5334838E4F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{304666FB-BAD4-4332-8433-F5334838E4F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{304666FB-BAD4-4332-8433-F5334838E4F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{75104AA0-3B1B-47D4-9C4D-501A8185ACFC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{75104AA0-3B1B-47D4-9C4D-501A8185ACFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{75104AA0-3B1B-47D4-9C4D-501A8185ACFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{75104AA0-3B1B-47D4-9C4D-501A8185ACFC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D458691F-3B40-4E54-8BC2-782D017CFD2B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D458691F-3B40-4E54-8BC2-782D017CFD2B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D458691F-3B40-4E54-8BC2-782D017CFD2B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D458691F-3B40-4E54-8BC2-782D017CFD2B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3BFD12BB-E6D8-46D7-9D5F-119A9896941E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3BFD12BB-E6D8-46D7-9D5F-119A9896941E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3BFD12BB-E6D8-46D7-9D5F-119A9896941E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3BFD12BB-E6D8-46D7-9D5F-119A9896941E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C8B3FF98-50A3-4C04-8F8C-ED853EC0760C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C8B3FF98-50A3-4C04-8F8C-ED853EC0760C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C8B3FF98-50A3-4C04-8F8C-ED853EC0760C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C8B3FF98-50A3-4C04-8F8C-ED853EC0760C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -143,6 +169,10 @@ Global
 		{8F0E7A6C-DC3C-4299-BFD8-09A44D76623D} = {BA40CDDD-84AA-4B4A-A729-7EFB9E1E9B22}
 		{91D15C9B-3A9F-4B30-9AA5-B2F9689D1877} = {BA40CDDD-84AA-4B4A-A729-7EFB9E1E9B22}
 		{304666FB-BAD4-4332-8433-F5334838E4F3} = {BA40CDDD-84AA-4B4A-A729-7EFB9E1E9B22}
+		{75104AA0-3B1B-47D4-9C4D-501A8185ACFC} = {FC634911-168A-4FDD-8758-11FAD5B8696B}
+		{D458691F-3B40-4E54-8BC2-782D017CFD2B} = {FC634911-168A-4FDD-8758-11FAD5B8696B}
+		{3BFD12BB-E6D8-46D7-9D5F-119A9896941E} = {FC634911-168A-4FDD-8758-11FAD5B8696B}
+		{C8B3FF98-50A3-4C04-8F8C-ED853EC0760C} = {FC634911-168A-4FDD-8758-11FAD5B8696B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0CE7163D-D505-4965-B2B9-9E9068C77A62}
