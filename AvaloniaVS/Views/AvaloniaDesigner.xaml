@@ -37,6 +37,14 @@
             <Control/>
         </DockPanel>
 
+        <TextBlock Name="pausedMessage"
+                   Grid.Row="0"
+                   Background="{DynamicResource VsBrush.InfoBackground}"
+                   Padding="4"
+                   VerticalAlignment="Top">
+            The designer is paused waiting for a build to complete
+        </TextBlock>
+
         <local:AvaloniaPreviewer Grid.Row="1" x:Name="previewer"/>
 
         <StackPanel Name="error"

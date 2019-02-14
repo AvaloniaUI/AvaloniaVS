@@ -63,6 +63,7 @@ namespace AvaloniaVS.Views
             Process.ErrorChanged += ErrorChanged;
             Process.FrameReceived += FrameReceived;
             previewer.Process = Process;
+            pausedMessage.Visibility = Visibility.Collapsed;
             ProjectInfoService.AddChangedHandler(ProjectInfoChanged);
         }
 
@@ -85,10 +86,12 @@ namespace AvaloniaVS.Views
                     {
                         if (value)
                         {
+                            pausedMessage.Visibility = Visibility.Visible;
                             Process.Stop();
                         }
                         else
                         {
+                            pausedMessage.Visibility = Visibility.Collapsed;
                             StartProcessAsync().FireAndForget();
                         }
                     }
