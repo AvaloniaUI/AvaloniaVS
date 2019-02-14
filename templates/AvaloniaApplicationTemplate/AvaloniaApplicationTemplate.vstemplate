@@ -16,12 +16,12 @@
   </TemplateData>
   <TemplateContent>
     <Project File="ProjectTemplate.csproj" ReplaceParameters="true">
-      <ProjectItem ReplaceParameters="true" TargetFileName="App.xaml">App.xaml</ProjectItem>
-      <ProjectItem ReplaceParameters="true" TargetFileName="App.xaml.cs" >App.xaml.cs</ProjectItem>
-      <ProjectItem ReplaceParameters="true" OpenInEditor="true" TargetFileName="MainWindow.xaml">MainWindow.xaml</ProjectItem>
-      <ProjectItem ReplaceParameters="true" TargetFileName="MainWindow.xaml.cs" >MainWindow.xaml.cs</ProjectItem>
-      <ProjectItem ReplaceParameters="false" TargetFileName="nuget.config" >nuget.config</ProjectItem>
-      <ProjectItem ReplaceParameters="true" TargetFileName="Program.cs" >Program.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true">App.xaml</ProjectItem>
+      <ProjectItem ReplaceParameters="true">App.xaml.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" OpenInEditor="true">MainWindow.xaml</ProjectItem>
+      <ProjectItem ReplaceParameters="true">MainWindow.xaml.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false">nuget.config</ProjectItem>
+      <ProjectItem ReplaceParameters="true">Program.cs</ProjectItem>
     </Project>
   </TemplateContent>
 </VSTemplate>

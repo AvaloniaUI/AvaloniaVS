@@ -6,6 +6,6 @@ namespace $safeprojectname$.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase
     {
-        public string Greeting => "Hello World!";
+        public string Greeting => "Welcome to Avalonia!";
     }
 }
