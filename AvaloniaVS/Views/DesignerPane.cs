@@ -78,7 +78,10 @@ namespace AvaloniaVS.Views
 
         private void HandleModeChanged(vsIDEMode lastMode)
         {
-            _content.IsPaused = _isPaused = lastMode == vsIDEMode.vsIDEModeDesign;
+            if (_content != null)
+            {
+                _content.IsPaused = _isPaused = lastMode == vsIDEMode.vsIDEModeDesign;
+            }
         }
 
         private void HandleBuildBegin(vsBuildScope Scope, vsBuildAction Action)
