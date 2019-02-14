@@ -49,8 +49,17 @@ namespace AvaloniaVS.Services
         public int MapLogicalView(ref Guid rguidLogicalView, out string pbstrPhysicalView)
         {
             pbstrPhysicalView = null;
-            return rguidLogicalView == VSConstants.LOGVIEWID_Primary ?
-                VSConstants.S_OK : VSConstants.E_NOTIMPL;
+
+            if (rguidLogicalView == VSConstants.LOGVIEWID_Primary ||
+                rguidLogicalView == VSConstants.LOGVIEWID_Code ||
+                rguidLogicalView == VSConstants.LOGVIEWID_Debugging ||
+                rguidLogicalView == VSConstants.LOGVIEWID_TextView ||
+                rguidLogicalView == VSConstants.LOGVIEWID_Designer)
+            {
+                return VSConstants.S_OK;
+            }
+
+            return VSConstants.E_NOTIMPL;
         }
 
         /// <inheritdoc/>
