@@ -235,9 +235,10 @@ namespace AvaloniaVS.Views
                         await Process.UpdateXamlAsync(await ReadAllTextAsync(_xamlPath));
                     }
                 }
-                catch (ApplicationException ex) when (IsPaused)
+                catch (ApplicationException ex)
                 {
-                    Log.Logger.Debug(ex, "Process.StartAsync terminated due to pause");
+                    // Don't display an error here: ProcessExited should handle that.
+                    Log.Logger.Debug(ex, "Process.StartAsync exited with error");
                 }
                 catch (FileNotFoundException ex)
                 {
@@ -352,7 +353,7 @@ namespace AvaloniaVS.Views
 
                 ShowError(
                     "Process Exited",
-                    "The process exited unexpectedly. See the output window for more information.");
+                    "The previewer process exited unexpectedly. See the output window for more information.");
             }
         }
 
