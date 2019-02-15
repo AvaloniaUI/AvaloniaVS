@@ -51,6 +51,11 @@ namespace AvaloniaVS.Services
             {
                 ErrorHandler.ThrowOnFailure(_pane.OutputStringThreadSafe(message));
             }
+
+            if (logEvent.Level == LogEventLevel.Error)
+            {
+                _pane.Activate();
+            }
         }
 #pragma warning restore VSTHRD010
     }

@@ -42,7 +42,7 @@
                    Background="{DynamicResource VsBrush.InfoBackground}"
                    Padding="4"
                    VerticalAlignment="Top">
-            The designer is paused waiting for a build to complete
+            The designer is paused waiting for a build to complete.
         </TextBlock>
 
         <local:AvaloniaPreviewer Grid.Row="1" x:Name="previewer"/>

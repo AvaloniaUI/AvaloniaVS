@@ -85,7 +85,12 @@ namespace AvaloniaVS.Services
         /// Raised when a new frame is available in <see cref="Bitmap"/>.
         /// </summary>
         public event EventHandler FrameReceived;
-        
+
+        /// <summary>
+        /// Raised when the underlying system process exits.
+        /// </summary>
+        public event EventHandler ProcessExited;
+
         /// <summary>
         /// Starts the previewer process.
         /// </summary>
@@ -128,13 +133,12 @@ namespace AvaloniaVS.Services
                     try
                     {
                         await ConnectionInitializedAsync(t);
-                    } catch (Exception ex)
+                        tcs.SetResult(null);
+                    }
+                    catch (Exception ex)
                     {
                         _log.Error(ex, "Error initializing connection");
-                    }
-                    finally
-                    {
-                        tcs.SetResult(null);
+                        tcs.SetException(ex);
                     }
                 });
 #pragma warning restore VSTHRD101
@@ -166,9 +170,9 @@ namespace AvaloniaVS.Services
             _log.Debug("> dotnet.exe {Args}", args);
 
             _process = Process.Start(processInfo);
-            _process.OutputDataReceived += ProcessOutputReceived;
-            _process.ErrorDataReceived += ProcessErrorReceived;
-            _process.Exited += ProcessExited;
+            _process.OutputDataReceived += OnProcessOutputReceived;
+            _process.ErrorDataReceived += OnProcessErrorReceived;
+            _process.Exited += OnProcessExited;
             _process.BeginErrorReadLine();
             _process.BeginOutputReadLine();
 
@@ -286,6 +290,12 @@ namespace AvaloniaVS.Services
             _log.Verbose("Started PreviewerProcess.ConnectionInitializedAsync()");
             _log.Information("Connection initialized");
 
+            if (!IsRunning)
+            {
+                _log.Verbose("ConnectionInitializedAsync detected process has stopped: aborting");
+                throw new ApplicationException($"The previewer process exited unexpectedly.");
+            }
+
             _connection = connection;
             _connection.OnException += ConnectionExceptionReceived;
             _connection.OnMessage += ConnectionMessageReceived;
@@ -376,7 +386,7 @@ namespace AvaloniaVS.Services
             _log.Error(ex, "Connection error");
         }
 
-        private void ProcessOutputReceived(object sender, DataReceivedEventArgs e)
+        private void OnProcessOutputReceived(object sender, DataReceivedEventArgs e)
         {
             if (!string.IsNullOrWhiteSpace(e.Data))
             {
@@ -384,7 +394,7 @@ namespace AvaloniaVS.Services
             }
         }
 
-        private void ProcessErrorReceived(object sender, DataReceivedEventArgs e)
+        private void OnProcessErrorReceived(object sender, DataReceivedEventArgs e)
         {
             if (!string.IsNullOrWhiteSpace(e.Data))
             {
@@ -392,10 +402,11 @@ namespace AvaloniaVS.Services
             }
         }
 
-        private void ProcessExited(object sender, EventArgs e)
+        private void OnProcessExited(object sender, EventArgs e)
         {
             _log.Information("Process exited");
             _process = null;
+            ProcessExited?.Invoke(this, EventArgs.Empty);
         }
 
         private static void EnsureExists(string path)

@@ -62,6 +62,7 @@ namespace AvaloniaVS.Views
             Process = new PreviewerProcess();
             Process.ErrorChanged += ErrorChanged;
             Process.FrameReceived += FrameReceived;
+            Process.ProcessExited += ProcessExited;
             previewer.Process = Process;
             pausedMessage.Visibility = Visibility.Collapsed;
             ProjectInfoService.AddChangedHandler(ProjectInfoChanged);
@@ -319,25 +320,39 @@ namespace AvaloniaVS.Views
 
         private async void ErrorChanged(object sender, EventArgs e)
         {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-
             if (Process.Bitmap == null && Process.Error != null)
             {
-                ShowError("Invalid Markup", "Check the Error List for more information");
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                ShowError("Invalid Markup", "Check the Error List for more information.");
             }
             else if (Process.Error == null)
             {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
                 ShowPreview();
             }
         }
 
         private async void FrameReceived(object sender, EventArgs e)
         {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-
             if (Process.Bitmap != null)
             {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
                 ShowPreview();
+            }
+        }
+
+        private async void ProcessExited(object sender, EventArgs e)
+        {
+            if (!IsPaused)
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                ShowError(
+                    "Process Exited",
+                    "The process exited unexpectedly. See the output window for more information.");
             }
         }
 
