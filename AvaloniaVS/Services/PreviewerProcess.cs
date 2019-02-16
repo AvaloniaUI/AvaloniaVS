@@ -133,12 +133,12 @@ namespace AvaloniaVS.Services
                     try
                     {
                         await ConnectionInitializedAsync(t);
-                        tcs.SetResult(null);
+                        tcs.TrySetResult(null);
                     }
                     catch (Exception ex)
                     {
                         _log.Error(ex, "Error initializing connection");
-                        tcs.SetException(ex);
+                        tcs.TrySetException(ex);
                     }
                 });
 #pragma warning restore VSTHRD101
@@ -169,21 +169,29 @@ namespace AvaloniaVS.Services
             _log.Information("Starting previewer process for '{ExecutablePath}'", _executablePath);
             _log.Debug("> dotnet.exe {Args}", args);
 
-            _process = Process.Start(processInfo);
-            _process.OutputDataReceived += OnProcessOutputReceived;
-            _process.ErrorDataReceived += OnProcessErrorReceived;
-            _process.Exited += OnProcessExited;
-            _process.BeginErrorReadLine();
-            _process.BeginOutputReadLine();
+            var process = _process = Process.Start(processInfo);
+            process.EnableRaisingEvents = true;
+            process.OutputDataReceived += OnProcessOutputReceived;
+            process.ErrorDataReceived += OnProcessErrorReceived;
+            process.Exited += Abort;
+            process.Exited += OnProcessExited;
+            process.BeginErrorReadLine();
+            process.BeginOutputReadLine();
 
-            if (!_process.HasExited)
+            void Abort(object sender, EventArgs e)
             {
-                _log.Information("Started previewer process for '{ExecutablePath}'", _executablePath);
+                _log.Information("Process exited while waiting for connection to be initialized.");
+                tcs.TrySetException(new ApplicationException($"The previewer process exited unexpectedly with code {process.ExitCode}."));
+            }
+
+            try
+            {
+                _log.Information("Started previewer process for '{ExecutablePath}'. Waiting for connection to be initialized.", _executablePath);
                 await tcs.Task;
             }
-            else
+            finally
             {
-                throw new ApplicationException($"The previewer process exited unexpectedly with code {_process.ExitCode}.");
+                process.Exited -= Abort;
             }
 
             _log.Verbose("Finished PreviewerProcess.StartAsync()");
@@ -293,7 +301,7 @@ namespace AvaloniaVS.Services
             if (!IsRunning)
             {
                 _log.Verbose("ConnectionInitializedAsync detected process has stopped: aborting");
-                throw new ApplicationException($"The previewer process exited unexpectedly.");
+                return;
             }
 
             _connection = connection;
@@ -322,7 +330,6 @@ namespace AvaloniaVS.Services
         {
             _log.Debug("=> Sending {@Message}", message);
             await _connection.Send(message);
-            _log.Debug("=> Sent {@Message}", message);
         }
 
         private async Task OnMessageAsync(object message)
