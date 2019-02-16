@@ -31,7 +31,8 @@ namespace AvaloniaVS.Services
             private readonly ProjectInfoService _service;
             private ReferencesEvents _events;
             public Project Project { get; }
-            public HashSet<Project> References = new HashSet<Project>();
+            public HashSet<Project> ProjectReferences = new HashSet<Project>();
+            public HashSet<string> References = new HashSet<string>();
             public ProjectDescriptor Descriptor { get; }
             public bool RescanQueued { get; private set; }
             public bool TargetPathUpdateQueued { get; private set; }
@@ -47,6 +48,7 @@ namespace AvaloniaVS.Services
                 if (project == null && _events != null)
                 {
                     _events = null;
+                    ProjectReferences.Clear();
                     References.Clear();
                     _service._treeRebuildQueued = true;
                     TargetPathUpdateQueued = true;
@@ -60,14 +62,18 @@ namespace AvaloniaVS.Services
                 {
                     var p = r.SourceProject;
                     if (p != null)
-                        References.Add(p);
+                        ProjectReferences.Add(p);
+                    else
+                        References.Add(r.Name);
                     _service._treeRebuildQueued = true;
                 };
                 _events.ReferenceRemoved += r =>
                 {
                     var p = r.SourceProject;
                     if (p != null)
-                        References.Remove(p);
+                        ProjectReferences.Remove(p);
+                    else
+                        References.Remove(r.Name);
                     _service._treeRebuildQueued = true;
                 };
                 _events.ReferenceChanged += delegate
@@ -89,6 +95,7 @@ namespace AvaloniaVS.Services
 
             public void Rescan()
             {
+                ProjectReferences.Clear();
                 References.Clear();
                 var vsProject = Project.Cast<VSProject>();
                 if (vsProject != null)
@@ -96,7 +103,9 @@ namespace AvaloniaVS.Services
                     {
                         var p = r.SourceProject;
                         if (p != null)
-                            References.Add(p);
+                            ProjectReferences.Add(p);
+                        else
+                            References.Add(r.Name);
                     }
                 RescanQueued = false;
                 _service._treeRebuildQueued = true;
@@ -142,7 +151,7 @@ namespace AvaloniaVS.Services
 
         private IEnumerable<Project> Collect(ProjectEntry desc)
         {
-            foreach (var r in desc.References)
+            foreach (var r in desc.ProjectReferences)
             {
                 yield return r;
                 if(_projects.TryGetValue(r, out var found))
@@ -187,7 +196,8 @@ namespace AvaloniaVS.Services
             {
                 foreach (var p in _projects.Values)
                 {
-                    p.Descriptor.References = Collect(p).Distinct().ToList();
+                    p.Descriptor.ProjectReferences = Collect(p).Distinct().ToList();
+                    p.Descriptor.References = p.References.ToList();
                 }
                 _cached = _projects.Values.Select(d => d.Descriptor).ToList();
                 

@@ -296,7 +296,8 @@ namespace AvaloniaVS.Views
         {
             var oldTargets = Targets ?? Array.Empty<DesignerRunTarget>();
             var newTargets = ProjectInfoService.Projects
-                .Where(x => x.Project == _project || x.References.Contains(_project))
+                .Where(x => (x.Project == _project || x.ProjectReferences.Contains(_project)) &&
+                            x.References.Contains("Avalonia.DesignerSupport"))
                 .OrderBy(x => x.Project == _project)
                 .ThenBy(x => x.Name)
                 .SelectMany(x => x.RunnableOutputs

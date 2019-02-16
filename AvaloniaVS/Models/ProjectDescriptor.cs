@@ -11,7 +11,8 @@ namespace AvaloniaVS.Models
         public string TargetAssembly;
         public Dictionary<string, string> RunnableOutputs = new Dictionary<string, string>();
 
-        public List<Project> References { get; set; } = new List<Project>();
+        public List<Project> ProjectReferences { get; set; } = new List<Project>();
+        public List<string> References { get; set; } = new List<string>();
         
         public ProjectDescriptor(Project project)
         {
