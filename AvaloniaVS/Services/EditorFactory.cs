@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Windows.Controls;
 using AvaloniaVS.Models;
 using AvaloniaVS.Views;
+using EnvDTE;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
@@ -19,7 +20,7 @@ namespace AvaloniaVS.Services
     /// Implements <see cref="IVsEditorFactory"/> to create <see cref="DesignerPane"/>s containing
     /// an Avalonia XAML designer.
     /// </summary>
-    public sealed class EditorFactory : IVsEditorFactory, IDisposable
+    internal sealed class EditorFactory : IVsEditorFactory, IDisposable
     {
         private static readonly Guid XmlLanguageServiceGuid = new Guid("f6819a78-a205-47b5-be1c-675b3c7f0b8e");
         private static readonly Guid XamlLanguageServiceGuid = new Guid("cd53c9a1-6bc2-412b-be36-cc715ed8dd41");
@@ -91,7 +92,7 @@ namespace AvaloniaVS.Services
                 return VSConstants.E_INVALIDARG;
             }
 
-            var project = pvHier.GetProject();
+            var project = GetProject(pvHier);
 
             if (project == null)
             {
@@ -209,6 +210,17 @@ namespace AvaloniaVS.Services
 
             Log.Logger.Verbose("Finished EditorFactory.CreateEditorControl()");
             return (codeWindow, textViewHost);
+        }
+
+        private static Project GetProject(IVsHierarchy hierarchy)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            ErrorHandler.ThrowOnFailure(hierarchy.GetProperty(
+                VSConstants.VSITEMID_ROOT,
+                (int)__VSHPROPID.VSHPROPID_ExtObject,
+                out var objProj));
+            return objProj as Project;
         }
     }
 }

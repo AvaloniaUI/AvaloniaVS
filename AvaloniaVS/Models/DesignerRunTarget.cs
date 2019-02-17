@@ -1,23 +1,20 @@
-﻿using System;
+﻿using AvaloniaVS.Views;
 
 namespace AvaloniaVS.Models
 {
-    internal class DesignerRunTarget : IEquatable<DesignerRunTarget>, IComparable<DesignerRunTarget>
+    /// <summary>
+    /// Represents an executable target for the <see cref="AvaloniaDesigner"/> previewer.
+    /// </summary>
+    internal class DesignerRunTarget
     {
+        /// <summary>
+        /// Gets or sets the target's name
+        /// </summary>
         public string Name { get; set; }
+
+        /// <summary>
+        /// Gets or sets the full path to the target assembly.
+        /// </summary>
         public string TargetAssembly { get; set; }
-        public bool IsContainingProject { get; set; }
-
-        public int CompareTo(DesignerRunTarget other) => IsContainingProject ? -1 : Name.CompareTo(other.Name);
-        public override bool Equals(object obj) => Equals(obj as DesignerRunTarget);
-        public bool Equals(DesignerRunTarget other) => Name == other?.Name && TargetAssembly == other?.TargetAssembly;
-
-        public override int GetHashCode()
-        {
-            var hash = 27;
-            hash = (13 * hash) + Name.GetHashCode();
-            hash = (13 * hash) + TargetAssembly.GetHashCode();
-            return hash;
-        }
     }
 }

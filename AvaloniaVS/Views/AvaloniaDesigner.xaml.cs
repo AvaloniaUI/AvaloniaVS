@@ -65,7 +65,6 @@ namespace AvaloniaVS.Views
             Process.ProcessExited += ProcessExited;
             previewer.Process = Process;
             pausedMessage.Visibility = Visibility.Collapsed;
-            ProjectInfoService.AddChangedHandler(ProjectInfoChanged);
         }
 
         /// <summary>
@@ -142,12 +141,8 @@ namespace AvaloniaVS.Views
             _xamlPath = xamlPath ?? throw new ArgumentNullException(nameof(xamlPath));
             _editor = editor ?? throw new ArgumentNullException(nameof(editor));
 
-
             InitializeEditor();
-            LoadTargets();
-
-            _isStarted = true;
-            StartProcessAsync().FireAndForget();
+            LoadTargetsAndStartProcessAsync().FireAndForget();
 
             Log.Logger.Verbose("Finished AvaloniaDesigner.Start()");
         }
@@ -203,6 +198,52 @@ namespace AvaloniaVS.Views
             {
                 newBuffer.ChangedOnBackground += TextChanged;
             }
+        }
+
+        private async Task LoadTargetsAndStartProcessAsync()
+        {
+            Log.Logger.Verbose("Started AvaloniaDesigner.LoadTargetsAndStartProcessAsync()");
+
+            await LoadTargetsAsync();
+            _isStarted = true;
+            await StartProcessAsync();
+
+            Log.Logger.Verbose("Finished AvaloniaDesigner.LoadTargetsAndStartProcessAsync()");
+        }
+
+        private async Task LoadTargetsAsync()
+        {
+            Log.Logger.Verbose("Started AvaloniaDesigner.LoadTargetsAsync()");
+
+            bool IsValidTarget(ProjectInfo project)
+            {
+                return (project == _project || project.ProjectReferences.Contains(_project)) &&
+                    project.References.Contains("Avalonia.DesignerSupport");
+            }
+
+            bool IsValidOutput(ProjectOutputInfo output)
+            {
+                return output.IsNetCore &&
+                    (output.OutputTypeIsExecutable ||
+                    output.TargetAssembly.EndsWith(".exe", StringComparison.OrdinalIgnoreCase));
+            }
+
+            var projects = await AvaloniaPackage.SolutionService.GetProjectsAsync();
+
+            Targets = (from project in projects
+                       where IsValidTarget(project)
+                       orderby project.Project != project, !project.IsStartupProject, project.Name
+                       from output in project.Outputs
+                       where IsValidOutput(output)
+                       select new DesignerRunTarget
+                       {
+                           Name = $"{project.Name} [{output.TargetFramework}]",
+                           TargetAssembly = output.TargetAssembly,
+                       }).ToList();
+
+            SelectedTarget = Targets.FirstOrDefault();
+
+            Log.Logger.Verbose("Finished AvaloniaDesigner.LoadTargetsAsync()");
         }
 
         private async Task StartProcessAsync()
@@ -292,34 +333,6 @@ namespace AvaloniaVS.Views
             }
         }
 
-        private void LoadTargets()
-        {
-            var oldTargets = Targets ?? Array.Empty<DesignerRunTarget>();
-            var newTargets = ProjectInfoService.Projects
-                .Where(x => (x.Project == _project || x.ProjectReferences.Contains(_project)) &&
-                            x.References.Contains("Avalonia.DesignerSupport"))
-                .OrderBy(x => x.Project == _project)
-                .ThenBy(x => x.Name)
-                .SelectMany(x => x.RunnableOutputs
-                    .Select(o => new DesignerRunTarget
-                    {
-                        Name = $"{x.Name} [{o.Key}]",
-                        TargetAssembly = o.Value,
-                        IsContainingProject = x.Project == _project,
-                    })).ToList();
-
-            Targets = oldTargets
-                .Union(newTargets)
-                .Distinct()
-                .OrderBy(x => x)
-                .ToList();
-
-            if (SelectedTarget == null || !Targets.Contains(SelectedTarget))
-            {
-                SelectedTarget = Targets.FirstOrDefault();
-            }
-        }
-
         private async void ErrorChanged(object sender, EventArgs e)
         {
             if (Process.Bitmap == null && Process.Error != null)
@@ -375,11 +388,6 @@ namespace AvaloniaVS.Views
         private void TextChanged(object sender, TextContentChangedEventArgs e)
         {
             _throttle.Queue(e.After.GetText());
-        }
-
-        private void ProjectInfoChanged(object sender, EventArgs e)
-        {
-            LoadTargets();
         }
 
         private void UpdateXaml(string xaml)

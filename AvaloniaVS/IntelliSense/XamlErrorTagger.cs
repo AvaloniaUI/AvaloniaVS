@@ -1,7 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using Avalonia.Remote.Protocol.Designer;
 using AvaloniaVS.Services;
+using EnvDTE;
+using EnvDTE80;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
@@ -34,9 +39,9 @@ namespace AvaloniaVS.IntelliSense
             _error = process.Error;
 
             // Get the document path and containing project name.
-            var document = buffer.GetDocument();
+            var document = GetDocument(buffer);
             _path = document?.FilePath;
-            _projectName = document?.GetProject()?.Name;
+            _projectName = GetProject(_path)?.Name;
 
             // Register ourselves with the error list.
             var tableManager = tableManagerProvider.GetTableManager(StandardTables.ErrorsTable);
@@ -128,6 +133,26 @@ namespace AvaloniaVS.IntelliSense
                 var line = _buffer.CurrentSnapshot.GetLineFromLineNumber(Math.Max(error.LineNumber.Value - 1, 0));
                 TagsChanged(this, new SnapshotSpanEventArgs(line.Extent));
             }
+        }
+
+        private static ITextDocument GetDocument(ITextBuffer buffer)
+        {
+            buffer.Properties.TryGetProperty<ITextDocument>(typeof(ITextDocument), out var document);
+            return document;
+        }
+
+        private static Project GetProject(string fileName)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            if (string.IsNullOrWhiteSpace(fileName) || !File.Exists(fileName))
+            {
+                return null;
+            }
+
+            var dte2 = (DTE2)Package.GetGlobalService(typeof(SDTE));
+            var projItem = dte2?.Solution.FindProjectItem(fileName);
+            return projItem?.ContainingProject;
         }
     }
 }

@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Avalonia.Remote.Protocol.Designer;
 using AvaloniaVS.Services;
+using EnvDTE;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -28,9 +29,11 @@ namespace AvaloniaVS
         DesignerLogicalViewEditor = typeof(EditorFactory),
         DebuggingLogicalViewEditor = typeof(EditorFactory),
         TextLogicalViewEditor = typeof(EditorFactory))]
-    public sealed class AvaloniaPackage : AsyncPackage
+    internal sealed class AvaloniaPackage : AsyncPackage
     {
         public const string PackageGuidString = "894B5FA9-7669-4E8A-81DE-709F18B47CEE";
+
+        public static SolutionService SolutionService { get; private set; }
 
         protected override async Task InitializeAsync(
             CancellationToken cancellationToken,
@@ -42,6 +45,9 @@ namespace AvaloniaVS
 
             InitializeLogging();
             RegisterEditorFactory(new EditorFactory(this));
+
+            var dte = (DTE)await GetServiceAsync(typeof(DTE));
+            SolutionService = new SolutionService(dte);
 
             Log.Logger.Information("Avalonia Package initialized");
         }
