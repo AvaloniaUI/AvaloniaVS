@@ -29,5 +29,10 @@
         /// Gets or sets a value indicating whether the target framework is dotnet core.
         /// </summary>
         public bool IsNetCore { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the target framework is netstandard.
+        /// </summary>
+        public bool IsNetStandard { get; set; }
     }
 }

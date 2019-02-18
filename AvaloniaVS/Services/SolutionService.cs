@@ -260,6 +260,7 @@ namespace AvaloniaVS.Services
                     TargetFramework = alternative.Key == "classic" ? "net40" : alternative.Key
                 };
                 nfo.IsNetCore = nfo.TargetFramework.StartsWith("netcoreapp");
+                nfo.IsNetStandard = nfo.TargetFramework.StartsWith("netstandard");
                 nfo.IsFullDotNet = s_desktopFrameworkRegex.IsMatch(nfo.TargetFramework);
                 lst.Add(nfo);
             }

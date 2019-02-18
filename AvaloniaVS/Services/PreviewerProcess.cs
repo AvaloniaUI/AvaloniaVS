@@ -25,6 +25,7 @@ namespace AvaloniaVS.Services
     public class PreviewerProcess : IDisposable, ILogEventEnricher
     {
         private readonly ILogger _log;
+        private string _assemblyPath;
         private string _executablePath;
         private Process _process;
         private IAvaloniaRemoteTransportConnection _connection;
@@ -94,15 +95,23 @@ namespace AvaloniaVS.Services
         /// <summary>
         /// Starts the previewer process.
         /// </summary>
-        /// <param name="executablePath">The path to the executable to preview.</param>
+        /// <param name="assemblyPath">The path to the assembly containing the XAML.</param>
+        /// <param name="executablePath">The path to the executable to use for the preview.</param>
         /// <returns>A task tracking the startup operation.</returns>
-        public async Task StartAsync(string executablePath)
+        public async Task StartAsync(string assemblyPath, string executablePath)
         {
             _log.Verbose("Started PreviewerProcess.StartAsync()");
 
             if (_listener != null)
             {
                 throw new InvalidOperationException("Previewer process already started.");
+            }
+
+            if (string.IsNullOrWhiteSpace(assemblyPath))
+            {
+                throw new ArgumentException(
+                    "Assembly path may not be null or an empty string.",
+                    nameof(assemblyPath));
             }
 
             if (string.IsNullOrWhiteSpace(executablePath))
@@ -112,6 +121,13 @@ namespace AvaloniaVS.Services
                     nameof(executablePath));
             }
 
+            if (!File.Exists(assemblyPath))
+            {
+                throw new FileNotFoundException(
+                    $"Could not find '{assemblyPath}'. " +
+                    "Please build your project to enable previewing and intellisense.");
+            }
+
             if (!File.Exists(executablePath))
             {
                 throw new FileNotFoundException(
@@ -119,6 +135,7 @@ namespace AvaloniaVS.Services
                     "Please build your project to enable previewing and intellisense.");
             }
 
+            _assemblyPath = assemblyPath;
             _executablePath = executablePath;
             Error = null;
 
@@ -256,7 +273,7 @@ namespace AvaloniaVS.Services
 
             await SendAsync(new UpdateXamlMessage
             {
-                AssemblyPath = _executablePath,
+                AssemblyPath = _assemblyPath,
                 Xaml = xaml,
             });
         }

@@ -13,8 +13,13 @@ namespace AvaloniaVS.Models
         public string Name { get; set; }
 
         /// <summary>
-        /// Gets or sets the full path to the target assembly.
+        /// Gets or sets the full path to the executable assembly.
         /// </summary>
-        public string TargetAssembly { get; set; }
+        public string ExecutableAssembly { get; set; }
+
+        /// <summary>
+        /// Gets or sets the full path to the assembly containing the XAML.
+        /// </summary>
+        public string XamlAssembly { get; set; }
     }
 }

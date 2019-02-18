@@ -215,6 +215,8 @@ namespace AvaloniaVS.Views
         {
             Log.Logger.Verbose("Started AvaloniaDesigner.LoadTargetsAsync()");
 
+            var projects = await AvaloniaPackage.SolutionService.GetProjectsAsync();
+
             bool IsValidTarget(ProjectInfo project)
             {
                 return (project == _project || project.ProjectReferences.Contains(_project)) &&
@@ -228,7 +230,19 @@ namespace AvaloniaVS.Views
                     output.TargetAssembly.EndsWith(".exe", StringComparison.OrdinalIgnoreCase));
             }
 
-            var projects = await AvaloniaPackage.SolutionService.GetProjectsAsync();
+            string GetXamlAssembly(ProjectOutputInfo output)
+            {
+                var project = projects.FirstOrDefault(x => x.Project == _project);
+
+                // Ideally we'd have the path to the `project` assembly that `output` uses, but
+                // I'm not sure how to get that information, so instead look for a netcore output
+                // or failing that a netstandard output, and pray.
+                return project?.Outputs
+                    .OrderBy(x => !x.IsNetCore)
+                    .ThenBy(x => !x.IsNetStandard)
+                    .FirstOrDefault()?
+                    .TargetAssembly;
+            }
 
             Targets = (from project in projects
                        where IsValidTarget(project)
@@ -238,7 +252,8 @@ namespace AvaloniaVS.Views
                        select new DesignerRunTarget
                        {
                            Name = $"{project.Name} [{output.TargetFramework}]",
-                           TargetAssembly = output.TargetAssembly,
+                           ExecutableAssembly = output.TargetAssembly,
+                           XamlAssembly = GetXamlAssembly(output),
                        }).ToList();
 
             SelectedTarget = Targets.FirstOrDefault();
@@ -252,9 +267,10 @@ namespace AvaloniaVS.Views
 
             ShowPreview();
 
-            var executablePath = SelectedTarget?.TargetAssembly;
+            var assemblyPath = SelectedTarget?.XamlAssembly;
+            var executablePath = SelectedTarget?.ExecutableAssembly;
 
-            if (executablePath != null)
+            if (assemblyPath != null && executablePath != null)
             {
                 var buffer = _editor.TextView.TextBuffer;
                 var metadata = buffer.Properties.GetOrCreateSingletonProperty(
@@ -272,7 +288,7 @@ namespace AvaloniaVS.Views
 
                     if (!IsPaused)
                     {
-                        await Process.StartAsync(executablePath);
+                        await Process.StartAsync(assemblyPath, executablePath);
                         await Process.UpdateXamlAsync(await ReadAllTextAsync(_xamlPath));
                     }
                 }
@@ -405,21 +421,24 @@ namespace AvaloniaVS.Views
 
             Log.Logger.Debug(
                 "AvaloniaDesigner.SelectedTarget changed from {OldTarget} to {NewTarget}",
-                oldValue?.TargetAssembly,
-                newValue?.TargetAssembly);
+                oldValue?.ExecutableAssembly,
+                newValue?.ExecutableAssembly);
 
-            if (oldValue?.TargetAssembly != newValue?.TargetAssembly && _isStarted)
+            if (oldValue?.ExecutableAssembly != newValue?.ExecutableAssembly)
             {
-                try
+                if (_isStarted)
                 {
-                    Log.Logger.Debug("Waiting for StartProcessAsync to finish");
-                    await _startingProcess.WaitAsync();
-                    Process.Stop();
-                    StartProcessAsync().FireAndForget();
-                }
-                finally
-                {
-                    _startingProcess.Release();
+                    try
+                    {
+                        Log.Logger.Debug("Waiting for StartProcessAsync to finish");
+                        await _startingProcess.WaitAsync();
+                        Process.Stop();
+                        StartProcessAsync().FireAndForget();
+                    }
+                    finally
+                    {
+                        _startingProcess.Release();
+                    }
                 }
             }
         }
