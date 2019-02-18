@@ -120,6 +120,7 @@ namespace AvaloniaVS.Services
             }
 
             _executablePath = executablePath;
+            Error = null;
 
             var port = FreeTcpPort();
             var tcs = new TaskCompletionSource<object>();
