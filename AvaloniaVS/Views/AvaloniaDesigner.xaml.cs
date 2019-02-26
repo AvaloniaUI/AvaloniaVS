@@ -219,7 +219,7 @@ namespace AvaloniaVS.Views
 
             bool IsValidTarget(ProjectInfo project)
             {
-                return (project == _project || project.ProjectReferences.Contains(_project)) &&
+                return (project.Project == _project || project.ProjectReferences.Contains(_project)) &&
                     project.References.Contains("Avalonia.DesignerSupport");
             }
 
