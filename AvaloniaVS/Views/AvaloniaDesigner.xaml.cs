@@ -50,6 +50,7 @@ namespace AvaloniaVS.Views
         private bool _isStarted;
         private bool _isPaused;
         private SemaphoreSlim _startingProcess = new SemaphoreSlim(1, 1);
+        private bool _disposed;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AvaloniaDesigner"/> class.
@@ -171,6 +172,8 @@ namespace AvaloniaVS.Views
         /// </summary>
         public void Dispose()
         {
+            _disposed = true;
+
             if (_editor?.TextView.TextBuffer is ITextBuffer2 oldBuffer)
             {
                 oldBuffer.ChangedOnBackground -= TextChanged;
@@ -205,8 +208,12 @@ namespace AvaloniaVS.Views
             Log.Logger.Verbose("Started AvaloniaDesigner.LoadTargetsAndStartProcessAsync()");
 
             await LoadTargetsAsync();
-            _isStarted = true;
-            await StartProcessAsync();
+
+            if (!_disposed)
+            {
+                _isStarted = true;
+                await StartProcessAsync();
+            }
 
             Log.Logger.Verbose("Finished AvaloniaDesigner.LoadTargetsAndStartProcessAsync()");
         }
