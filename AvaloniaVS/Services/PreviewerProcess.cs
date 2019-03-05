@@ -430,7 +430,7 @@ namespace AvaloniaVS.Services
         private void OnProcessExited(object sender, EventArgs e)
         {
             _log.Information("Process exited");
-            _process = null;
+            Stop();
             ProcessExited?.Invoke(this, EventArgs.Empty);
         }
 

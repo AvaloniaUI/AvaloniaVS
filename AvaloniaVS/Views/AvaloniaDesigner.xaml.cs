@@ -47,6 +47,7 @@ namespace AvaloniaVS.Views
         private Project _project;
         private IWpfTextViewHost _editor;
         private string _xamlPath;
+        private bool _loadingTargets;
         private bool _isStarted;
         private bool _isPaused;
         private SemaphoreSlim _startingProcess = new SemaphoreSlim(1, 1);
@@ -93,7 +94,7 @@ namespace AvaloniaVS.Views
                         else
                         {
                             pausedMessage.Visibility = Visibility.Collapsed;
-                            StartProcessAsync().FireAndForget();
+                            LoadTargetsAndStartProcessAsync().FireAndForget();
                         }
                     }
                 }
@@ -222,48 +223,57 @@ namespace AvaloniaVS.Views
         {
             Log.Logger.Verbose("Started AvaloniaDesigner.LoadTargetsAsync()");
 
-            var projects = await AvaloniaPackage.SolutionService.GetProjectsAsync();
+            _loadingTargets = true;
 
-            bool IsValidTarget(ProjectInfo project)
+            try
             {
-                return (project.Project == _project || project.ProjectReferences.Contains(_project)) &&
-                    project.References.Contains("Avalonia.DesignerSupport");
-            }
+                var projects = await AvaloniaPackage.SolutionService.GetProjectsAsync();
 
-            bool IsValidOutput(ProjectOutputInfo output)
+                bool IsValidTarget(ProjectInfo project)
+                {
+                    return (project.Project == _project || project.ProjectReferences.Contains(_project)) &&
+                        project.References.Contains("Avalonia.DesignerSupport");
+                }
+
+                bool IsValidOutput(ProjectOutputInfo output)
+                {
+                    return output.IsNetCore &&
+                        (output.OutputTypeIsExecutable ||
+                        output.TargetAssembly.EndsWith(".exe", StringComparison.OrdinalIgnoreCase));
+                }
+
+                string GetXamlAssembly(ProjectOutputInfo output)
+                {
+                    var project = projects.FirstOrDefault(x => x.Project == _project);
+
+                    // Ideally we'd have the path to the `project` assembly that `output` uses, but
+                    // I'm not sure how to get that information, so instead look for a netcore output
+                    // or failing that a netstandard output, and pray.
+                    return project?.Outputs
+                        .OrderBy(x => !x.IsNetCore)
+                        .ThenBy(x => !x.IsNetStandard)
+                        .FirstOrDefault()?
+                        .TargetAssembly;
+                }
+
+                Targets = (from project in projects
+                           where IsValidTarget(project)
+                           orderby project.Project != project, !project.IsStartupProject, project.Name
+                           from output in project.Outputs
+                           where IsValidOutput(output)
+                           select new DesignerRunTarget
+                           {
+                               Name = $"{project.Name} [{output.TargetFramework}]",
+                               ExecutableAssembly = output.TargetAssembly,
+                               XamlAssembly = GetXamlAssembly(output),
+                           }).ToList();
+
+                SelectedTarget = Targets.FirstOrDefault();
+            }
+            finally
             {
-                return output.IsNetCore &&
-                    (output.OutputTypeIsExecutable ||
-                    output.TargetAssembly.EndsWith(".exe", StringComparison.OrdinalIgnoreCase));
+                _loadingTargets = false;
             }
-
-            string GetXamlAssembly(ProjectOutputInfo output)
-            {
-                var project = projects.FirstOrDefault(x => x.Project == _project);
-
-                // Ideally we'd have the path to the `project` assembly that `output` uses, but
-                // I'm not sure how to get that information, so instead look for a netcore output
-                // or failing that a netstandard output, and pray.
-                return project?.Outputs
-                    .OrderBy(x => !x.IsNetCore)
-                    .ThenBy(x => !x.IsNetStandard)
-                    .FirstOrDefault()?
-                    .TargetAssembly;
-            }
-
-            Targets = (from project in projects
-                       where IsValidTarget(project)
-                       orderby project.Project != project, !project.IsStartupProject, project.Name
-                       from output in project.Outputs
-                       where IsValidOutput(output)
-                       select new DesignerRunTarget
-                       {
-                           Name = $"{project.Name} [{output.TargetFramework}]",
-                           ExecutableAssembly = output.TargetAssembly,
-                           XamlAssembly = GetXamlAssembly(output),
-                       }).ToList();
-
-            SelectedTarget = Targets.FirstOrDefault();
 
             Log.Logger.Verbose("Finished AvaloniaDesigner.LoadTargetsAsync()");
         }
@@ -452,7 +462,10 @@ namespace AvaloniaVS.Views
 
         private static void HandleSelectedTargetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            (d as AvaloniaDesigner)?.SelectedTargetChangedAsync(d, e).FireAndForget();
+            if (d is AvaloniaDesigner designer && !designer._loadingTargets)
+            {
+                designer.SelectedTargetChangedAsync(d, e).FireAndForget();
+            }
         }
 
         private static async Task<string> ReadAllTextAsync(string fileName)
