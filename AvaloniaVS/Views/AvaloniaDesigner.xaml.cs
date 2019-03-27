@@ -196,6 +196,7 @@ namespace AvaloniaVS.Views
         {
             editorHost.Child = _editor.HostControl;
 
+            _editor.TextView.TextBuffer.Properties.RemoveProperty(typeof(PreviewerProcess));
             _editor.TextView.TextBuffer.Properties.AddProperty(typeof(PreviewerProcess), Process);
 
             if (_editor.TextView.TextBuffer is ITextBuffer2 newBuffer)
