@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Avalonia.Remote.Protocol.Input;
 using AvaloniaVS.Services;
@@ -51,6 +52,8 @@ namespace AvaloniaVS.Views
             Update(null);
         }
 
+        protected override void OnDpiChanged(DpiScale oldDpi, DpiScale newDpi) => Update(_process?.Bitmap);
+
         private async void Update(object sender, EventArgs e)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -71,8 +74,9 @@ namespace AvaloniaVS.Views
 
             if (bitmap != null)
             {
-                preview.Width = bitmap.Width;
-                preview.Height = bitmap.Height;
+                var scaling = VisualTreeHelper.GetDpi(this).DpiScaleX;
+                preview.Width = bitmap.Width / scaling;
+                preview.Height = bitmap.Height / scaling;
                 loading.Visibility = Visibility.Collapsed;
                 previewScroll.Visibility = Visibility.Visible;
             }

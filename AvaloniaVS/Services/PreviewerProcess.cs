@@ -27,6 +27,7 @@ namespace AvaloniaVS.Services
         private readonly ILogger _log;
         private string _assemblyPath;
         private string _executablePath;
+        private double _scaling;
         private Process _process;
         private IAvaloniaRemoteTransportConnection _connection;
         private IDisposable _listener;
@@ -255,6 +256,25 @@ namespace AvaloniaVS.Services
         }
 
         /// <summary>
+        /// Sets the scaling for the preview.
+        /// </summary>
+        /// <param name="scaling">The scaling factor.</param>
+        /// <returns>A task tracking the operation.</returns>
+        public async Task SetScalingAsync(double scaling)
+        {
+            _scaling = scaling;
+
+            if (IsReady)
+            {
+                await SendAsync(new ClientRenderInfoMessage
+                {
+                    DpiX = 96 * _scaling,
+                    DpiY = 96 * _scaling,
+                });
+            }
+        }
+
+        /// <summary>
         /// Updates the XAML to be previewed.
         /// </summary>
         /// <param name="xaml">The XAML.</param>
@@ -335,11 +355,7 @@ namespace AvaloniaVS.Services
                 }
             });
 
-            await SendAsync(new ClientRenderInfoMessage
-            {
-                DpiX = 96,
-                DpiY = 96,
-            });
+            await SetScalingAsync(_scaling);
 
             _log.Verbose("Finished PreviewerProcess.ConnectionInitializedAsync()");
         }

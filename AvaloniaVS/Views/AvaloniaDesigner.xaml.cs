@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using Avalonia.Ide.CompletionEngine;
 using Avalonia.Ide.CompletionEngine.AssemblyMetadata;
 using Avalonia.Ide.CompletionEngine.DnlibMetadataProvider;
@@ -192,6 +193,11 @@ namespace AvaloniaVS.Views
             Process.Dispose();
         }
 
+        protected override void OnDpiChanged(DpiScale oldDpi, DpiScale newDpi)
+        {
+            Process.SetScalingAsync(newDpi.DpiScaleX).FireAndForget();
+        }
+
         private void InitializeEditor()
         {
             editorHost.Child = _editor.HostControl;
@@ -306,6 +312,7 @@ namespace AvaloniaVS.Views
 
                     if (!IsPaused)
                     {
+                        await Process.SetScalingAsync(VisualTreeHelper.GetDpi(this).DpiScaleX);
                         await Process.StartAsync(assemblyPath, executablePath);
                         await Process.UpdateXamlAsync(await ReadAllTextAsync(_xamlPath));
                     }
