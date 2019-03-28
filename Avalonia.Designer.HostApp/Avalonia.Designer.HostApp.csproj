@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>netcoreapp2.0</TargetFrameworks>
+    <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
+    <TieredCompilation>True</TieredCompilation>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\submodules\Avalonia\src\Avalonia.DesignerSupport\Avalonia.DesignerSupport.csproj" />
+  </ItemGroup>
+</Project>
