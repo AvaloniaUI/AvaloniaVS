@@ -25,7 +25,6 @@ namespace AvaloniaVS.Services
         private static readonly Guid XmlLanguageServiceGuid = new Guid("f6819a78-a205-47b5-be1c-675b3c7f0b8e");
         private static readonly Guid XamlLanguageServiceGuid = new Guid("cd53c9a1-6bc2-412b-be36-cc715ed8dd41");
         private readonly AvaloniaPackage _package;
-        private LanguagePreferencesTracker _prefsTracker;
         private IOleServiceProvider _oleServiceProvider;
         private ServiceProvider _serviceProvider;
 
@@ -40,9 +39,6 @@ namespace AvaloniaVS.Services
         {
             _oleServiceProvider = psp;
             _serviceProvider = new ServiceProvider(psp);
-            _prefsTracker = new LanguagePreferencesTracker(
-                _serviceProvider.GetService<IVsTextManager, SVsTextManager>(),
-                XamlLanguageServiceGuid);
             return VSConstants.S_OK;
         }
 
@@ -195,14 +191,11 @@ namespace AvaloniaVS.Services
             ErrorHandler.ThrowOnFailure(codeWindow.SetBuffer(bufferAdapter));
             ErrorHandler.ThrowOnFailure(codeWindow.GetPrimaryView(out var textViewAdapter));
 
-            // Because we've switched the buffer to XML, we need to manually set the XAML options
-            // on the text view in order to get the user's XAML tab size etc.
-            var textViewHost = eafs.GetWpfTextViewHost(textViewAdapter);
-            _prefsTracker.Track(textViewHost.TextView);
-
             // In VS2019 preview 3, the IWpfTextViewHost.HostControl comes parented. Remove the
             // control from its parent otherwise we can't reparent it. This is probably a bug
             // in the preview and can probably be removed later.
+            var textViewHost = eafs.GetWpfTextViewHost(textViewAdapter);
+
             if (textViewHost.HostControl.Parent is Decorator parent)
             {
                 parent.Child = null;
