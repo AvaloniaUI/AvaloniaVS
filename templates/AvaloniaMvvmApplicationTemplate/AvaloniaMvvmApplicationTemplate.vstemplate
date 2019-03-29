@@ -7,7 +7,7 @@
     <ProjectType>CSharp</ProjectType>
     <RequiredFrameworkVersion>4.5</RequiredFrameworkVersion>
     <SortOrder>1000</SortOrder>
-    <TemplateID>191cf8ae-cce5-4162-8932-d4f34eec1938</TemplateID>
+    <TemplateID>22e7ae2c-9e7f-4500-a5f3-7b2fa5efa8ce</TemplateID>
     <CreateNewFolder>true</CreateNewFolder>
     <DefaultName>AvaloniaApplication</DefaultName>
     <ProvideDefaultName>true</ProvideDefaultName>
