@@ -17,6 +17,7 @@ namespace AvaloniaVS
     [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)]
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [ProvideAutoLoad(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_string, PackageAutoLoadFlags.BackgroundLoad)]
+    [ProvideEditorExtension(typeof(EditorFactory), ".paml", 100, NameResourceID = 113, DefaultName = "Avalonia Xaml Editor")]
     [ProvideEditorFactory(typeof(EditorFactory), 113, TrustLevel = __VSEDITORTRUSTLEVEL.ETL_AlwaysTrusted)]
     [ProvideEditorLogicalView(typeof(EditorFactory), LogicalViewID.Designer)]
     [ProvideXmlEditorChooserDesignerView("Avalonia",
@@ -31,7 +32,7 @@ namespace AvaloniaVS
         TextLogicalViewEditor = typeof(EditorFactory))]
     internal sealed class AvaloniaPackage : AsyncPackage
     {
-        public const string PackageGuidString = "894B5FA9-7669-4E8A-81DE-709F18B47CEE";
+        public const string PackageGuidString = "865ba8d5-1180-4bf8-8821-345f72a4cb79";
 
         public static SolutionService SolutionService { get; private set; }
 
