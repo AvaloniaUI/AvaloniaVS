@@ -1,6 +1,4 @@
-﻿using System;
-using Avalonia.Remote.Protocol.Designer;
-using EnvDTE;
+﻿using Avalonia.Remote.Protocol.Designer;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableManager;
 

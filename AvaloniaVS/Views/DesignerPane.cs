@@ -14,9 +14,9 @@ namespace AvaloniaVS.Views
         private readonly Project _project;
         private readonly string _xamlPath;
         private readonly IWpfTextViewHost _editorHost;
+        private readonly DTEEvents _dteEvents;
+        private readonly BuildEvents _buildEvents;
         private AvaloniaDesigner _content;
-        private DTEEvents _dteEvents;
-        private BuildEvents _buildEvents;
         private bool _isPaused;
 
         /// <summary>

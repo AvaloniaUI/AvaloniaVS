@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
-using Avalonia.Remote.Protocol.Designer;
 using AvaloniaVS.Services;
 using EnvDTE;
 using Microsoft.VisualStudio;
@@ -63,16 +61,6 @@ namespace AvaloniaVS
                 .WriteTo.Sink(sink)
                 .WriteTo.Trace(outputTemplate: format)
                 .CreateLogger();
-        }
-
-        private object TransformUpdateXamlMessage(UpdateXamlMessage m)
-        {
-            return new
-            {
-                m.AssemblyPath,
-                m.XamlFileProjectPath,
-                XamlLength = m.Xaml.Length,
-            };
         }
     }
 }

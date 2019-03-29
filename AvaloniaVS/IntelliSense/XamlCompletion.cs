@@ -9,7 +9,6 @@ using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Serilog;
 
 namespace AvaloniaVS.IntelliSense
 {
@@ -48,6 +47,8 @@ namespace AvaloniaVS.IntelliSense
 
         private static ImageSource GetImage(CompletionKind kind, IVsImageService2 imageService)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             if (s_images == null)
             {
                 LoadImages(imageService);
@@ -58,6 +59,8 @@ namespace AvaloniaVS.IntelliSense
 
         private static void LoadImages(IVsImageService2 imageService)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             var capacity = Enum.GetValues(typeof(CompletionKind)).Cast<int>().Max() + 1;
             var attributes = new ImageAttributes
             {

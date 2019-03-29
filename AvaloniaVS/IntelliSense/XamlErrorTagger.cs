@@ -32,6 +32,8 @@ namespace AvaloniaVS.IntelliSense
             ITextStructureNavigator navigator,
             PreviewerProcess process)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             _buffer = buffer;
             _navigator = navigator;
             _process = process;
