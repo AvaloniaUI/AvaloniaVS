@@ -151,6 +151,12 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Avalonia.Designer.HostApp\Avalonia.Designer.HostApp.csproj">
+      <Project>{807b1159-1d38-4d99-bf70-c2e430a38cd1}</Project>
+      <Name>Avalonia.Designer.HostApp</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <AdditionalProperties>TargetFramework=net472</AdditionalProperties>
+    </ProjectReference>
     <ProjectReference Include="..\submodules\Avalonia.Ide\src\Avalonia.Ide.CompletionEngine.DnlibMetadataProvider\Avalonia.Ide.CompletionEngine.DnlibMetadataProvider.csproj">
       <Project>{317c91b4-1cb9-4bf2-8d5a-075ca214bf7c}</Project>
       <Name>Avalonia.Ide.CompletionEngine.DnlibMetadataProvider</Name>
