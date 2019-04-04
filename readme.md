@@ -1,5 +1,6 @@
-# Visual Studio Extension for AvaloniaUI #
+# Avalonia for Visual Studio
 
-This extension adds templates for AvaloniaUI
+XAML previewer and templates for the Avalonia UI framework.
 
+https://github.com/AvaloniaUI/Avalonia
 https://marketplace.visualstudio.com/items?itemName=AvaloniaTeam.AvaloniaforVisualStudio

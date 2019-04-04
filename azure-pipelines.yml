@@ -35,8 +35,17 @@ steps:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
 
+- task: CopyFiles@2
+  inputs:
+    contents: |
+      AvaloniaVS\bin\Release\AvaloniaVS.vsix
+      publishManifest.json
+      readme.md
+    targetFolder: '$(Build.ArtifactStagingDirectory)'
+  condition: succeeded()
+
 - task: PublishBuildArtifacts@1
   inputs:
-    pathToPublish: '$(Build.SourcesDirectory)/AvaloniaVS/bin/Release/'
-    artifactName: 'AvaloniaVS.vsix'
+    pathToPublish: '$(Build.ArtifactStagingDirectory)'
+    artifactName: 'publish'
   condition: succeeded()
