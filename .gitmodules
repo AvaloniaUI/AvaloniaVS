@@ -1,3 +1,6 @@
-[submodule "src/external/Avalonia.Ide"]
-	path = src/external/Avalonia.Ide
-	url = https://github.com/donandren/Avalonia.Ide
+[submodule "submodules/Avalonia"]
+	path = submodules/Avalonia
+	url = https://github.com/AvaloniaUI/Avalonia
+[submodule "submodules/Avalonia.Ide"]
+	path = submodules/Avalonia.Ide
+	url = https://github.com/grokys/Avalonia.Ide
