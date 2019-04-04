@@ -34,3 +34,9 @@ steps:
   inputs:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathToPublish: '$(Build.SourcesDirectory)/AvaloniaVS/bin/Release/'
+    artifactName: 'AvaloniaVS.vsix'
+  condition: succeeded()
