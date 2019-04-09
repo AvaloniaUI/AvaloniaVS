@@ -23,7 +23,12 @@ namespace $safeprojectname$
         // container, etc.
         private static void AppMain(Application app, string[] args)
         {
-            app.Run(new MainWindow());
+            var window = new MainWindow
+            {
+                DataContext = new MainWindowViewModel(),
+            };
+
+            app.Run(window);
         }
     }
 }
