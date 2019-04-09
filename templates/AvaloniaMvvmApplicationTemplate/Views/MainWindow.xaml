@@ -8,9 +8,9 @@
         Icon="/Assets/avalonia-logo.ico"
         Title="$safeprojectname$">
 
-    <Design.DataContext>
+    <Window.DataContext>
         <vm:MainWindowViewModel/>
-    </Design.DataContext>
+    </Window.DataContext>
 
     <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
