@@ -48,7 +48,7 @@ namespace AvaloniaVS.Services
 
             var result = new Dictionary<Project, ProjectInfo>();
             var uninitialized = new Dictionary<VSProject, ProjectInfo>();
-            var startupProjects = ((Array)_dte.Solution.SolutionBuild.StartupProjects).Cast<string>().ToList();
+            var startupProjects = ((Array)_dte.Solution.SolutionBuild.StartupProjects)?.Cast<string>().ToList();
 
             foreach (var project in FlattenProjects(_dte.Solution))
             {
@@ -56,7 +56,7 @@ namespace AvaloniaVS.Services
                 {
                     var projectInfo = new ProjectInfo
                     {
-                        IsStartupProject = startupProjects.Contains(project.UniqueName),
+                        IsStartupProject = startupProjects?.Contains(project.UniqueName) ?? false,
                         Name = project.Name,
                         Project = project,
                         ProjectReferences = GetProjectReferences(vsProject),
