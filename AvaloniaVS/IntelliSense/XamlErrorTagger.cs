@@ -85,7 +85,7 @@ namespace AvaloniaVS.IntelliSense
                 var span = _navigator.GetSpanOfFirstChild(startSpan);
                 var tag = new ErrorTag(PredefinedErrorTypeNames.CompilerError, _error.Message);
 
-                if (spans.OverlapsWith(span))
+                if (spans.IntersectsWith(span))
                 {
                     _tagSpan = new TagSpan<IErrorTag>(span, tag);
                     return new[] { _tagSpan };
