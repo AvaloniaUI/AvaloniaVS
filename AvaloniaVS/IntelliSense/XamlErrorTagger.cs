@@ -24,6 +24,7 @@ namespace AvaloniaVS.IntelliSense
         private readonly string _path;
         private PreviewerProcess _process;
         private ExceptionDetails _error;
+        private ITagSpan<IErrorTag> _tagSpan;
         private ITableDataSink _sink;
 
         public XamlErrorTagger(
@@ -84,9 +85,10 @@ namespace AvaloniaVS.IntelliSense
                 var span = _navigator.GetSpanOfFirstChild(startSpan);
                 var tag = new ErrorTag(PredefinedErrorTypeNames.CompilerError, _error.Message);
 
-                if (spans.OverlapsWith(span))
+                if (spans.IntersectsWith(span))
                 {
-                    return new[] { new TagSpan<IErrorTag>(span, tag) };
+                    _tagSpan = new TagSpan<IErrorTag>(span, tag);
+                    return new[] { _tagSpan };
                 }
             }
 
@@ -107,7 +109,11 @@ namespace AvaloniaVS.IntelliSense
 
         private void HandleErrorChanged(object sender, EventArgs e)
         {
-            RaiseTagsChanged(_error);
+            if (_tagSpan != null)
+            {
+                TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(_tagSpan.Span));
+                _tagSpan = null;
+            }
 
             _error = _process.Error;
 

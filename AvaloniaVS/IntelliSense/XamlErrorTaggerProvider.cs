@@ -10,7 +10,7 @@ namespace AvaloniaVS.IntelliSense
 {
     [Export(typeof(ITaggerProvider))]
     [ContentType("xml")]
-    [TagType(typeof(ErrorTag))]
+    [TagType(typeof(IErrorTag))]
     internal class XamlErrorTaggerProvider : ITaggerProvider
     {
         private readonly ITextStructureNavigatorSelectorService _navigatorProvider;
