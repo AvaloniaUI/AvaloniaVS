@@ -1,6 +1,6 @@
 {
   "$schema": "http://json.schemastore.org/vsix-publish",
-  "categories": [ "tools", "build", "coding" ],
+  "categories": [ "build", "coding" ],
   "overview": "readme.md",
   "publisher": "AvaloniaTeam",
   "qna": true,
