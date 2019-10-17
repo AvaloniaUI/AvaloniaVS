@@ -43,6 +43,13 @@ namespace AvaloniaVS.Views
         public static readonly DependencyProperty TargetsProperty =
             TargetsPropertyKey.DependencyProperty;
 
+        public static readonly DependencyProperty IsPreviewEnabledProperty =
+            DependencyProperty.Register(
+                nameof(IsPreviewEnabled),
+                typeof(bool),
+                typeof(AvaloniaDesigner),
+                new PropertyMetadata(true, HandleIsPreviewEnabledChanged));
+
         private readonly Throttle<string> _throttle;
         private Project _project;
         private IWpfTextViewHost _editor;
@@ -122,6 +129,15 @@ namespace AvaloniaVS.Views
         {
             get => (DesignerRunTarget)GetValue(SelectedTargetProperty);
             set => SetValue(SelectedTargetProperty, value);
+        }
+
+        /// <summary>
+        /// Gets or sets preview is enabled
+        /// </summary>
+        public bool IsPreviewEnabled
+        {
+            get => (bool)GetValue(IsPreviewEnabledProperty);
+            set => SetValue(IsPreviewEnabledProperty, value);
         }
 
         /// <summary>
@@ -417,7 +433,7 @@ namespace AvaloniaVS.Views
                     {
                         await _startingProcess.WaitAsync();
 
-                        if (!IsPaused)
+                        if (!IsPaused && IsPreviewEnabled)
                         {
                             await Process.SetScalingAsync(VisualTreeHelper.GetDpi(this).DpiScaleX);
                             await Process.StartAsync(designAsm.assemblyPath, designAsm.executablePath);
@@ -547,6 +563,11 @@ namespace AvaloniaVS.Views
             }
         }
 
+        private async Task IsPreviewEnabledChangedAsync(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            await TryRestartProcessAsync();
+        }
+
         private async Task SelectedTargetChangedAsync(object sender, DependencyPropertyChangedEventArgs e)
         {
             var oldValue = (DesignerRunTarget)e.OldValue;
@@ -559,19 +580,24 @@ namespace AvaloniaVS.Views
 
             if (oldValue?.ExecutableAssembly != newValue?.ExecutableAssembly)
             {
-                if (_isStarted)
+                await TryRestartProcessAsync();
+            }
+        }
+
+        private async Task TryRestartProcessAsync()
+        {
+            if (_isStarted)
+            {
+                try
                 {
-                    try
-                    {
-                        Log.Logger.Debug("Waiting for StartProcessAsync to finish");
-                        await _startingProcess.WaitAsync();
-                        Process.Stop();
-                        StartProcessAsync().FireAndForget();
-                    }
-                    finally
-                    {
-                        _startingProcess.Release();
-                    }
+                    Log.Logger.Debug("Waiting for StartProcessAsync to finish");
+                    await _startingProcess.WaitAsync();
+                    Process.Stop();
+                    StartProcessAsync().FireAndForget();
+                }
+                finally
+                {
+                    _startingProcess.Release();
                 }
             }
         }
@@ -581,6 +607,14 @@ namespace AvaloniaVS.Views
             if (d is AvaloniaDesigner designer && !designer._loadingTargets)
             {
                 designer.SelectedTargetChangedAsync(d, e).FireAndForget();
+            }
+        }
+
+        private static void HandleIsPreviewEnabledChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is AvaloniaDesigner designer && !designer._loadingTargets)
+            {
+                designer.IsPreviewEnabledChangedAsync(d, e).FireAndForget();
             }
         }
 
