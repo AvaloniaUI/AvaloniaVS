@@ -373,7 +373,7 @@ namespace AvaloniaVS.Views
             {
                 Log.Logger.Error(ex, "AvaloniaDesigner.TryPrepareDesignTempData() failed!");
                 ShowError("Prepare Design Time", $"Prepare Design Time Preview and Completion Failed:{ex.Message}");
-                return default;
+                return default((string, string));
             }
         }
 
@@ -417,7 +417,7 @@ namespace AvaloniaVS.Views
             if (assemblyPath != null && executablePath != null)
             {
                 var designAsm = TryPrepareDesignTempData(executablePath, assemblyPath);
-                if (designAsm != default)
+                if (designAsm != default((string, string)))
                 {
                     var buffer = _editor.TextView.TextBuffer;
                     var metadata = buffer.Properties.GetOrCreateSingletonProperty(
