@@ -423,6 +423,7 @@ namespace AvaloniaVS.Views
                     var metadata = buffer.Properties.GetOrCreateSingletonProperty(
                         typeof(XamlBufferMetadata),
                         () => new XamlBufferMetadata());
+                    buffer.Properties["AssemblyName"] = Path.GetFileNameWithoutExtension(assemblyPath);
 
                     if (metadata.CompletionMetadata == null)
                     {
