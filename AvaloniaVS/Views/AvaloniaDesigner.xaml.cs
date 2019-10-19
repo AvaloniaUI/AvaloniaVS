@@ -417,7 +417,7 @@ namespace AvaloniaVS.Views
             if (assemblyPath != null && executablePath != null)
             {
                 var designAsm = TryPrepareDesignTempData(executablePath, assemblyPath);
-                if (designAsm != default((string, string)))
+                if (!designAsm.Equals(default((string, string))))
                 {
                     var buffer = _editor.TextView.TextBuffer;
                     var metadata = buffer.Properties.GetOrCreateSingletonProperty(
