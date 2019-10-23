@@ -21,7 +21,7 @@ namespace AvaloniaVS.Views
         {
             base.OnActivate(e);
 
-            _options.Settings = Site.GetAvaloniaVSSettings();
+            _options.Settings = Site.GetMefService<IAvaloniaVSSettings>();
         }
 
         public override void SaveSettingsToStorage()

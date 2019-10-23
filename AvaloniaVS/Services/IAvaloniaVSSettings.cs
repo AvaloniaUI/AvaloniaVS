@@ -21,13 +21,4 @@ namespace AvaloniaVS.Services
 
         void Load();
     }
-
-    public static class IAvaloniaVSSettingsExtensions
-    {
-        public static IAvaloniaVSSettings GetAvaloniaVSSettings(this IServiceProvider serviceProvider)
-        {
-            var componentModel = (IComponentModel)(serviceProvider.GetService(typeof(SComponentModel)));
-            return componentModel.DefaultExportProvider.GetExportedValue<IAvaloniaVSSettings>();
-        }
-    }
 }

@@ -69,7 +69,7 @@ namespace AvaloniaVS.Views
 
             base.Initialize();
 
-            var xamlEditorView = new AvaloniaDesigner(this.GetAvaloniaVSSettings());
+            var xamlEditorView = new AvaloniaDesigner(this.GetMefService<IAvaloniaVSSettings>());
 
             xamlEditorView.IsPaused = _isPaused;
             xamlEditorView.Start(_project, _xamlPath, _editorHost);
