@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Threading;
 using AvaloniaVS.Services;
+using AvaloniaVS.Views;
 using EnvDTE;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
@@ -18,6 +19,7 @@ namespace AvaloniaVS
     [ProvideEditorExtension(typeof(EditorFactory), ".paml", 100, NameResourceID = 113, DefaultName = "Avalonia Xaml Editor")]
     [ProvideEditorFactory(typeof(EditorFactory), 113, TrustLevel = __VSEDITORTRUSTLEVEL.ETL_AlwaysTrusted)]
     [ProvideEditorLogicalView(typeof(EditorFactory), LogicalViewID.Designer)]
+    [ProvideOptionPage(typeof(OptionsDialogPage), "Avalonia Xaml Designer", "General", 0, 0, supportsAutomation: true)]
     [ProvideXmlEditorChooserDesignerView("Avalonia",
         "xaml",
         LogicalViewID.Designer,
