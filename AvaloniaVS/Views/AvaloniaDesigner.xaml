@@ -14,12 +14,12 @@
         <conv:NotNullOrEmptyToVisibilityConverter x:Key="NotNullOrEmpty" />
     </UserControl.Resources>
 
-    <Grid>
+    <Grid x:Name="rootGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition />
+            <RowDefinition x:Name="prewiewRow" />
             <RowDefinition Height="Auto" />
-            <RowDefinition />
+            <RowDefinition x:Name="codeRow" />
         </Grid.RowDefinitions>
 
         <DockPanel Name="toolbar"
@@ -28,6 +28,17 @@
                    VerticalAlignment="Top">
             <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
                 <CheckBox Content="Preview Enabled" IsChecked="{Binding IsPreviewEnabled, ElementName=root, Mode=TwoWay}" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                <ComboBox Margin="0 0 10 0"
+                      ItemsSource="{x:Static local:OptionsView.DesignerViewTypes}"
+                      SelectedItem="{Binding DesignerViewType, ElementName=root, Mode=TwoWay}"
+                      Padding="2"
+                      local:VsTheme.UseVsTheme="True">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding StringFormat='\{0\} View'}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
                 <ComboBox
                       ItemsSource="{Binding Targets, ElementName=root}"
                       SelectedItem="{Binding SelectedTarget, ElementName=root}"
@@ -59,7 +70,7 @@
             <TextBlock Name="errorMessage" Margin="0,20,0,0" />
         </StackPanel>
 
-        <GridSplitter Grid.Row="2"
+        <GridSplitter x:Name="splitter" Grid.Row="2"
                       Height="5"
                       HorizontalAlignment="Stretch" />
 

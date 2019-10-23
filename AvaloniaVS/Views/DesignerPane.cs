@@ -1,4 +1,5 @@
-﻿using EnvDTE;
+﻿using AvaloniaVS.Services;
+using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -68,7 +69,8 @@ namespace AvaloniaVS.Views
 
             base.Initialize();
 
-            var xamlEditorView = new AvaloniaDesigner();
+            var xamlEditorView = new AvaloniaDesigner(this.GetAvaloniaVSSettings());
+
             xamlEditorView.IsPaused = _isPaused;
             xamlEditorView.Start(_project, _xamlPath, _editorHost);
             _content = xamlEditorView;

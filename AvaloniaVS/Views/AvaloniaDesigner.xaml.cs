@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Media;
 using Avalonia.Ide.CompletionEngine.AssemblyMetadata;
 using Avalonia.Ide.CompletionEngine.DnlibMetadataProvider;
@@ -50,6 +51,13 @@ namespace AvaloniaVS.Views
                 typeof(AvaloniaDesigner),
                 new PropertyMetadata(true, HandleIsPreviewEnabledChanged));
 
+        public static readonly DependencyProperty DesignerViewTypeProperty =
+            DependencyProperty.Register(
+                nameof(DesignerViewType),
+                typeof(DesignerViewType),
+                typeof(AvaloniaDesigner),
+                new PropertyMetadata(DesignerViewType.Split, HandleDesignerViewTypeChanged));
+
         private readonly Throttle<string> _throttle;
         private Project _project;
         private IWpfTextViewHost _editor;
@@ -63,9 +71,12 @@ namespace AvaloniaVS.Views
         /// <summary>
         /// Initializes a new instance of the <see cref="AvaloniaDesigner"/> class.
         /// </summary>
-        public AvaloniaDesigner()
+        public AvaloniaDesigner(IAvaloniaVSSettings settings)
         {
             InitializeComponent();
+
+            this.SetBinding(DesignerViewTypeProperty, new Binding(nameof(settings.DesignerViewType)) { Source = settings });
+            this.SetBinding(IsPreviewEnabledProperty, new Binding(nameof(settings.EnablePreview)) { Source = settings });
 
             _throttle = new Throttle<string>(TimeSpan.FromMilliseconds(300), UpdateXaml);
             Process = new PreviewerProcess();
@@ -129,6 +140,15 @@ namespace AvaloniaVS.Views
         {
             get => (DesignerRunTarget)GetValue(SelectedTargetProperty);
             set => SetValue(SelectedTargetProperty, value);
+        }
+
+        /// <summary>
+        /// Gets or sets designer view type
+        /// </summary>
+        public DesignerViewType DesignerViewType
+        {
+            get => (DesignerViewType)GetValue(DesignerViewTypeProperty);
+            set => SetValue(DesignerViewTypeProperty, value);
         }
 
         /// <summary>
@@ -616,6 +636,16 @@ namespace AvaloniaVS.Views
             if (d is AvaloniaDesigner designer && !designer._loadingTargets)
             {
                 designer.IsPreviewEnabledChangedAsync(d, e).FireAndForget();
+            }
+        }
+
+        private static void HandleDesignerViewTypeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is AvaloniaDesigner designer && !designer._loadingTargets)
+            {
+                designer.prewiewRow.Height = new GridLength(designer.DesignerViewType == DesignerViewType.Source ? 0 : 1, GridUnitType.Star);
+                designer.codeRow.Height = new GridLength(designer.DesignerViewType == DesignerViewType.Design ? 0 : 1, GridUnitType.Star);
+                designer.splitter.IsEnabled = designer.DesignerViewType == DesignerViewType.Split;
             }
         }
 
