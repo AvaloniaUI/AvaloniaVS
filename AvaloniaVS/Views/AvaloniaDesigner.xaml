@@ -27,18 +27,24 @@
                    Margin="4"
                    VerticalAlignment="Top">
             <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
-                <CheckBox Content="Preview Enabled" IsChecked="{Binding IsPreviewEnabled, ElementName=root, Mode=TwoWay}" Margin="0 0 10 0" VerticalAlignment="Center"/>
-                <ComboBox Margin="0 0 10 0"
+                <CheckBox Content="Preview Enabled" IsChecked="{Binding IsPreviewEnabled, ElementName=root, Mode=TwoWay}" Margin="0 0 10 0" 
+                          VerticalAlignment="Center" local:VsTheme.UseVsTheme="True"/>
+                <ListBox Margin="0 0 10 0" BorderThickness="0"
                       ItemsSource="{x:Static local:OptionsView.DesignerViewTypes}"
                       SelectedItem="{Binding DesignerViewType, ElementName=root, Mode=TwoWay}"
-                      Padding="2"
+                      Background="Transparent"
                       local:VsTheme.UseVsTheme="True">
-                    <ComboBox.ItemTemplate>
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+                    <ListBox.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding StringFormat='\{0\} View'}" />
                         </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                </ComboBox>
+                    </ListBox.ItemTemplate>
+                </ListBox>
                 <ComboBox
                       ItemsSource="{Binding Targets, ElementName=root}"
                       SelectedItem="{Binding SelectedTarget, ElementName=root}"
@@ -54,7 +60,7 @@
         <TextBlock Name="pausedMessage"
                    Grid.Row="0"
                    Background="{DynamicResource VsBrush.InfoBackground}"
-                   Padding="4"
+                   Padding="5"
                    VerticalAlignment="Top">
             The designer is paused waiting for a build to complete.
         </TextBlock>

@@ -645,7 +645,7 @@ namespace AvaloniaVS.Views
             {
                 designer.prewiewRow.Height = new GridLength(designer.DesignerViewType == DesignerViewType.Source ? 0 : 1, GridUnitType.Star);
                 designer.codeRow.Height = new GridLength(designer.DesignerViewType == DesignerViewType.Design ? 0 : 1, GridUnitType.Star);
-                designer.splitter.IsEnabled = designer.DesignerViewType == DesignerViewType.Split;
+                designer.splitter.Visibility = designer.DesignerViewType == DesignerViewType.Split ? Visibility.Visible : Visibility.Collapsed;
             }
         }
 
