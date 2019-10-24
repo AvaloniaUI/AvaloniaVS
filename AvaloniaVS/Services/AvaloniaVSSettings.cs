@@ -6,6 +6,9 @@ using System.Runtime.CompilerServices;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Settings;
+using Serilog;
+using Serilog.Core;
+using Serilog.Events;
 
 namespace AvaloniaVS.Services
 {
@@ -51,6 +54,21 @@ namespace AvaloniaVS.Services
             }
         }
 
+        private LogEventLevel _minimumLogVerbosity = LogEventLevel.Information;
+
+        public LogEventLevel MinimumLogVerbosity
+        {
+            get => _minimumLogVerbosity;
+            set
+            {
+                if (_minimumLogVerbosity != value)
+                {
+                    _minimumLogVerbosity = value;
+                    RaisePropertyChanged();
+                }
+            }
+        }
+
         [ImportingConstructor]
         public AvaloniaVSSettings(SVsServiceProvider vsServiceProvider)
         {
@@ -66,10 +84,11 @@ namespace AvaloniaVS.Services
             {
                 EnablePreview = _settings.GetBoolean(SettingsKey, nameof(EnablePreview), true);
                 DesignerViewType = (DesignerViewType)_settings.GetInt32(SettingsKey, nameof(DesignerViewType), (int)DesignerViewType.Split);
+                MinimumLogVerbosity = (LogEventLevel)_settings.GetInt32(SettingsKey, nameof(MinimumLogVerbosity), (int)LogEventLevel.Information);
             }
             catch (Exception ex)
             {
-                Debug.Fail(ex.Message);
+                Log.Error(ex, "Failed to load settings");
             }
         }
 
@@ -84,10 +103,11 @@ namespace AvaloniaVS.Services
 
                 _settings.SetBoolean(SettingsKey, nameof(EnablePreview), EnablePreview);
                 _settings.SetInt32(SettingsKey, nameof(DesignerViewType), (int)DesignerViewType);
+                _settings.SetInt32(SettingsKey, nameof(MinimumLogVerbosity), (int)MinimumLogVerbosity);
             }
             catch (Exception ex)
             {
-                Debug.Fail(ex.Message);
+                Log.Error(ex, "Failed to save settings");
             }
         }
     }

@@ -11,6 +11,8 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="10" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="10" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="150" />
@@ -19,14 +21,14 @@
         </Grid.ColumnDefinitions>
         <CheckBox Content="Enable Preview" VerticalAlignment="Center" IsChecked="{Binding EnablePreview}" />
         <TextBlock Text="Default Document View:" Grid.Column="0" Grid.Row="2" VerticalAlignment="Center" />
-        <ComboBox x:Name="docViewOptions" Grid.Column="2" Grid.Row="2" VerticalAlignment="Center"
+        <ComboBox Grid.Column="2" Grid.Row="2" VerticalAlignment="Center"
                   ItemsSource="{x:Static local:OptionsView.DesignerViewTypes}"
                   SelectedItem="{Binding DesignerViewType, Mode=TwoWay}">
-            <ComboBox.ItemTemplate>
-                <DataTemplate>
-                    <TextBlock Text="{Binding StringFormat='\{0\} View'}" />
-                </DataTemplate>
-            </ComboBox.ItemTemplate>
+        </ComboBox>
+        <TextBlock Text="Minimum Log Verbosity:" Grid.Column="0" Grid.Row="4" VerticalAlignment="Center" />
+        <ComboBox Grid.Column="2" Grid.Row="4" VerticalAlignment="Center"
+                  ItemsSource="{x:Static local:OptionsView.LogEventLevels}"
+                  SelectedItem="{Binding MinimumLogVerbosity, Mode=TwoWay}">
         </ComboBox>
     </Grid>
 </UserControl>

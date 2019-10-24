@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Windows.Controls;
 using AvaloniaVS.Services;
+using Serilog.Events;
 
 namespace AvaloniaVS.Views
 {
@@ -16,6 +17,7 @@ namespace AvaloniaVS.Views
         }
 
         public static DesignerViewType[] DesignerViewTypes { get; } = Enum.GetValues(typeof(DesignerViewType)).Cast<DesignerViewType>().ToArray();
+        public static LogEventLevel[] LogEventLevels { get; } = Enum.GetValues(typeof(LogEventLevel)).Cast<LogEventLevel>().ToArray();
 
         public IAvaloniaVSSettings Settings
         {

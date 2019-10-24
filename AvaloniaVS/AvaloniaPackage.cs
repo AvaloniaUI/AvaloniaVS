@@ -8,6 +8,7 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Serilog;
+using Serilog.Core;
 using Task = System.Threading.Tasks.Task;
 
 namespace AvaloniaVS
@@ -57,10 +58,16 @@ namespace AvaloniaVS
         {
             const string format = "{Timestamp:HH:mm:ss.fff} [{Level}] {Pid} {Message}{NewLine}{Exception}";
             var ouput = this.GetService<IVsOutputWindow, SVsOutputWindow>();
+            var sett = this.GetMefService<IAvaloniaVSSettings>();
+
+            var levelSwitch = new LoggingLevelSwitch() { MinimumLevel = sett.MinimumLogVerbosity };
+
+            sett.PropertyChanged += (s, e) => levelSwitch.MinimumLevel = sett.MinimumLogVerbosity;
+
             var sink = new OutputPaneEventSink(ouput, outputTemplate: format);
             Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Verbose()
-                .WriteTo.Sink(sink)
+                .MinimumLevel.ControlledBy(levelSwitch)
+                .WriteTo.Sink(sink, levelSwitch: levelSwitch)
                 .WriteTo.Trace(outputTemplate: format)
                 .CreateLogger();
         }
