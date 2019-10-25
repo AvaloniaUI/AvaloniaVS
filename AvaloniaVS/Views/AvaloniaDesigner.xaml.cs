@@ -100,7 +100,6 @@ namespace AvaloniaVS.Views
                     Log.Logger.Debug("Setting pause state to {State}", value);
 
                     _isPaused = value;
-                    IsEnabled = !value;
 
                     if (_isStarted)
                     {
