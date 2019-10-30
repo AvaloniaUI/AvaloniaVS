@@ -18,7 +18,7 @@ namespace AvaloniaVS.IntelliSense
     /// <remarks>
     /// Adds a command handler to text views and listens for keypresses which should cause a
     /// completion to be opened or comitted.
-    /// 
+    ///
     /// Yes, this is horrible, but it's apparently the official way to do this. Eurgh.
     /// </remarks>
     internal class XamlCompletionCommandHandler : IOleCommandTarget
@@ -127,51 +127,58 @@ namespace AvaloniaVS.IntelliSense
 
         private bool HandleSessionCompletion(char c)
         {
+            if (_session?.IsDismissed ?? true)
+            {
+                return false;
+            }
+
+            var selected = _session.SelectedCompletionSet.SelectionStatus.Completion as XamlCompletion;
+
+            if (!_session.SelectedCompletionSet.SelectionStatus.IsSelected || selected == null)
+            {
+                return false;
+            }
+
+            if (c == '/')
+            {
+                if (selected?.Kind == CompletionKind.Class)
+                {
+                    _session.Commit();
+
+                    // If '/' was typed and this is an element, add the closing "'/>".
+                    _textView.TextBuffer.Insert(
+                        _textView.Caret.Position.BufferPosition.Position,
+                        "/>");
+
+                    return true;
+                }
+            }
+
             // If the pressed key is a key that can commit a completion session.
             if (char.IsWhiteSpace(c) ||
-                (char.IsPunctuation(c) && c != ':') ||
-                c == '\n' || c == '\r' || c == '=' || c == '/')
+                (char.IsPunctuation(c) && c != ':' && c != '/') ||
+                c == '\n' || c == '\r' || c == '=')
             {
-                // And commit or dismiss the completion session depending its state.
-                if (_session != null && !_session.IsDismissed)
+                _session.Commit();
+
+                if (selected?.CursorOffset > 0)
                 {
-                    if (_session.SelectedCompletionSet.SelectionStatus.IsSelected)
-                    {
-                        var selected = _session.SelectedCompletionSet.SelectionStatus.Completion as XamlCompletion;
-
-                        _session.Commit();
-
-                        if (c == '/' && selected?.Kind == CompletionKind.Class)
-                        {
-                            // If '/' was typed and this is an element, add the closing "'/>".
-                            _textView.TextBuffer.Insert(
-                                _textView.Caret.Position.BufferPosition.Position,
-                                "/>");
-                        }
-                        else if (selected?.CursorOffset > 0)
-                        {
-                            // Offset the cursor if necessary e.g. to place it within the quotation
-                            // marks of an attribute.
-                            var cursorPos = _textView.Caret.Position.BufferPosition;
-                            var newCursorPos = cursorPos - selected.CursorOffset;
-                            _textView.Caret.MoveTo(newCursorPos);
-                        }
-
-                        // If the inserted text is an XML attribute then pop up a new completion
-                        // session to show the valid values for the attribute.
-                        if (selected.InsertionText.EndsWith("=\"\""))
-                        {
-                            TriggerCompletion();
-                        }
-
-                        // Don't add the character to the buffer.
-                        return true;
-                    }
-                    else
-                    {
-                        _session.Dismiss();
-                    }
+                    // Offset the cursor if necessary e.g. to place it within the quotation
+                    // marks of an attribute.
+                    var cursorPos = _textView.Caret.Position.BufferPosition;
+                    var newCursorPos = cursorPos - selected.CursorOffset;
+                    _textView.Caret.MoveTo(newCursorPos);
                 }
+
+                // If the inserted text is an XML attribute then pop up a new completion
+                // session to show the valid values for the attribute.
+                if (selected.InsertionText.EndsWith("=\"\"") || selected.InsertionText.EndsWith("."))
+                {
+                    TriggerCompletion();
+                }
+
+                // Don't add the character to the buffer.
+                return true;
             }
 
             return false;
@@ -218,12 +225,15 @@ namespace AvaloniaVS.IntelliSense
                     case VSConstants.VSStd2KCmdID.TYPECHAR:
                         c = (char)(ushort)Marshal.GetObjectForNativeVariant(pvaIn);
                         break;
+
                     case VSConstants.VSStd2KCmdID.RETURN:
                         c = '\n';
                         break;
+
                     case VSConstants.VSStd2KCmdID.TAB:
                         c = '\t';
                         break;
+
                     case VSConstants.VSStd2KCmdID.BACKSPACE:
                     case VSConstants.VSStd2KCmdID.DELETE:
                         c = '\b';
