@@ -24,6 +24,11 @@
         <ComboBox Grid.Column="2" Grid.Row="2" VerticalAlignment="Center"
                   ItemsSource="{x:Static local:OptionsView.DesignerViewTypes}"
                   SelectedItem="{Binding DesignerViewType, Mode=TwoWay}">
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding StringFormat='\{0\} View'}" />
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
         </ComboBox>
         <TextBlock Text="Minimum Log Verbosity:" Grid.Column="0" Grid.Row="4" VerticalAlignment="Center" />
         <ComboBox Grid.Column="2" Grid.Row="4" VerticalAlignment="Center"
