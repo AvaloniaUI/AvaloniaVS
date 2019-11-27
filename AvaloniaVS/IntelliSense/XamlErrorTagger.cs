@@ -77,22 +77,8 @@ namespace AvaloniaVS.IntelliSense
 
         public IEnumerable<ITagSpan<IErrorTag>> GetTags(NormalizedSnapshotSpanCollection spans)
         {
-            if (_error?.LineNumber != null)
-            {
-                var line = _buffer.CurrentSnapshot.GetLineFromLineNumber(Math.Max(_error.LineNumber.Value - 1, 0));
-                var start = line.Start + Math.Max(((_error?.LinePosition ?? 1) - 1), 0);
-                var startSpan = new SnapshotSpan(start, start + 1);
-                var span = _navigator.GetSpanOfFirstChild(startSpan);
-                var tag = new ErrorTag(PredefinedErrorTypeNames.CompilerError, _error.Message);
-
-                if (spans.IntersectsWith(span))
-                {
-                    _tagSpan = new TagSpan<IErrorTag>(span, tag);
-                    return new[] { _tagSpan };
-                }
-            }
-
-            return Array.Empty<ITagSpan<IErrorTag>>();
+            var result = GetErrorTag(spans);
+            return result != null ? new[] { result } : Array.Empty<ITagSpan<IErrorTag>>();
         }
 
         IDisposable ITableDataSource.Subscribe(ITableDataSink sink)
@@ -105,6 +91,41 @@ namespace AvaloniaVS.IntelliSense
             }
 
             return null;
+        }
+
+        private TagSpan<IErrorTag> GetErrorTag(NormalizedSnapshotSpanCollection spans)
+        {
+            if (_error?.LineNumber == null)
+            {
+                return null;
+            }
+
+            var line = _error.LineNumber.Value - 1;
+            var col = (_error?.LinePosition ?? 1) - 1;
+
+            if (line < 0 || line >= _buffer.CurrentSnapshot.LineCount || col < 0)
+            {
+                return null;
+            }
+
+            var snapshotline = _buffer.CurrentSnapshot.GetLineFromLineNumber(line);
+
+            if (snapshotline.Start.Position + col >= snapshotline.Snapshot.Length)
+            {
+                return null;
+            }
+
+            var start = snapshotline.Start + col;
+            var startSpan = new SnapshotSpan(start, start + 1);
+            var span = _navigator.GetSpanOfFirstChild(startSpan);
+            var tag = new ErrorTag(PredefinedErrorTypeNames.CompilerError, _error.Message);
+
+            if (!spans.IntersectsWith(span))
+            {
+                return null;
+            }
+
+            return new TagSpan<IErrorTag>(span, tag);
         }
 
         private void HandleErrorChanged(object sender, EventArgs e)
