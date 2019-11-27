@@ -47,6 +47,13 @@ namespace AvaloniaVS.Views
                 typeof(AvaloniaDesigner),
                 new PropertyMetadata(HandleSelectedTargetChanged));
 
+        public static readonly DependencyProperty SplitOrientationProperty =
+            DependencyProperty.Register(
+                nameof(SplitOrientation),
+                typeof(Orientation),
+                typeof(AvaloniaDesigner),
+                new PropertyMetadata(Orientation.Vertical, HandleSplitOrientationChanged));
+
         public static readonly DependencyProperty ViewProperty =
             DependencyProperty.Register(
                 nameof(View),
@@ -57,7 +64,11 @@ namespace AvaloniaVS.Views
         public static readonly DependencyProperty TargetsProperty =
             TargetsPropertyKey.DependencyProperty;
 
+        private static readonly GridLength ZeroStar = new GridLength(0, GridUnitType.Star);
+        private static readonly GridLength OneStar = new GridLength(1, GridUnitType.Star);
         private readonly Throttle<string> _throttle;
+        private readonly ColumnDefinition _previewCol = new ColumnDefinition { Width = OneStar };
+        private readonly ColumnDefinition _codeCol = new ColumnDefinition { Width = OneStar };
         private Project _project;
         private IWpfTextViewHost _editor;
         private string _xamlPath;
@@ -81,6 +92,7 @@ namespace AvaloniaVS.Views
             Process.ProcessExited += ProcessExited;
             previewer.Process = Process;
             pausedMessage.Visibility = Visibility.Collapsed;
+            UpdateLayoutForView();
         }
 
         /// <summary>
@@ -122,6 +134,15 @@ namespace AvaloniaVS.Views
         {
             get => (DesignerRunTarget)GetValue(SelectedTargetProperty);
             set => SetValue(SelectedTargetProperty, value);
+        }
+
+        /// <summary>
+        /// Gets or sets the orientation of the split view.
+        /// </summary>
+        public Orientation SplitOrientation
+        {
+            get => (Orientation)GetValue(SplitOrientationProperty);
+            set => SetValue(SplitOrientationProperty, value);
         }
 
         /// <summary>
@@ -465,6 +486,59 @@ namespace AvaloniaVS.Views
             _throttle.Queue(e.After.GetText());
         }
 
+        private void UpdateLayoutForView()
+        {
+            void VerticalGrid()
+            {
+                if (mainGrid.RowDefinitions.Count == 0)
+                {
+                    mainGrid.RowDefinitions.Add(previewRow);
+                    mainGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                    mainGrid.RowDefinitions.Add(codeRow);
+                    mainGrid.ColumnDefinitions.Clear();
+                    splitter.Height = 5;
+                    splitter.Width = double.NaN;
+                }
+            }
+
+            void HorizontalGrid()
+            {
+                if (mainGrid.ColumnDefinitions.Count == 0)
+                {
+                    mainGrid.ColumnDefinitions.Add(_previewCol);
+                    mainGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                    mainGrid.ColumnDefinitions.Add(_codeCol);
+                    mainGrid.RowDefinitions.Clear();
+                    splitter.Width = 5;
+                    splitter.Height = double.NaN;
+                }
+            }
+
+            if (View == AvaloniaDesignerView.Split)
+            {
+                previewRow.Height = OneStar;
+                codeRow.Height = OneStar;
+
+                if (SplitOrientation == Orientation.Vertical)
+                {
+                    VerticalGrid();
+                }
+                else
+                {
+                    HorizontalGrid();
+                }
+
+                splitter.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                VerticalGrid();
+                previewRow.Height = View == AvaloniaDesignerView.Design ? OneStar : ZeroStar;
+                codeRow.Height = View == AvaloniaDesignerView.Source ? OneStar : ZeroStar;
+                splitter.Visibility = Visibility.Collapsed;
+            }
+        }
+
         private void UpdateXaml(string xaml)
         {
             if (Process.IsReady)
@@ -510,18 +584,19 @@ namespace AvaloniaVS.Views
             }
         }
 
+        private static void HandleSplitOrientationChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is AvaloniaDesigner designer)
+            {
+                designer.UpdateLayoutForView();
+            }
+        }
+
         private static void HandleViewChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (d is AvaloniaDesigner designer)
             {
-                designer.previewRow.Height = new GridLength(
-                    designer.View == AvaloniaDesignerView.Source ? 0 : 1,
-                    GridUnitType.Star);
-                designer.codeRow.Height = new GridLength(
-                    designer.View == AvaloniaDesignerView.Design ? 0 : 1,
-                    GridUnitType.Star);
-                designer.splitter.Visibility = designer.View == AvaloniaDesignerView.Split ?
-                    Visibility.Visible : Visibility.Collapsed;
+                designer.UpdateLayoutForView();
                 designer.StartStopProcessAsync().FireAndForget();
             }
         }
