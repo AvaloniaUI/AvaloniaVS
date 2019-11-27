@@ -52,6 +52,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AvaloniaPackage.cs" />
+    <Compile Include="Converters\EnumToIntConverter.cs" />
     <Compile Include="Converters\NotNullOrEmptyToVisibilityConverter.cs" />
     <Compile Include="IntelliSense\XamlCompletion.cs" />
     <Compile Include="IntelliSense\XamlCompletionCommandHandler.cs" />

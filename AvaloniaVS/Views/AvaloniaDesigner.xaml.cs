@@ -21,6 +21,13 @@ using Task = System.Threading.Tasks.Task;
 
 namespace AvaloniaVS.Views
 {
+    public enum AvaloniaDesignerView
+    {
+        Split,
+        Design,
+        Source,
+    }
+
     /// <summary>
     /// The Avalonia XAML designer control.
     /// </summary>
@@ -39,6 +46,13 @@ namespace AvaloniaVS.Views
                 typeof(DesignerRunTarget),
                 typeof(AvaloniaDesigner),
                 new PropertyMetadata(HandleSelectedTargetChanged));
+
+        public static readonly DependencyProperty ViewProperty =
+            DependencyProperty.Register(
+                nameof(View),
+                typeof(AvaloniaDesignerView),
+                typeof(AvaloniaDesigner),
+                new PropertyMetadata(AvaloniaDesignerView.Split, HandleViewChanged));
 
         public static readonly DependencyProperty TargetsProperty =
             TargetsPropertyKey.DependencyProperty;
@@ -122,6 +136,15 @@ namespace AvaloniaVS.Views
         {
             get => (DesignerRunTarget)GetValue(SelectedTargetProperty);
             set => SetValue(SelectedTargetProperty, value);
+        }
+
+        /// <summary>
+        /// Gets or sets the type of view to display.
+        /// </summary>
+        public AvaloniaDesignerView View
+        {
+            get => (AvaloniaDesignerView)GetValue(ViewProperty);
+            set => SetValue(ViewProperty, value);
         }
 
         /// <summary>
@@ -472,6 +495,21 @@ namespace AvaloniaVS.Views
             if (d is AvaloniaDesigner designer && !designer._loadingTargets)
             {
                 designer.SelectedTargetChangedAsync(d, e).FireAndForget();
+            }
+        }
+
+        private static void HandleViewChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is AvaloniaDesigner designer)
+            {
+                designer.previewRow.Height = new GridLength(
+                    designer.View == AvaloniaDesignerView.Source ? 0 : 1,
+                    GridUnitType.Star);
+                designer.codeRow.Height = new GridLength(
+                    designer.View == AvaloniaDesignerView.Design ? 0 : 1,
+                    GridUnitType.Star);
+                designer.splitter.Visibility = designer.View == AvaloniaDesignerView.Split ?
+                    Visibility.Visible : Visibility.Collapsed;
             }
         }
 

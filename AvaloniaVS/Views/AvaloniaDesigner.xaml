@@ -6,20 +6,27 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:AvaloniaVS.Views"
              xmlns:conv="clr-namespace:AvaloniaVS.Converters"
+             xmlns:catalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+             xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+             xmlns:theming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
+             xmlns:util="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Utilities"
              mc:Ignorable="d" d:DesignHeight="450" d:DesignWidth="800"
              Name="root"
-             Background="{DynamicResource VsBrush.ToolWindowBackground}">
+             Background="{DynamicResource VsBrush.ToolWindowBackground}"
+             theming:ImageThemingUtilities.ImageBackgroundColor="{Binding Background, RelativeSource={RelativeSource Self}, Converter={StaticResource BrushToColorConverter}}">
 
     <UserControl.Resources>
+        <util:BrushToColorConverter x:Key="BrushToColorConverter"/>
+        <conv:EnumToIntConverter x:Key="EnumToInt"/>
         <conv:NotNullOrEmptyToVisibilityConverter x:Key="NotNullOrEmpty"/>
     </UserControl.Resources>
     
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition/>
+            <RowDefinition x:Name="previewRow"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition/>
+            <RowDefinition x:Name="codeRow"/>
         </Grid.RowDefinitions>
 
         <DockPanel Name="toolbar"
@@ -34,6 +41,27 @@
                       Visibility="{Binding Targets, ElementName=root, Converter={StaticResource NotNullOrEmpty}}"
                       local:VsTheme.UseVsTheme="True" >
             </ComboBox>
+            <ListBox DockPanel.Dock="Right"
+                     Background="Transparent"
+                     BorderThickness="0"
+                     Margin="0 0 10 0"
+                     SelectedIndex="{Binding View, ElementName=root, Mode=TwoWay, Converter={StaticResource EnumToInt}}"
+                     local:VsTheme.UseVsTheme="True">
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+                <ListBoxItem ToolTip="Split View">
+                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.SplitScreenHorizontally}"/>
+                </ListBoxItem>
+                <ListBoxItem ToolTip="Design View">
+                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.HTMLDesignView}"/>
+                </ListBoxItem>
+                <ListBoxItem ToolTip="XAML View">
+                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.MarkupTag}"/>
+                </ListBoxItem>
+            </ListBox>
             <Control/>
         </DockPanel>
 
@@ -56,7 +84,8 @@
             <TextBlock Name="errorMessage" Margin="0,20,0,0"/>
         </StackPanel>
 
-        <GridSplitter Grid.Row="2"
+        <GridSplitter x:Name="splitter"
+                      Grid.Row="2"
                       Height="5"
                       HorizontalAlignment="Stretch"/>
 
