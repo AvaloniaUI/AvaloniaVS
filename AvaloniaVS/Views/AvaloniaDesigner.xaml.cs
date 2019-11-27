@@ -96,21 +96,7 @@ namespace AvaloniaVS.Views
                     Log.Logger.Debug("Setting pause state to {State}", value);
 
                     _isPaused = value;
-                    IsEnabled = !value;
-
-                    if (_isStarted)
-                    {
-                        if (value)
-                        {
-                            pausedMessage.Visibility = Visibility.Visible;
-                            Process.Stop();
-                        }
-                        else
-                        {
-                            pausedMessage.Visibility = Visibility.Collapsed;
-                            LoadTargetsAndStartProcessAsync().FireAndForget();
-                        }
-                    }
+                    StartStopProcessAsync().FireAndForget();
                 }
             }
         }
@@ -242,7 +228,7 @@ namespace AvaloniaVS.Views
             if (!_disposed)
             {
                 _isStarted = true;
-                await StartProcessAsync();
+                await StartStopProcessAsync();
             }
 
             Log.Logger.Verbose("Finished AvaloniaDesigner.LoadTargetsAndStartProcessAsync()");
@@ -305,6 +291,32 @@ namespace AvaloniaVS.Views
             }
 
             Log.Logger.Verbose("Finished AvaloniaDesigner.LoadTargetsAsync()");
+        }
+
+        private async Task StartStopProcessAsync()
+        {
+            if (!_isStarted)
+            {
+                return;
+            }
+
+            if (View != AvaloniaDesignerView.Source)
+            {
+                if (IsPaused)
+                {
+                    pausedMessage.Visibility = Visibility.Visible;
+                    Process.Stop();
+                }
+                else if (!Process.IsRunning)
+                {
+                    pausedMessage.Visibility = Visibility.Collapsed;
+                    await StartProcessAsync();
+                }
+            }
+            else
+            {
+                Process.Stop();
+            }
         }
 
         private async Task StartProcessAsync()
@@ -510,6 +522,7 @@ namespace AvaloniaVS.Views
                     GridUnitType.Star);
                 designer.splitter.Visibility = designer.View == AvaloniaDesignerView.Split ?
                     Visibility.Visible : Visibility.Collapsed;
+                designer.StartStopProcessAsync().FireAndForget();
             }
         }
 
