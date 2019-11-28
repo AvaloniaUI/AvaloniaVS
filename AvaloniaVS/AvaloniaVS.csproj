@@ -65,6 +65,7 @@
     <Compile Include="Models\ProjectInfo.cs" />
     <Compile Include="Models\ProjectOutputInfo.cs" />
     <Compile Include="Models\XamlBufferMetadata.cs" />
+    <Compile Include="Services\IVsFindTarget3.cs" />
     <Compile Include="Services\OutputPaneEventSink.cs" />
     <Compile Include="Services\SolutionService.cs" />
     <Compile Include="Services\Throttle.cs" />

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Runtime.InteropServices;
+using AvaloniaVS.Services;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
@@ -19,6 +21,7 @@ namespace AvaloniaVS.Views
         IOleCommandTarget,
         IVsFindTarget,
         IVsFindTarget2,
+        IVsFindTarget3,
         IVsDropdownBarManager,
         IVsUserData,
         IVsHasRelatedSaveItems,
@@ -115,6 +118,8 @@ namespace AvaloniaVS.Views
         int IVsFindTarget.NotifyFindTarget(uint notification) => ((IVsFindTarget)_editorWindow).NotifyFindTarget(notification);
         int IVsFindTarget.MarkSpan(TextSpan[] pts) => ((IVsFindTarget)_editorWindow).MarkSpan(pts);
         int IVsFindTarget2.NavigateTo2(IVsTextSpanSet pSpans, TextSelMode iSelMode) => ((IVsFindTarget2)_editorWindow).NavigateTo2(pSpans, iSelMode);
+        int IVsFindTarget3.get_IsNewUISupported() => 0;
+        int IVsFindTarget3.NotifyShowingNewUI() => 0;
         int IVsDropdownBarManager.AddDropdownBar(int cCombos, IVsDropdownBarClient pClient) => ((IVsDropdownBarManager)_editorWindow).AddDropdownBar(cCombos, pClient);
         int IVsDropdownBarManager.GetDropdownBar(out IVsDropdownBar ppDropdownBar) => ((IVsDropdownBarManager)_editorWindow).GetDropdownBar(out ppDropdownBar);
         int IVsDropdownBarManager.RemoveDropdownBar() => ((IVsDropdownBarManager)_editorWindow).RemoveDropdownBar();
