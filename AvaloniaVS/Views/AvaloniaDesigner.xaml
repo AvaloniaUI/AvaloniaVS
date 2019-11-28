@@ -95,8 +95,9 @@
                 <RowDefinition x:Name="codeRow"/>
             </Grid.RowDefinitions>
 
-            <local:AvaloniaPreviewer x:Name="previewer"/>
+            <local:AvaloniaPreviewer x:Name="previewer" Grid.Column="2"/>
             <StackPanel Name="error"
+                        Grid.Column="2"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
                         Visibility="Collapsed">
@@ -110,7 +111,7 @@
                           Height="5"
                           HorizontalAlignment="Stretch"/>
 
-            <Decorator Grid.Row="2" Grid.Column="2" Name="editorHost"/>
+            <Decorator Grid.Row="2" Grid.Column="0" Name="editorHost"/>
         </Grid>
     </DockPanel>
     
