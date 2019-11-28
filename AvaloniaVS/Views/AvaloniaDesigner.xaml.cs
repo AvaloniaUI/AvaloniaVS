@@ -52,7 +52,7 @@ namespace AvaloniaVS.Views
                 nameof(SplitOrientation),
                 typeof(Orientation),
                 typeof(AvaloniaDesigner),
-                new PropertyMetadata(Orientation.Vertical, HandleSplitOrientationChanged));
+                new PropertyMetadata(Orientation.Horizontal, HandleSplitOrientationChanged));
 
         public static readonly DependencyProperty ViewProperty =
             DependencyProperty.Register(
@@ -488,7 +488,7 @@ namespace AvaloniaVS.Views
 
         private void UpdateLayoutForView()
         {
-            void VerticalGrid()
+            void HorizontalGrid()
             {
                 if (mainGrid.RowDefinitions.Count == 0)
                 {
@@ -501,7 +501,7 @@ namespace AvaloniaVS.Views
                 }
             }
 
-            void HorizontalGrid()
+            void VerticalGrid()
             {
                 if (mainGrid.ColumnDefinitions.Count == 0)
                 {
@@ -519,20 +519,20 @@ namespace AvaloniaVS.Views
                 previewRow.Height = OneStar;
                 codeRow.Height = OneStar;
 
-                if (SplitOrientation == Orientation.Vertical)
+                if (SplitOrientation == Orientation.Horizontal)
                 {
-                    VerticalGrid();
+                    HorizontalGrid();
                 }
                 else
                 {
-                    HorizontalGrid();
+                    VerticalGrid();
                 }
 
                 splitter.Visibility = Visibility.Visible;
             }
             else
             {
-                VerticalGrid();
+                HorizontalGrid();
                 previewRow.Height = View == AvaloniaDesignerView.Design ? OneStar : ZeroStar;
                 codeRow.Height = View == AvaloniaDesignerView.Source ? OneStar : ZeroStar;
                 splitter.Visibility = Visibility.Collapsed;

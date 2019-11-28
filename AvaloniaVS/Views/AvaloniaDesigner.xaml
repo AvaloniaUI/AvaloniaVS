@@ -79,10 +79,10 @@
                     </ItemsPanelTemplate>
                 </ListBox.ItemsPanel>
                 <ListBoxItem ToolTip="Horizontal Layout">
-                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.SplitScreenVertically}"/>
+                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.SplitScreenHorizontally}"/>
                 </ListBoxItem>
                 <ListBoxItem ToolTip="Vertical Layout">
-                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.SplitScreenHorizontally}"/>
+                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.SplitScreenVertically}"/>
                 </ListBoxItem>
             </ListBox>
             <Control/>
