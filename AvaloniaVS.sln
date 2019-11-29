@@ -4,11 +4,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 16.0.28516.95
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaVS", "AvaloniaVS\AvaloniaVS.csproj", "{2E6545DC-EF98-4C53-853B-C3307CB43A3F}"
-	ProjectSection(ProjectDependencies) = postProject
-		{807B1159-1D38-4D99-BF70-C2E430A38CD1} = {807B1159-1D38-4D99-BF70-C2E430A38CD1}
-	EndProjectSection
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Avalonia.Designer.HostApp", "Avalonia.Designer.HostApp\Avalonia.Designer.HostApp.csproj", "{807B1159-1D38-4D99-BF70-C2E430A38CD1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "submodules", "submodules", "{BA40CDDD-84AA-4B4A-A729-7EFB9E1E9B22}"
 EndProject
@@ -64,10 +59,6 @@ Global
 		{2E6545DC-EF98-4C53-853B-C3307CB43A3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2E6545DC-EF98-4C53-853B-C3307CB43A3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2E6545DC-EF98-4C53-853B-C3307CB43A3F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{807B1159-1D38-4D99-BF70-C2E430A38CD1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{807B1159-1D38-4D99-BF70-C2E430A38CD1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{807B1159-1D38-4D99-BF70-C2E430A38CD1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{807B1159-1D38-4D99-BF70-C2E430A38CD1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{152A7AAF-2A76-461F-B05B-E8545BC2A277}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{152A7AAF-2A76-461F-B05B-E8545BC2A277}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{152A7AAF-2A76-461F-B05B-E8545BC2A277}.Release|Any CPU.ActiveCfg = Release|Any CPU
