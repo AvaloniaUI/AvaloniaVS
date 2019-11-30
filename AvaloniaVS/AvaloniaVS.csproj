@@ -67,6 +67,7 @@
     <Compile Include="Models\ProjectInfo.cs" />
     <Compile Include="Models\ProjectOutputInfo.cs" />
     <Compile Include="Models\XamlBufferMetadata.cs" />
+    <Compile Include="Services\IVsFindTarget3.cs" />
     <Compile Include="Services\AvaloniaVSSettings.cs" />
     <Compile Include="Services\IAvaloniaVSSettings.cs" />
     <Compile Include="Services\OutputPaneEventSink.cs" />
