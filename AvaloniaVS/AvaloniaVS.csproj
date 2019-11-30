@@ -52,6 +52,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AvaloniaPackage.cs" />
+    <Compile Include="Converters\EnumToIntConverter.cs" />
+    <Compile Include="Converters\EnumValuesConverter.cs" />
     <Compile Include="Converters\NotNullOrEmptyToVisibilityConverter.cs" />
     <Compile Include="IntelliSense\XamlCompletion.cs" />
     <Compile Include="IntelliSense\XamlCompletionCommandHandler.cs" />
@@ -66,6 +68,8 @@
     <Compile Include="Models\ProjectOutputInfo.cs" />
     <Compile Include="Models\XamlBufferMetadata.cs" />
     <Compile Include="Services\IVsFindTarget3.cs" />
+    <Compile Include="Services\AvaloniaVSSettings.cs" />
+    <Compile Include="Services\IAvaloniaVSSettings.cs" />
     <Compile Include="Services\OutputPaneEventSink.cs" />
     <Compile Include="Services\SolutionService.cs" />
     <Compile Include="Services\Throttle.cs" />
@@ -82,6 +86,12 @@
     <Compile Include="Views\EditorHostPane.cs" />
     <Compile Include="Views\AvaloniaDesigner.xaml.cs">
       <DependentUpon>AvaloniaDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OptionsDialogPage.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Views\OptionsView.xaml.cs">
+      <DependentUpon>OptionsView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\VsTheme.cs" />
   </ItemGroup>
@@ -147,6 +157,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\AvaloniaDesigner.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\OptionsView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

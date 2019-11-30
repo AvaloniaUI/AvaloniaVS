@@ -2,11 +2,13 @@
 using System.Runtime.InteropServices;
 using System.Threading;
 using AvaloniaVS.Services;
+using AvaloniaVS.Views;
 using EnvDTE;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Serilog;
+using Serilog.Core;
 using Task = System.Threading.Tasks.Task;
 
 namespace AvaloniaVS
@@ -15,10 +17,25 @@ namespace AvaloniaVS
     [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)]
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [ProvideAutoLoad(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_string, PackageAutoLoadFlags.BackgroundLoad)]
-    [ProvideEditorExtension(typeof(EditorFactory), ".paml", 100, NameResourceID = 113, DefaultName = "Avalonia Xaml Editor")]
+    [ProvideEditorExtension(
+        typeof(EditorFactory),
+        ".paml",
+        100,
+        NameResourceID = 113,
+        EditorFactoryNotify = true,
+        ProjectGuid = VSConstants.UICONTEXT.CSharpProject_string,
+        DefaultName = Name)]
+    [ProvideEditorExtension(
+        typeof(EditorFactory),
+        ".xaml",
+        0x40,
+        NameResourceID = 113,
+        EditorFactoryNotify = true,
+        ProjectGuid = VSConstants.UICONTEXT.CSharpProject_string,
+        DefaultName = Name)]
     [ProvideEditorFactory(typeof(EditorFactory), 113, TrustLevel = __VSEDITORTRUSTLEVEL.ETL_AlwaysTrusted)]
     [ProvideEditorLogicalView(typeof(EditorFactory), LogicalViewID.Designer)]
-    [ProvideXmlEditorChooserDesignerView("Avalonia",
+    [ProvideXmlEditorChooserDesignerView(Name,
         "xaml",
         LogicalViewID.Designer,
         10000,
@@ -28,9 +45,11 @@ namespace AvaloniaVS
         DesignerLogicalViewEditor = typeof(EditorFactory),
         DebuggingLogicalViewEditor = typeof(EditorFactory),
         TextLogicalViewEditor = typeof(EditorFactory))]
+    [ProvideOptionPage(typeof(OptionsDialogPage), Name, "General", 113, 0, supportsAutomation: true)]
     internal sealed class AvaloniaPackage : AsyncPackage
     {
         public const string PackageGuidString = "865ba8d5-1180-4bf8-8821-345f72a4cb79";
+        public const string Name = "Avalonia Xaml Editor";
 
         public static SolutionService SolutionService { get; private set; }
 
@@ -55,10 +74,15 @@ namespace AvaloniaVS
         {
             const string format = "{Timestamp:HH:mm:ss.fff} [{Level}] {Pid} {Message}{NewLine}{Exception}";
             var ouput = this.GetService<IVsOutputWindow, SVsOutputWindow>();
+            var settings = this.GetMefService<IAvaloniaVSSettings>();
+            var levelSwitch = new LoggingLevelSwitch() { MinimumLevel = settings.MinimumLogVerbosity };
+
+            settings.PropertyChanged += (s, e) => levelSwitch.MinimumLevel = settings.MinimumLogVerbosity;
+
             var sink = new OutputPaneEventSink(ouput, outputTemplate: format);
             Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Verbose()
-                .WriteTo.Sink(sink)
+                .MinimumLevel.ControlledBy(levelSwitch)
+                .WriteTo.Sink(sink, levelSwitch: levelSwitch)
                 .WriteTo.Trace(outputTemplate: format)
                 .CreateLogger();
         }

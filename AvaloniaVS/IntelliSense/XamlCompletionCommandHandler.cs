@@ -138,6 +138,7 @@ namespace AvaloniaVS.IntelliSense
                     if (_session.SelectedCompletionSet.SelectionStatus.IsSelected)
                     {
                         var selected = _session.SelectedCompletionSet.SelectionStatus.Completion as XamlCompletion;
+                        var skip = !char.IsWhiteSpace(c);
 
                         _session.Commit();
 
@@ -164,8 +165,7 @@ namespace AvaloniaVS.IntelliSense
                             TriggerCompletion();
                         }
 
-                        // Don't add the character to the buffer.
-                        return true;
+                        return skip;
                     }
                     else
                     {
