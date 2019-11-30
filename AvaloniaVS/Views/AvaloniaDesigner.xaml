@@ -6,26 +6,51 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:AvaloniaVS.Views"
              xmlns:conv="clr-namespace:AvaloniaVS.Converters"
+             xmlns:catalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+             xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+             xmlns:theming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
+             xmlns:util="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Utilities"
              mc:Ignorable="d" d:DesignHeight="450" d:DesignWidth="800"
              Name="root"
-             Background="{DynamicResource VsBrush.ToolWindowBackground}">
+             Background="{DynamicResource VsBrush.ToolWindowBackground}"
+             theming:ImageThemingUtilities.ImageBackgroundColor="{Binding Background, RelativeSource={RelativeSource Self}, Converter={StaticResource BrushToColorConverter}}">
 
     <UserControl.Resources>
+        <util:BrushToColorConverter x:Key="BrushToColorConverter"/>
+        <conv:EnumToIntConverter x:Key="EnumToInt"/>
         <conv:NotNullOrEmptyToVisibilityConverter x:Key="NotNullOrEmpty"/>
     </UserControl.Resources>
-    
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition/>
-        </Grid.RowDefinitions>
 
+    <DockPanel>
+        <TextBlock Name="pausedMessage"
+                   DockPanel.Dock="Top"
+                   Background="{DynamicResource VsBrush.InfoBackground}"
+                   Padding="4"
+                   VerticalAlignment="Top">
+            The designer is paused waiting for a build to complete.
+        </TextBlock>
         <DockPanel Name="toolbar"
+                   DockPanel.Dock="Top"
                    Grid.Row="0"
                    Margin="4"
                    VerticalAlignment="Top">
+
+            <DockPanel.Resources>
+                <Style TargetType="ListBox">
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="BorderThickness" Value="0"/>
+                    <Setter Property="ItemsPanel">
+                        <Setter.Value>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </Setter.Value>
+                    </Setter>
+                    <Setter Property="Margin" Value="0 0 10 0"/>
+                    <Setter Property="DockPanel.Dock" Value="Right"/>
+                </Style>
+            </DockPanel.Resources>
+
             <ComboBox DockPanel.Dock="Right"
                       ItemsSource="{Binding Targets, ElementName=root}"
                       SelectedItem="{Binding SelectedTarget, ElementName=root}"
@@ -34,32 +59,60 @@
                       Visibility="{Binding Targets, ElementName=root, Converter={StaticResource NotNullOrEmpty}}"
                       local:VsTheme.UseVsTheme="True" >
             </ComboBox>
+
+            <ListBox SelectedIndex="{Binding View, ElementName=root, Mode=TwoWay, Converter={StaticResource EnumToInt}}">
+                <ListBoxItem ToolTip="Split View">
+                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Splitter}"/>
+                </ListBoxItem>
+                <ListBoxItem ToolTip="Design View">
+                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.HTMLDesignView}"/>
+                </ListBoxItem>
+                <ListBoxItem ToolTip="XAML View">
+                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.MarkupTag}"/>
+                </ListBoxItem>
+            </ListBox>
+
+            <ListBox SelectedIndex="{Binding SplitOrientation, ElementName=root, Mode=TwoWay, Converter={StaticResource EnumToInt}}">
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+                <ListBoxItem ToolTip="Horizontal Layout">
+                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.SplitScreenHorizontally}"/>
+                </ListBoxItem>
+                <ListBoxItem ToolTip="Vertical Layout">
+                    <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.SplitScreenVertically}"/>
+                </ListBoxItem>
+            </ListBox>
             <Control/>
         </DockPanel>
 
-        <TextBlock Name="pausedMessage"
-                   Grid.Row="0"
-                   Background="{DynamicResource VsBrush.InfoBackground}"
-                   Padding="4"
-                   VerticalAlignment="Top">
-            The designer is paused waiting for a build to complete.
-        </TextBlock>
+        <Grid x:Name="mainGrid">
+            <Grid.RowDefinitions>
+                <RowDefinition x:Name="previewRow"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition x:Name="codeRow"/>
+            </Grid.RowDefinitions>
 
-        <local:AvaloniaPreviewer Grid.Row="1" x:Name="previewer"/>
+            <local:AvaloniaPreviewer x:Name="previewer" Grid.Column="2"/>
+            <StackPanel Name="error"
+                        Grid.Column="2"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Visibility="Collapsed">
+                <TextBlock Name="errorHeading" FontSize="18" HorizontalAlignment="Center"/>
+                <TextBlock Name="errorMessage" Margin="0,20,0,0"/>
+            </StackPanel>
 
-        <StackPanel Name="error"
-                    Grid.Row="1"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    Visibility="Collapsed">
-            <TextBlock Name="errorHeading" FontSize="18" HorizontalAlignment="Center"/>
-            <TextBlock Name="errorMessage" Margin="0,20,0,0"/>
-        </StackPanel>
+            <GridSplitter x:Name="splitter"
+                          Grid.Row="1"
+                          Grid.Column="1"
+                          Height="5"
+                          HorizontalAlignment="Stretch"/>
 
-        <GridSplitter Grid.Row="2"
-                      Height="5"
-                      HorizontalAlignment="Stretch"/>
-
-        <Decorator Grid.Row="3" Name="editorHost"/>
-    </Grid>
+            <Decorator Grid.Row="2" Grid.Column="0" Name="editorHost"/>
+        </Grid>
+    </DockPanel>
+    
 </UserControl>
