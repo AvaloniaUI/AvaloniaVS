@@ -2,11 +2,13 @@
 using System.Runtime.InteropServices;
 using System.Threading;
 using AvaloniaVS.Services;
+using AvaloniaVS.Views;
 using EnvDTE;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Serilog;
+using Serilog.Core;
 using Task = System.Threading.Tasks.Task;
 
 namespace AvaloniaVS
@@ -43,6 +45,7 @@ namespace AvaloniaVS
         DesignerLogicalViewEditor = typeof(EditorFactory),
         DebuggingLogicalViewEditor = typeof(EditorFactory),
         TextLogicalViewEditor = typeof(EditorFactory))]
+    [ProvideOptionPage(typeof(OptionsDialogPage), Name, "General", 113, 0, supportsAutomation: true)]
     internal sealed class AvaloniaPackage : AsyncPackage
     {
         public const string PackageGuidString = "865ba8d5-1180-4bf8-8821-345f72a4cb79";
@@ -71,10 +74,15 @@ namespace AvaloniaVS
         {
             const string format = "{Timestamp:HH:mm:ss.fff} [{Level}] {Pid} {Message}{NewLine}{Exception}";
             var ouput = this.GetService<IVsOutputWindow, SVsOutputWindow>();
+            var settings = this.GetMefService<IAvaloniaVSSettings>();
+            var levelSwitch = new LoggingLevelSwitch() { MinimumLevel = settings.MinimumLogVerbosity };
+
+            settings.PropertyChanged += (s, e) => levelSwitch.MinimumLevel = settings.MinimumLogVerbosity;
+
             var sink = new OutputPaneEventSink(ouput, outputTemplate: format);
             Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Verbose()
-                .WriteTo.Sink(sink)
+                .MinimumLevel.ControlledBy(levelSwitch)
+                .WriteTo.Sink(sink, levelSwitch: levelSwitch)
                 .WriteTo.Trace(outputTemplate: format)
                 .CreateLogger();
         }
