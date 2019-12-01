@@ -20,7 +20,6 @@ namespace AvaloniaVS.Services
     /// </summary>
     internal class SolutionService
     {
-        private static readonly Regex s_desktopFrameworkRegex = new Regex("^net[0-9]+$");
         private readonly DTE _dte;
 
         /// <summary>
@@ -107,6 +106,13 @@ namespace AvaloniaVS.Services
             // info and recurse the project references.
             foreach (var item in result)
             {
+                var outputType = TryGetProperty(item.Key?.Properties, "OutputType") ??
+                    TryGetProperty(item.Key?.ConfigurationManager?.ActiveConfiguration?.Properties, "OutputType");
+                var outputTypeIsExecutable = outputType == "0" || outputType == "1" ||
+                    outputType?.ToLowerInvariant() == "exe" ||
+                    outputType?.ToLowerInvariant() == "winexe";
+
+                item.Value.IsExecutable = outputTypeIsExecutable;
                 item.Value.Outputs = await GetOutputInfoAsync(item.Key);
                 item.Value.ProjectReferences = FlattenProjectReferences(result, item.Value.ProjectReferences);
             }
@@ -192,7 +198,7 @@ namespace AvaloniaVS.Services
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            var alternatives = new Dictionary<string, string>();
+            var alternatives = new Dictionary<string, ProjectOutputInfo>();
             var unconfigured = (project as IVsBrowseObjectContext)?.UnconfiguredProject;
 
             if (unconfigured != null)
@@ -203,68 +209,31 @@ namespace AvaloniaVS.Services
                         .GetProperty("MSBuildProject",
                             BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
                         .GetMethod.Invoke(loaded, null) as Task<Microsoft.Build.Evaluation.Project>;
+                    var msbuildProperties = (await task).AllEvaluatedProperties;
+                    var targetPath = msbuildProperties.FirstOrDefault(p => p.Name == "TargetPath")?.EvaluatedValue;
+                    var hostAppNetCore = msbuildProperties.FirstOrDefault(x => x.Name == "AvaloniaPreviewerNetCoreToolPath")?.EvaluatedValue;
+                    var hostAppNetFx = msbuildProperties.FirstOrDefault(x => x.Name == "AvaloniaPreviewerNetFullToolPath")?.EvaluatedValue;
 
-                    var targetPath = (await task).AllEvaluatedProperties.FirstOrDefault(p => p.Name == "TargetPath")?.EvaluatedValue;
                     if (!string.IsNullOrWhiteSpace(targetPath))
                     {
                         if (!loaded.ProjectConfiguration.Dimensions.TryGetValue("TargetFramework", out var targetFw))
                             targetFw = (await task).AllEvaluatedProperties.FirstOrDefault(p => p.Name == "TargetFramework")
                                            ?.EvaluatedValue ?? "unknown";
-                        alternatives[targetFw] = targetPath;
+
+                        var outputInfo = new ProjectOutputInfo
+                        {
+                            TargetAssembly = targetPath,
+                            TargetFramework = targetFw == "classic" ? "net40" : targetFw,
+                            HostApp = hostAppNetCore,
+                        };
+
+                        outputInfo.HostApp = outputInfo.IsFullDotNet ? hostAppNetFx : hostAppNetCore;
+                        alternatives[targetFw] = outputInfo;
                     }
                 }
             }
 
-            string fullPath = TryGetProperty(project?.Properties, "FullPath");
-
-            string outputPath = project?.ConfigurationManager?.ActiveConfiguration?.Properties?.Item("OutputPath")?.Value?.ToString();
-            if (fullPath != null && outputPath != null)
-            {
-                string outputDir = Path.Combine(fullPath, outputPath);
-                string outputFileName = project.Properties.Item("OutputFileName").Value.ToString();
-                if (!string.IsNullOrWhiteSpace(outputFileName))
-                {
-                    var fw = "net40";
-                    var tfm = TryGetProperty(project.Properties, "TargetFrameworkMoniker");
-                    const string tfmPrefix = ".netframework,version=v";
-                    if (tfm != null && tfm.ToLowerInvariant().StartsWith(tfmPrefix))
-                        fw = "net" + tfm.Substring(tfmPrefix.Length).Replace(".", "");
-
-                    string assemblyPath = Path.Combine(outputDir, outputFileName);
-                    alternatives[fw] = assemblyPath;
-                }
-            }
-            var outputType = TryGetProperty(project?.Properties, "OutputType") ??
-                             TryGetProperty(project?.ConfigurationManager?.ActiveConfiguration?.Properties,
-                                 "OutputType");
-            var outputTypeIsExecutable = outputType == "0" || outputType == "1"
-                                         || outputType?.ToLowerInvariant() == "exe" ||
-                                         outputType?.ToLowerInvariant() == "winexe";
-
-
-            var lst = new List<ProjectOutputInfo>();
-            foreach (var alternative in alternatives.OrderByDescending(x => x.Key == "classic"
-                ? 10
-                : s_desktopFrameworkRegex.IsMatch(x.Key)
-                    ? 9
-                    : x.Key.StartsWith("netcoreapp")
-                        ? 8
-                        : x.Key.StartsWith("netstandard")
-                            ? 7
-                            : 0))
-            {
-                var nfo = new ProjectOutputInfo
-                {
-                    TargetAssembly = alternative.Value,
-                    OutputTypeIsExecutable = outputTypeIsExecutable,
-                    TargetFramework = alternative.Key == "classic" ? "net40" : alternative.Key
-                };
-                nfo.IsNetCore = nfo.TargetFramework.StartsWith("netcoreapp");
-                nfo.IsNetStandard = nfo.TargetFramework.StartsWith("netstandard");
-                nfo.IsFullDotNet = s_desktopFrameworkRegex.IsMatch(nfo.TargetFramework);
-                lst.Add(nfo);
-            }
-            return lst;
+            return alternatives.Values.ToList();
         }
 
         private static IReadOnlyList<Project> FlattenProjectReferences(

@@ -268,14 +268,13 @@ namespace AvaloniaVS.Views
                 bool IsValidTarget(ProjectInfo project)
                 {
                     return (project.Project == _project || project.ProjectReferences.Contains(_project)) &&
+                        project.IsExecutable &&
                         project.References.Contains("Avalonia.DesignerSupport");
                 }
 
                 bool IsValidOutput(ProjectOutputInfo output)
                 {
-                    return output.IsNetCore &&
-                        (output.OutputTypeIsExecutable ||
-                        output.TargetAssembly.EndsWith(".exe", StringComparison.OrdinalIgnoreCase));
+                    return output.IsNetCore;
                 }
 
                 string GetXamlAssembly(ProjectOutputInfo output)
@@ -302,6 +301,7 @@ namespace AvaloniaVS.Views
                                Name = $"{project.Name} [{output.TargetFramework}]",
                                ExecutableAssembly = output.TargetAssembly,
                                XamlAssembly = GetXamlAssembly(output),
+                               HostApp = output.HostApp,
                            }).ToList();
 
                 SelectedTarget = Targets.FirstOrDefault();
@@ -348,8 +348,9 @@ namespace AvaloniaVS.Views
 
             var assemblyPath = SelectedTarget?.XamlAssembly;
             var executablePath = SelectedTarget?.ExecutableAssembly;
+            var hostAppPath = SelectedTarget?.HostApp;
 
-            if (assemblyPath != null && executablePath != null)
+            if (assemblyPath != null && executablePath != null && hostAppPath != null)
             {
                 var buffer = _editor.TextView.TextBuffer;
                 var metadata = buffer.Properties.GetOrCreateSingletonProperty(
@@ -368,7 +369,7 @@ namespace AvaloniaVS.Views
                     if (!IsPaused)
                     {
                         await Process.SetScalingAsync(VisualTreeHelper.GetDpi(this).DpiScaleX);
-                        await Process.StartAsync(assemblyPath, executablePath);
+                        await Process.StartAsync(assemblyPath, executablePath, hostAppPath);
                         await Process.UpdateXamlAsync(await ReadAllTextAsync(_xamlPath));
                     }
                 }
