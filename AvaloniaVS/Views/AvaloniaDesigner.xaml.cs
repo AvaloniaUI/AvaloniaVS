@@ -331,6 +331,12 @@ namespace AvaloniaVS.Views
                 else if (!Process.IsRunning)
                 {
                     pausedMessage.Visibility = Visibility.Collapsed;
+
+                    if (SelectedTarget == null)
+                    {
+                        await LoadTargetsAsync();
+                    }
+
                     await StartProcessAsync();
                 }
             }
