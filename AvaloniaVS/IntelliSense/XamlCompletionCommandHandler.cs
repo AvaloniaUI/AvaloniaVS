@@ -138,7 +138,10 @@ namespace AvaloniaVS.IntelliSense
                     if (_session.SelectedCompletionSet.SelectionStatus.IsSelected)
                     {
                         var selected = _session.SelectedCompletionSet.SelectionStatus.Completion as XamlCompletion;
-                        var skip = !char.IsWhiteSpace(c);
+
+                        // If the spacebar is used to complete then it should be entered into the
+                        // buffer, all other chars should be swallowed.
+                        var skip = c != ' ';
 
                         _session.Commit();
 
