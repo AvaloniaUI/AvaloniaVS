@@ -20,6 +20,8 @@ namespace AvaloniaVS.Services
         private Orientation _designerSplitOrientation;
         private AvaloniaDesignerView _designerView = AvaloniaDesignerView.Split;
         private LogEventLevel _minimumLogVerbosity = LogEventLevel.Information;
+        private bool _useTempDir = false;
+        private string _tempDirPath = "dttmp";
 
         [ImportingConstructor]
         public AvaloniaVSSettings(SVsServiceProvider vsServiceProvider)
@@ -29,7 +31,7 @@ namespace AvaloniaVS.Services
             Load();
         }
 
-        public Orientation DesignerSplitOrientation 
+        public Orientation DesignerSplitOrientation
         {
             get => _designerSplitOrientation;
             set
@@ -68,6 +70,32 @@ namespace AvaloniaVS.Services
             }
         }
 
+        public bool UseTempDir
+        {
+            get => _useTempDir;
+            set
+            {
+                if (_useTempDir != value)
+                {
+                    _useTempDir = value;
+                    RaisePropertyChanged();
+                }
+            }
+        }
+
+        public string TempDirPath
+        {
+            get => _tempDirPath;
+            set
+            {
+                if (_tempDirPath != value)
+                {
+                    _tempDirPath = value;
+                    RaisePropertyChanged();
+                }
+            }
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         public void Load()
@@ -86,6 +114,14 @@ namespace AvaloniaVS.Services
                     SettingsKey,
                     nameof(MinimumLogVerbosity),
                     (int)LogEventLevel.Information);
+                UseTempDir = _settings.GetBoolean(
+                    SettingsKey,
+                    nameof(UseTempDir),
+                    false);
+                TempDirPath = _settings.GetString(
+                    SettingsKey,
+                    nameof(TempDirPath),
+                    "dttmp");
             }
             catch (Exception ex)
             {
@@ -105,6 +141,8 @@ namespace AvaloniaVS.Services
                 _settings.SetInt32(SettingsKey, nameof(DesignerSplitOrientation), (int)DesignerSplitOrientation);
                 _settings.SetInt32(SettingsKey, nameof(DesignerView), (int)DesignerView);
                 _settings.SetInt32(SettingsKey, nameof(MinimumLogVerbosity), (int)MinimumLogVerbosity);
+                _settings.SetBoolean(SettingsKey, nameof(UseTempDir), UseTempDir);
+                _settings.SetString(SettingsKey, nameof(TempDirPath), TempDirPath);
             }
             catch (Exception ex)
             {

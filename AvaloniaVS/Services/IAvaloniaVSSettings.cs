@@ -10,6 +10,8 @@ namespace AvaloniaVS.Services
         Orientation DesignerSplitOrientation { get; set; }
         AvaloniaDesignerView DesignerView { get; set; }
         LogEventLevel MinimumLogVerbosity { get; set; }
+        bool UseTempDir { get; set; }
+        string TempDirPath { get; set; }
         void Save();
         void Load();
     }

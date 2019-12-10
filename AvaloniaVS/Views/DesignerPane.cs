@@ -74,6 +74,7 @@ namespace AvaloniaVS.Views
             xamlEditorView.IsPaused = _isPaused;
             xamlEditorView.SplitOrientation = settings.DesignerSplitOrientation;
             xamlEditorView.View = settings.DesignerView;
+            xamlEditorView.DesignerTempPath = settings.UseTempDir ? settings.TempDirPath : null;
             xamlEditorView.Start(_project, _xamlPath, _editorHost);
             _content = xamlEditorView;
 

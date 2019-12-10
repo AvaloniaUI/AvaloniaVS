@@ -154,6 +154,8 @@ namespace AvaloniaVS.Views
             set => SetValue(ViewProperty, value);
         }
 
+        public string DesignerTempPath { get; set; }
+
         /// <summary>
         /// Starts the designer.
         /// </summary>
@@ -446,12 +448,15 @@ namespace AvaloniaVS.Views
             }
         }
 
-        static private (string executableDir, string assemblyDir) GetDesignTempDirs(string executablePath, string assemblyPath)
+        private (string executableDir, string assemblyDir) GetDesignTempDirs(string executablePath, string assemblyPath)
         {
-            //let's try use very short folder names as limit for directory path is 248 chars
-            var designerTempDir = Path.Combine(Directory.GetParent(Path.GetDirectoryName(executablePath)).FullName, "dttmp");
+            if (string.IsNullOrEmpty(DesignerTempPath))
+                return default((string, string));
 
-            var executableDirDesigner = $"{designerTempDir}_exe";
+            //let's try use very short folder names as limit for directory path is 248 chars
+            var designerTempDir = Path.Combine(Directory.GetParent(Path.GetDirectoryName(executablePath)).FullName, DesignerTempPath);
+
+            var executableDirDesigner = $"{designerTempDir}";
             var assemblyDirDesigner = $"{designerTempDir}_asm";
 
             return (executableDirDesigner, assemblyDirDesigner);
@@ -515,7 +520,7 @@ namespace AvaloniaVS.Views
             return default((string, string));
         }
 
-        static private void TryCleanDesignTempData(string executablePath, string assemblyPath)
+        private void TryCleanDesignTempData(string executablePath, string assemblyPath)
         {
             try
             {
