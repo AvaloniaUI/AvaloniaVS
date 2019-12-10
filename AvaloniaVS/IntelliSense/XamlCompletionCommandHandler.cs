@@ -154,9 +154,9 @@ namespace AvaloniaVS.IntelliSense
                             _textView.Caret.MoveTo(newCursorPos);
                         }
 
-                        // If the inserted text is an XML attribute then pop up a new completion
+                        // If the inserted text is an XML attribute or attached property then pop up a new completion
                         // session to show the valid values for the attribute.
-                        if (selected.InsertionText.EndsWith("=\"\""))
+                        if (selected.InsertionText.EndsWith("=\"\"") || selected.InsertionText.EndsWith("."))
                         {
                             TriggerCompletion();
                         }
