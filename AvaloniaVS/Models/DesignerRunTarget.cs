@@ -21,5 +21,10 @@ namespace AvaloniaVS.Models
         /// Gets or sets the full path to the assembly containing the XAML.
         /// </summary>
         public string XamlAssembly { get; set; }
+
+        /// <summary>
+        /// Gets the full path to the Avalonia.Designer.HostApp.dll to use.
+        /// </summary>
+        public string HostApp { get; set; }
     }
 }

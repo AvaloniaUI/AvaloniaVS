@@ -98,8 +98,12 @@ namespace AvaloniaVS.Services
         /// </summary>
         /// <param name="assemblyPath">The path to the assembly containing the XAML.</param>
         /// <param name="executablePath">The path to the executable to use for the preview.</param>
+        /// <param name="hostAppPath">The path to the host application.</param>
         /// <returns>A task tracking the startup operation.</returns>
-        public async Task StartAsync(string assemblyPath, string executablePath)
+        public async Task StartAsync(
+            string assemblyPath,
+            string executablePath,
+            string hostAppPath)
         {
             _log.Verbose("Started PreviewerProcess.StartAsync()");
 
@@ -122,6 +126,13 @@ namespace AvaloniaVS.Services
                     nameof(executablePath));
             }
 
+            if (string.IsNullOrWhiteSpace(hostAppPath))
+            {
+                throw new ArgumentException(
+                    "Executable path may not be null or an empty string.",
+                    nameof(executablePath));
+            }
+
             if (!File.Exists(assemblyPath))
             {
                 throw new FileNotFoundException(
@@ -133,6 +144,13 @@ namespace AvaloniaVS.Services
             {
                 throw new FileNotFoundException(
                     $"Could not find executable '{executablePath}'. " + 
+                    "Please build your project to enable previewing and intellisense.");
+            }
+
+            if (!File.Exists(hostAppPath))
+            {
+                throw new FileNotFoundException(
+                    $"Could not find executable '{hostAppPath}'. " +
                     "Please build your project to enable previewing and intellisense.");
             }
 
@@ -167,7 +185,6 @@ namespace AvaloniaVS.Services
             var targetName = Path.GetFileNameWithoutExtension(_executablePath);
             var runtimeConfigPath = Path.Combine(executableDir, targetName + ".runtimeconfig.json");
             var depsPath = Path.Combine(executableDir, targetName + ".deps.json");
-            var hostAppPath = Path.Combine(extensionDir, "Avalonia.Designer.HostApp.dll");
 
             EnsureExists(runtimeConfigPath);
             EnsureExists(depsPath);

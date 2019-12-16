@@ -9,6 +9,11 @@ namespace AvaloniaVS.Models
     internal class ProjectInfo
     {
         /// <summary>
+        /// Gets or sets a value indicating whether the project is an executable.
+        /// </summary>
+        public bool IsExecutable { get; set; }
+
+        /// <summary>
         /// Gets or sets a value indicating whether the project is a startup project.
         /// </summary>
         public bool IsStartupProject { get; set; }
