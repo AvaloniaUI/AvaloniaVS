@@ -78,6 +78,12 @@ namespace AvaloniaVS.IntelliSense
         public IEnumerable<ITagSpan<IErrorTag>> GetTags(NormalizedSnapshotSpanCollection spans)
         {
             var result = GetErrorTag(spans);
+
+            if (result != null)
+            {
+                _tagSpan = result;
+            }
+
             return result != null ? new[] { result } : Array.Empty<ITagSpan<IErrorTag>>();
         }
 
