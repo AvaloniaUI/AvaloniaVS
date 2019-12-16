@@ -291,6 +291,8 @@ namespace AvaloniaVS.Views
                         .TargetAssembly;
                 }
 
+                var oldSelectedTarget = SelectedTarget;
+
                 Targets = (from project in projects
                            where IsValidTarget(project)
                            orderby project.Project != project, !project.IsStartupProject, project.Name
@@ -304,7 +306,7 @@ namespace AvaloniaVS.Views
                                HostApp = output.HostApp,
                            }).ToList();
 
-                SelectedTarget = Targets.FirstOrDefault();
+                SelectedTarget = Targets.FirstOrDefault(t => t.Name == oldSelectedTarget?.Name) ?? Targets.FirstOrDefault();
             }
             finally
             {
@@ -342,6 +344,7 @@ namespace AvaloniaVS.Views
             }
             else
             {
+                RebuildMetadata(null, null);
                 Process.Stop();
             }
         }
@@ -358,15 +361,8 @@ namespace AvaloniaVS.Views
 
             if (assemblyPath != null && executablePath != null && hostAppPath != null)
             {
-                var buffer = _editor.TextView.TextBuffer;
-                var metadata = buffer.Properties.GetOrCreateSingletonProperty(
-                    typeof(XamlBufferMetadata),
-                    () => new XamlBufferMetadata());
 
-                if (metadata.CompletionMetadata == null)
-                {
-                    CreateCompletionMetadataAsync(executablePath, metadata).FireAndForget();
-                }
+                RebuildMetadata(assemblyPath, executablePath);
 
                 try
                 {
@@ -411,6 +407,26 @@ namespace AvaloniaVS.Views
             }
 
             Log.Logger.Verbose("Finished AvaloniaDesigner.StartProcessAsync()");
+        }
+
+        private void RebuildMetadata(string assemblyPath, string executablePath)
+        {
+            assemblyPath = assemblyPath ?? SelectedTarget?.XamlAssembly;
+            executablePath = executablePath ?? SelectedTarget?.ExecutableAssembly;
+
+            if (assemblyPath != null && executablePath != null)
+            {
+                var buffer = _editor.TextView.TextBuffer;
+                var metadata = buffer.Properties.GetOrCreateSingletonProperty(
+                    typeof(XamlBufferMetadata),
+                    () => new XamlBufferMetadata());
+                buffer.Properties["AssemblyName"] = Path.GetFileNameWithoutExtension(assemblyPath);
+
+                if (metadata.CompletionMetadata == null)
+                {
+                    CreateCompletionMetadataAsync(executablePath, metadata).FireAndForget();
+                }
+            }
         }
 
         private static async Task CreateCompletionMetadataAsync(

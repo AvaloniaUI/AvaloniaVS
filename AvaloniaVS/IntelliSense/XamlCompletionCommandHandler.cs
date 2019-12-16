@@ -129,8 +129,8 @@ namespace AvaloniaVS.IntelliSense
         {
             // If the pressed key is a key that can commit a completion session.
             if (char.IsWhiteSpace(c) ||
-                (char.IsPunctuation(c) && c != ':') ||
-                c == '\n' || c == '\r' || c == '=' || c == '/')
+                (char.IsPunctuation(c) && c != ':' && c != '/') ||
+                c == '\n' || c == '\r' || c == '=' )
             {
                 // And commit or dismiss the completion session depending its state.
                 if (_session != null && !_session.IsDismissed)
@@ -145,14 +145,7 @@ namespace AvaloniaVS.IntelliSense
 
                         _session.Commit();
 
-                        if (c == '/' && selected?.Kind == CompletionKind.Class)
-                        {
-                            // If '/' was typed and this is an element, add the closing "'/>".
-                            _textView.TextBuffer.Insert(
-                                _textView.Caret.Position.BufferPosition.Position,
-                                "/>");
-                        }
-                        else if (selected?.CursorOffset > 0)
+                        if (selected?.CursorOffset > 0)
                         {
                             // Offset the cursor if necessary e.g. to place it within the quotation
                             // marks of an attribute.
@@ -161,9 +154,9 @@ namespace AvaloniaVS.IntelliSense
                             _textView.Caret.MoveTo(newCursorPos);
                         }
 
-                        // If the inserted text is an XML attribute then pop up a new completion
+                        // If the inserted text is an XML attribute or attached property then pop up a new completion
                         // session to show the valid values for the attribute.
-                        if (selected.InsertionText.EndsWith("=\"\""))
+                        if (selected.InsertionText.EndsWith("=\"\"") || selected.InsertionText.EndsWith("."))
                         {
                             TriggerCompletion();
                         }
