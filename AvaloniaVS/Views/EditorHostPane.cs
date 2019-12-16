@@ -44,7 +44,6 @@ namespace AvaloniaVS.Views
         private readonly IVsCodeWindow _editorWindow;
         private readonly IOleCommandTarget _editorCommandTarget;
         private IVsFilterKeys2 _filterKeys;
-        private IServiceProvider _serviceProvider;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EditorHostPane"/> class;
@@ -56,15 +55,6 @@ namespace AvaloniaVS.Views
 
             _editorWindow = editorWindow ?? throw new ArgumentNullException(nameof(editorWindow));
             _editorCommandTarget = (IOleCommandTarget)editorWindow;
-        }
-
-        protected override void Initialize()
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            base.Initialize();
-            _serviceProvider = base.GetService(typeof(IServiceProvider)) as IServiceProvider;
-            (_editorWindow as IObjectWithSite)?.SetSite(_serviceProvider);
         }
 
         int IOleCommandTarget.Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
