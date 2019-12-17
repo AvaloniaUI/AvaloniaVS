@@ -453,7 +453,6 @@ namespace AvaloniaVS.Views
             if (string.IsNullOrEmpty(DesignerTempPath))
                 return default((string, string));
 
-            //let's try use very short folder names as limit for directory path is 248 chars
             var designerTempDir = Path.Combine(Directory.GetParent(Path.GetDirectoryName(executablePath)).FullName, DesignerTempPath);
 
             var executableDirDesigner = $"{designerTempDir}";
