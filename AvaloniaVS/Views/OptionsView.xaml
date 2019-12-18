@@ -53,7 +53,7 @@
         </CheckBox>
 
         <TextBlock Grid.Row="8" IsEnabled="{Binding UseTempDir}" Text="Designer Temp Folder Path
-                   (Relative to $(OutputPath) or absolute)" TextWrapping="Wrap"/>
+                   (Relative to $(OutputPath))" TextWrapping="Wrap"/>
 
         <TextBox IsEnabled="{Binding UseTempDir}" Text="{Binding TempDirPath, Mode=TwoWay}" Grid.Row="8" Grid.Column="2" VerticalAlignment="Top" MinHeight="20" />
     </Grid>
