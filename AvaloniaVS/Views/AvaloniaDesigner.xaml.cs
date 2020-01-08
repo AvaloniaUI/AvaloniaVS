@@ -519,7 +519,7 @@ namespace AvaloniaVS.Views
                     mainGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
                     mainGrid.RowDefinitions.Add(codeRow);
                     mainGrid.ColumnDefinitions.Clear();
-                    splitter.Height = 20;
+                    splitter.Height = 5;
                     splitter.Width = double.NaN;
                 }
             }
@@ -532,7 +532,7 @@ namespace AvaloniaVS.Views
                     mainGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                     mainGrid.ColumnDefinitions.Add(_codeCol);
                     mainGrid.RowDefinitions.Clear();
-                    splitter.Width = 20;
+                    splitter.Width = 5;
                     splitter.Height = double.NaN;
                 }
             }
