@@ -109,7 +109,8 @@
                           Grid.Row="1"
                           Grid.Column="1"
                           Height="5"
-                          HorizontalAlignment="Stretch"/>
+                          HorizontalAlignment="Stretch"
+                          Background="{DynamicResource VsBrush.PanelSeparator}"/>
 
             <Decorator Grid.Row="2" Grid.Column="0" Name="editorHost"/>
         </Grid>
