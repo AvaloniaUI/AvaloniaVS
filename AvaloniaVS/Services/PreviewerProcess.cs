@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Xaml;
 using Avalonia.Remote.Protocol;
 using Avalonia.Remote.Protocol.Designer;
 using Avalonia.Remote.Protocol.Input;
@@ -429,6 +430,11 @@ namespace AvaloniaVS.Services
                 }
 
                 Error = error;
+                _log.Error(new XamlException(
+                    error.Message,
+                    null,
+                    error.LineNumber ?? 0, error.LinePosition ?? 0),
+                    "UpdateXamlResult error");
             }
 
             _log.Verbose("Finished PreviewerProcess.OnMessageAsync()");
