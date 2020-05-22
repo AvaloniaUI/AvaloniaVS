@@ -186,6 +186,14 @@ namespace AvaloniaVS.Services
 
             // Add metadata to the buffer so we can identify it as containing Avalonia XAML.
             var buffer = eafs.GetDataBuffer(bufferAdapter);
+
+            // HACK: VS has given us an uninitialized IVsTextLines in punkDocDataExisting. Not sure what
+            // we can do here except tell VS to close the tab and repopen it.
+            if (buffer == null)
+            {
+                ErrorHandler.ThrowOnFailure(VSConstants.VS_E_INCOMPATIBLEDOCDATA);
+            }
+
             buffer.Properties.GetOrCreateSingletonProperty(() => new XamlBufferMetadata());
 
             ErrorHandler.ThrowOnFailure(codeWindow.SetBuffer(bufferAdapter));
