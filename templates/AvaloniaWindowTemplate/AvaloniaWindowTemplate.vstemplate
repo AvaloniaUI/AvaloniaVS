@@ -4,7 +4,7 @@
     <Name>Window (Avalonia)</Name>
     <Description>Avalonia Window</Description>
     <Icon>AvaloniaWindowTemplate.ico</Icon>
-    <TemplateID>b2dc19ed-2273-47c0-a8cf-b32f8d85640b</TemplateID>
+    <TemplateID>f50b29b4-8396-45e8-9668-9b944681d371</TemplateID>
     <ProjectType>CSharp</ProjectType>
     <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
     <DefaultName>Window.xaml</DefaultName>
