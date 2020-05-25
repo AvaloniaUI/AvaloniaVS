@@ -24,7 +24,7 @@
       <ProjectItem>Assets\avalonia-logo.ico</ProjectItem>
       <ProjectItem ReplaceParameters="true">ViewModels\MainWindowViewModel.cs</ProjectItem>
       <ProjectItem ReplaceParameters="true">ViewModels\ViewModelBase.cs</ProjectItem>
-      <ProjectItem ReplaceParameters="true" OpenInEditor="true">Views\MainWindow.xaml</ProjectItem>
+      <ProjectItem ReplaceParameters="true">Views\MainWindow.xaml</ProjectItem>
       <ProjectItem ReplaceParameters="true">Views\MainWindow.xaml.cs</ProjectItem>
       <ProjectItem ReplaceParameters="true">App.xaml</ProjectItem>
       <ProjectItem ReplaceParameters="true">App.xaml.cs</ProjectItem>
