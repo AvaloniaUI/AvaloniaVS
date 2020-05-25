@@ -126,6 +126,10 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="icon.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="Resources\AvaloniaPackage.ico" />
   </ItemGroup>
   <ItemGroup>
