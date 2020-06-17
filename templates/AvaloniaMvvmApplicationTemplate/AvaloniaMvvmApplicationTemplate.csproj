@@ -77,17 +77,17 @@
     <None Include="ViewLocator.cs" />
     <None Include="ViewModels\MainWindowViewModel.cs" />
     <None Include="ViewModels\ViewModelBase.cs" />
-    <None Include="App.xaml.cs" />
-    <None Include="App.xaml">
+    <None Include="App.axaml.cs" />
+    <None Include="App.axaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </None>
-    <None Include="Views\MainWindow.xaml.cs" />
+    <None Include="Views\MainWindow.axaml.cs" />
     <None Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Views\MainWindow.xaml">
+    <None Include="Views\MainWindow.axaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </None>

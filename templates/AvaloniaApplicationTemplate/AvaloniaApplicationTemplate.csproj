@@ -74,17 +74,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.xaml.cs" />
-    <None Include="App.xaml">
+    <None Include="App.axaml.cs" />
+    <None Include="App.axaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </None>
-    <None Include="MainWindow.xaml.cs" />
+    <None Include="MainWindow.axaml.cs" />
     <None Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="MainWindow.xaml">
+    <None Include="MainWindow.axaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </None>

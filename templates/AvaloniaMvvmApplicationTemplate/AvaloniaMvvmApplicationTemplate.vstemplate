@@ -24,10 +24,10 @@
       <ProjectItem>Assets\avalonia-logo.ico</ProjectItem>
       <ProjectItem ReplaceParameters="true">ViewModels\MainWindowViewModel.cs</ProjectItem>
       <ProjectItem ReplaceParameters="true">ViewModels\ViewModelBase.cs</ProjectItem>
-      <ProjectItem ReplaceParameters="true">Views\MainWindow.xaml</ProjectItem>
-      <ProjectItem ReplaceParameters="true">Views\MainWindow.xaml.cs</ProjectItem>
-      <ProjectItem ReplaceParameters="true">App.xaml</ProjectItem>
-      <ProjectItem ReplaceParameters="true">App.xaml.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true">Views\MainWindow.axaml</ProjectItem>
+      <ProjectItem ReplaceParameters="true">Views\MainWindow.axaml.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true">App.axaml</ProjectItem>
+      <ProjectItem ReplaceParameters="true">App.axaml.cs</ProjectItem>
       <ProjectItem>nuget.config</ProjectItem>
       <ProjectItem ReplaceParameters="true">Program.cs</ProjectItem>
       <ProjectItem ReplaceParameters="true">ViewLocator.cs</ProjectItem>
