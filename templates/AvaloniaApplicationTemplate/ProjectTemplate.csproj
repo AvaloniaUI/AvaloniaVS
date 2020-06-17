@@ -6,5 +6,6 @@
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="0.9.999-cibuild0008197-beta" />
     <PackageReference Include="Avalonia.Desktop" Version="0.9.999-cibuild0008197-beta" />
+    <PackageReference Include="Avalonia.Diagnostics" Version="0.9.999-cibuild0008197-beta" />
   </ItemGroup>
 </Project>
