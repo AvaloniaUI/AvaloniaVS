@@ -422,19 +422,19 @@ namespace AvaloniaVS.Services
             }
             else if (message is UpdateXamlResultMessage update)
             {
-                var error = update.Exception;
+                var exception = update.Exception;
 
-                if (error == null && !string.IsNullOrWhiteSpace(update.Error))
+                if (exception == null && !string.IsNullOrWhiteSpace(update.Error))
                 {
-                    error = new ExceptionDetails { Message = update.Error };
+                    exception = new ExceptionDetails { Message = update.Error };
                 }
 
-                Error = error;
-                _log.Error(new XamlException(
-                    error.Message,
-                    null,
-                    error.LineNumber ?? 0, error.LinePosition ?? 0),
-                    "UpdateXamlResult error");
+                Error = exception;
+
+                if (exception != null)
+                {
+                    _log.Error(new XamlException(exception.Message, null, exception.LineNumber ?? 0, exception.LinePosition ?? 0), "UpdateXamlResult error");
+                }
             }
 
             _log.Verbose("Finished PreviewerProcess.OnMessageAsync()");
