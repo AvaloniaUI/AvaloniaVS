@@ -53,8 +53,11 @@
     <Compile Include="Converters\EnumToIntConverter.cs" />
     <Compile Include="Converters\EnumValuesConverter.cs" />
     <Compile Include="Converters\NotNullOrEmptyToVisibilityConverter.cs" />
+    <Compile Include="IntelliSense\TextChangeAdapter.cs" />
     <Compile Include="IntelliSense\XamlCompletion.cs" />
     <Compile Include="IntelliSense\XamlCompletionCommandHandler.cs" />
+    <Compile Include="IntelliSense\XamlTextManipulatorRegistrar.cs" />
+    <Compile Include="IntelliSense\XamlTextViewCreationListener.cs" />
     <Compile Include="IntelliSense\XamlCompletionHandlerProvider.cs" />
     <Compile Include="IntelliSense\XamlCompletionSourceProvider.cs" />
     <Compile Include="IntelliSense\XamlCompletionSource.cs" />
