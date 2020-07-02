@@ -76,7 +76,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <None Include="UserControl.xaml.cs" />
+    <None Include="UserControl.axaml.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="AvaloniaUserControlTemplate.ico" />
@@ -85,7 +85,7 @@
     </VSTemplate>
   </ItemGroup>
   <ItemGroup>
-    <None Include="UserControl.xaml">
+    <None Include="UserControl.axaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </None>

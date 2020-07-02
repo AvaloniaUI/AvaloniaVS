@@ -26,6 +26,7 @@
         <TextBlock Name="pausedMessage"
                    DockPanel.Dock="Top"
                    Background="{DynamicResource VsBrush.InfoBackground}"
+                   Foreground="{DynamicResource VsBrush.InfoText}"
                    Padding="4"
                    VerticalAlignment="Top">
             The designer is paused waiting for a build to complete.

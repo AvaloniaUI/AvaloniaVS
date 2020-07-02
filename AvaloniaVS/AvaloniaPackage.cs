@@ -19,6 +19,14 @@ namespace AvaloniaVS
     [ProvideAutoLoad(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_string, PackageAutoLoadFlags.BackgroundLoad)]
     [ProvideEditorExtension(
         typeof(EditorFactory),
+        ".axaml",
+        100,
+        NameResourceID = 113,
+        EditorFactoryNotify = true,
+        ProjectGuid = VSConstants.UICONTEXT.CSharpProject_string,
+        DefaultName = Name)]
+    [ProvideEditorExtension(
+        typeof(EditorFactory),
         ".paml",
         100,
         NameResourceID = 113,
