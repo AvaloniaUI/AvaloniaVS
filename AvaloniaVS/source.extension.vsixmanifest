@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="AvaloniaForVisualStudio" Version="0.9.10.1" Language="en-US" Publisher="Avalonia UI" />
+        <Identity Id="AvaloniaForVisualStudio" Version="0.9.11.0" Language="en-US" Publisher="Avalonia UI" />
         <DisplayName>Avalonia for Visual Studio</DisplayName>
         <Description xml:space="preserve">Previewer and templates for Avalonia applications and libraries.</Description>
         <Icon>icon.ico</Icon>
