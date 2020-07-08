@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Avalonia.Remote.Protocol.Input;
 using AvaloniaVS.Services;
@@ -74,9 +73,8 @@ namespace AvaloniaVS.Views
 
             if (bitmap != null)
             {
-                var scaling = VisualTreeHelper.GetDpi(this).DpiScaleX;
-                preview.Width = bitmap.Width / scaling;
-                preview.Height = bitmap.Height / scaling;
+                preview.Width = bitmap.Width;
+                preview.Height = bitmap.Height;
                 loading.Visibility = Visibility.Collapsed;
                 previewScroll.Visibility = Visibility.Visible;
             }

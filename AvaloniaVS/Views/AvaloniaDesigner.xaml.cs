@@ -224,7 +224,8 @@ namespace AvaloniaVS.Views
 
         protected override void OnDpiChanged(DpiScale oldDpi, DpiScale newDpi)
         {
-            Process.SetScalingAsync(newDpi.DpiScaleX).FireAndForget();
+            var dpi = new Vector(newDpi.PixelsPerInchX, newDpi.PixelsPerInchY);
+            Process.SetDpiAsync(dpi).FireAndForget();
         }
 
         private void InitializeEditor()
@@ -370,7 +371,9 @@ namespace AvaloniaVS.Views
 
                     if (!IsPaused)
                     {
-                        await Process.SetScalingAsync(VisualTreeHelper.GetDpi(this).DpiScaleX);
+                        var dpiScale = VisualTreeHelper.GetDpi(this);
+                        var dpi = new Vector(dpiScale.PixelsPerInchX, dpiScale.PixelsPerInchY);
+                        await Process.SetDpiAsync(dpi);
                         await Process.StartAsync(assemblyPath, executablePath, hostAppPath);
                         await Process.UpdateXamlAsync(await ReadAllTextAsync(_xamlPath));
                     }

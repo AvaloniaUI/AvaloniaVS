@@ -28,7 +28,7 @@ namespace AvaloniaVS.Services
         private readonly ILogger _log;
         private string _assemblyPath;
         private string _executablePath;
-        private double _scaling;
+        private Vector _dpi;
         private Process _process;
         private IAvaloniaRemoteTransportConnection _connection;
         private IDisposable _listener;
@@ -274,20 +274,20 @@ namespace AvaloniaVS.Services
         }
 
         /// <summary>
-        /// Sets the scaling for the preview.
+        /// Sets the DPI for the preview.
         /// </summary>
-        /// <param name="scaling">The scaling factor.</param>
+        /// <param name="dpi">The DPI.</param>
         /// <returns>A task tracking the operation.</returns>
-        public async Task SetScalingAsync(double scaling)
+        public async Task SetDpiAsync(Vector dpi)
         {
-            _scaling = scaling;
+            _dpi = dpi;
 
             if (IsReady)
             {
                 await SendAsync(new ClientRenderInfoMessage
                 {
-                    DpiX = 96 * _scaling,
-                    DpiY = 96 * _scaling,
+                    DpiX = _dpi.X,
+                    DpiY = _dpi.Y,
                 });
             }
         }
@@ -373,7 +373,7 @@ namespace AvaloniaVS.Services
                 }
             });
 
-            await SetScalingAsync(_scaling);
+            await SetDpiAsync(_dpi);
 
             _log.Verbose("Finished PreviewerProcess.ConnectionInitializedAsync()");
         }
@@ -400,8 +400,8 @@ namespace AvaloniaVS.Services
                         _bitmap = new WriteableBitmap(
                             Math.Max(frame.Width, 1),
                             Math.Max(frame.Height, 1),
-                            96,
-                            96,
+                            frame.DpiX,
+                            frame.DpiY,
                             ToWpf(frame.Format),
                             null);
                     }
