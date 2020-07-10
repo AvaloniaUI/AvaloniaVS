@@ -18,8 +18,6 @@ namespace AvaloniaVS.IntelliSense
     [Export(typeof(IWpfTextViewCreationListener))]
     [TextViewRole(PredefinedTextViewRoles.Editable)]
     internal sealed class XamlTextViewCreationListener : IWpfTextViewCreationListener
-
-
     {
         private readonly IServiceProvider _serviceProvider;
 

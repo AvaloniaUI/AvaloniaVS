@@ -35,7 +35,7 @@ namespace AvaloniaVS.IntelliSense
             try
             {
                 if (_buffer.Properties.TryGetProperty<XamlBufferMetadata>(typeof(XamlBufferMetadata), out var metadata) &&
-                metadata.CompletionMetadata != null)
+                    metadata.CompletionMetadata != null)
                 {
                     var sw = Stopwatch.StartNew();
                     var pos = _textView.Caret.Position.BufferPosition;
