@@ -74,10 +74,12 @@ namespace AvaloniaVS.IntelliSense
 
             s_images = new ImageSource[capacity];
             s_images[(int)CompletionKind.Property] = LoadImage(imageService, KnownMonikers.Property, ref attributes);
+            s_images[(int)CompletionKind.Event] = LoadImage(imageService, KnownMonikers.Event, ref attributes);
             s_images[(int)CompletionKind.Class] = LoadImage(imageService, KnownMonikers.MarkupTag, ref attributes);
             s_images[(int)CompletionKind.Enum] = LoadImage(imageService, KnownMonikers.EnumerationItemPublic, ref attributes);
             s_images[(int)CompletionKind.Namespace] = LoadImage(imageService, KnownMonikers.Namespace, ref attributes);
 
+            s_images[(int)CompletionKind.AttachedEvent] = s_images[(int)CompletionKind.Event];
             s_images[(int)CompletionKind.AttachedProperty] = s_images[(int)CompletionKind.Property];
             s_images[(int)CompletionKind.StaticProperty] = s_images[(int)CompletionKind.Property];
             s_images[(int)CompletionKind.MarkupExtension] = s_images[(int)CompletionKind.Namespace];
