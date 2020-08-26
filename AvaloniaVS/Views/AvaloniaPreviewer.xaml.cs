@@ -10,6 +10,7 @@ using AvaloniaVS.Services;
 using Microsoft.VisualStudio.Shell;
 using Serilog;
 using AvMouseButton = Avalonia.Remote.Protocol.Input.MouseButton;
+using WpfMouseButton = System.Windows.Input.MouseButton;
 
 namespace AvaloniaVS.Views
 {
@@ -107,7 +108,7 @@ namespace AvaloniaVS.Views
             {
                 X = p.X,
                 Y = p.Y,
-                Button = GetButton(e),
+                Button = GetButton(e.ChangedButton),
                 Modifiers = GetModifiers(e),
             });
         }
@@ -120,27 +121,20 @@ namespace AvaloniaVS.Views
             {
                 X = p.X,
                 Y = p.Y,
-                Button = GetButton(e),
+                Button = GetButton(e.ChangedButton),
                 Modifiers = GetModifiers(e),
             });
         }
 
-        private static AvMouseButton GetButton(MouseEventArgs e)
+        private static AvMouseButton GetButton(WpfMouseButton button)
         {
-            if (e.LeftButton == MouseButtonState.Pressed)
+            switch (button)
             {
-                return AvMouseButton.Left;
+                case WpfMouseButton.Left: return AvMouseButton.Left;
+                case WpfMouseButton.Middle: return AvMouseButton.Middle;
+                case WpfMouseButton.Right: return AvMouseButton.Right;
+                default: return AvMouseButton.None;
             }
-            else if (e.RightButton == MouseButtonState.Pressed)
-            {
-                return AvMouseButton.Right;
-            }
-            else if (e.MiddleButton == MouseButtonState.Pressed)
-            {
-                return AvMouseButton.Middle;
-            }
-
-            return AvMouseButton.None;
         }
 
         private static InputModifiers[] GetModifiers(MouseEventArgs e)
