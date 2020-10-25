@@ -28,7 +28,6 @@
       <ProjectItem ReplaceParameters="true">Views\MainWindow.xaml</ProjectItem>
       <ProjectItem ReplaceParameters="true">App.xaml.fs</ProjectItem>
       <ProjectItem ReplaceParameters="true">App.xaml</ProjectItem>
-      <ProjectItem>nuget.config</ProjectItem>
       <ProjectItem ReplaceParameters="true">ViewLocator.fs</ProjectItem>
       <ProjectItem ReplaceParameters="true">Program.fs</ProjectItem>
     </Project>

@@ -4,7 +4,7 @@ open Avalonia
 open Avalonia.Controls
 open Avalonia.Markup.Xaml
 
-type $safeitemrootname$ () as self = 
+type $safeitemname$ () as self = 
     inherit UserControl ()
 
     do AvaloniaXamlLoader.Load self
