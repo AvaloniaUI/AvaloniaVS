@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using AvaloniaVS.Models;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -47,7 +48,11 @@ namespace AvaloniaVS.IntelliSense
                         XamlCompletion.Create(completions.Completions, _imageService),
                         null));
 
-                    Log.Logger.Verbose("XAML completion took {Time}", sw.Elapsed);
+                    string completionHint = completions.Completions.Count == 0 ?
+                        "no completions found" :
+                        $"{completions.Completions.Count} completions found (First:{completions.Completions.FirstOrDefault()?.DisplayText})";
+
+                    Log.Logger.Verbose("XAML completion took {Time}, {CompletionHint}", sw.Elapsed, completionHint);
                 }
 
                 sw.Stop();

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -7,6 +8,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Avalonia.Ide.CompletionEngine;
 using Avalonia.Ide.CompletionEngine.AssemblyMetadata;
 using Avalonia.Ide.CompletionEngine.DnlibMetadataProvider;
 using AvaloniaVS.Models;
@@ -194,7 +196,7 @@ namespace AvaloniaVS.Views
                     typeof(XamlBufferMetadata),
                     out var metadata))
             {
-                metadata.CompletionMetadata = null;
+                metadata.NeedInvalidation = true;
             }
         }
 
@@ -422,7 +424,7 @@ namespace AvaloniaVS.Views
                     () => new XamlBufferMetadata());
                 buffer.Properties["AssemblyName"] = Path.GetFileNameWithoutExtension(assemblyPath);
 
-                if (metadata.CompletionMetadata == null)
+                if (metadata.CompletionMetadata == null || metadata.NeedInvalidation)
                 {
                     CreateCompletionMetadataAsync(executablePath, metadata).FireAndForget();
                 }
@@ -435,12 +437,23 @@ namespace AvaloniaVS.Views
         {
             await TaskScheduler.Default;
 
-            Log.Logger.Verbose("Started AvaloniaDesigner.CreateCompletionMetadataAsync()");
+            Log.Logger.Verbose("Started AvaloniaDesigner.CreateCompletionMetadataAsync() for {ExecutablePath}", executablePath);
 
             try
             {
-                var metadataReader = new MetadataReader(new DnlibMetadataProvider());
-                target.CompletionMetadata = metadataReader.GetForTargetAssembly(executablePath);
+                var sw = Stopwatch.StartNew();
+
+                target.CompletionMetadata = await Task.Run(() =>
+                {
+                    var metadataReader = new MetadataReader(new DnlibMetadataProvider());
+                    return metadataReader.GetForTargetAssembly(executablePath);
+                });
+
+                target.NeedInvalidation = false;
+
+                sw.Stop();
+
+                Log.Logger.Verbose("Finished AvaloniaDesigner.CreateCompletionMetadataAsync() took {Time} for {ExecutablePath}", sw.Elapsed, executablePath);
             }
             catch (Exception ex)
             {
