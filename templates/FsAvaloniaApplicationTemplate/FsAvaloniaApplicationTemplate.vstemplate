@@ -25,7 +25,6 @@
       <ProjectItem ReplaceParameters="false">MainWindow.xaml.fs</ProjectItem>
       <ProjectItem ReplaceParameters="true">App.xaml.fs</ProjectItem>
       <ProjectItem ReplaceParameters="true">Program.fs</ProjectItem>
-      <ProjectItem ReplaceParameters="false">nuget.config</ProjectItem>
     </Project>
   </TemplateContent>
 </VSTemplate>

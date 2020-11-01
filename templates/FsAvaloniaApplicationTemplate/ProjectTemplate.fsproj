@@ -12,9 +12,6 @@
     </AvaloniaResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="nuget.config" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="MainWindow.xaml.fs" />
     <Compile Include="App.xaml.fs"/>
     <Compile Include="Program.fs" />

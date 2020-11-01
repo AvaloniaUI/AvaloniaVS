@@ -81,7 +81,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.xaml.fs" />
-    <None Include="nuget.config" />
     <None Include="Program.fs" />
     <None Include="ProjectTemplate.fsproj" />
     <None Include="MainWindow.xaml.fs" />
