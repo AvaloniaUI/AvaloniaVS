@@ -95,6 +95,11 @@ namespace AvaloniaVS.Views
             previewer.Process = Process;
             pausedMessage.Visibility = Visibility.Collapsed;
             UpdateLayoutForView();
+
+            Loaded += (s, e) =>
+            {
+                StartStopProcessAsync().FireAndForget();
+            };
         }
 
         /// <summary>
@@ -332,7 +337,7 @@ namespace AvaloniaVS.Views
                     pausedMessage.Visibility = Visibility.Visible;
                     Process.Stop();
                 }
-                else if (!Process.IsRunning)
+                else if (!Process.IsRunning && IsLoaded)
                 {
                     pausedMessage.Visibility = Visibility.Collapsed;
 
@@ -344,7 +349,7 @@ namespace AvaloniaVS.Views
                     await StartProcessAsync();
                 }
             }
-            else
+            else if(!IsPaused && IsLoaded)
             {
                 RebuildMetadata(null, null);
                 Process.Stop();
