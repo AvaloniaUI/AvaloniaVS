@@ -436,11 +436,20 @@ namespace AvaloniaVS.Views
             }
         }
 
+        private static Dictionary<string, Task<Metadata>> _metadataCache;
         private static async Task CreateCompletionMetadataAsync(
             string executablePath,
             XamlBufferMetadata target)
         {
-            await TaskScheduler.Default;
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            if (_metadataCache == null)
+            {
+                _metadataCache = new Dictionary<string, Task<Metadata>>();
+                var dte = (DTE)Package.GetGlobalService(typeof(DTE));
+
+                dte.Events.BuildEvents.OnBuildBegin += (s, e) => _metadataCache.Clear();
+            }
 
             Log.Logger.Verbose("Started AvaloniaDesigner.CreateCompletionMetadataAsync() for {ExecutablePath}", executablePath);
 
@@ -448,11 +457,19 @@ namespace AvaloniaVS.Views
             {
                 var sw = Stopwatch.StartNew();
 
-                target.CompletionMetadata = await Task.Run(() =>
+                Task<Metadata> metadataLoad;
+
+                if (!_metadataCache.TryGetValue(executablePath, out metadataLoad))
                 {
-                    var metadataReader = new MetadataReader(new DnlibMetadataProvider());
-                    return metadataReader.GetForTargetAssembly(executablePath);
-                });
+                    metadataLoad = Task.Run(() =>
+                                    {
+                                        var metadataReader = new MetadataReader(new DnlibMetadataProvider());
+                                        return metadataReader.GetForTargetAssembly(executablePath);
+                                    });
+                    _metadataCache[executablePath] = metadataLoad;
+                }
+
+                target.CompletionMetadata = await metadataLoad;
 
                 target.NeedInvalidation = false;
 
