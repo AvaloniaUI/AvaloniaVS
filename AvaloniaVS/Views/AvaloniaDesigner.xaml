@@ -62,6 +62,10 @@
                       local:VsTheme.UseVsTheme="True" >
             </ComboBox>
 
+            <ComboBox Text="{Binding Zoom, ElementName=root, Mode=TwoWay}" IsEditable="True" 
+                      ItemsSource="{x:Static local:AvaloniaDesigner.Zooms}"
+                      Padding="2" local:VsTheme.UseVsTheme="True"/>
+
             <ListBox SelectedIndex="{Binding View, ElementName=root, Mode=TwoWay, Converter={StaticResource EnumToInt}}">
                 <ListBoxItem ToolTip="Split View">
                     <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Splitter}"/>

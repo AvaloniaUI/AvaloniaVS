@@ -55,6 +55,12 @@ namespace AvaloniaVS.Views
 
         protected override void OnDpiChanged(DpiScale oldDpi, DpiScale newDpi) => Update(_process?.Bitmap);
 
+        private double GetScaling()
+        {
+            var result = Process?.Scaling ?? 1;
+            return result > 0 ? result : 1;
+        }
+
         private async void Update(object sender, EventArgs e)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -91,11 +97,12 @@ namespace AvaloniaVS.Views
         private void Preview_MouseMove(object sender, MouseEventArgs e)
         {
             var p = e.GetPosition(preview);
+            var scaling = GetScaling();
 
             Process?.SendInputAsync(new PointerMovedEventMessage
             {
-                X = p.X,
-                Y = p.Y,
+                X = p.X / scaling,
+                Y = p.Y / scaling,
                 Modifiers = GetModifiers(e),
             });
         }
@@ -103,11 +110,12 @@ namespace AvaloniaVS.Views
         private void Preview_MouseDown(object sender, MouseButtonEventArgs e)
         {
             var p = e.GetPosition(preview);
+            var scaling = GetScaling();
 
             Process?.SendInputAsync(new PointerPressedEventMessage
             {
-                X = p.X,
-                Y = p.Y,
+                X = p.X / scaling,
+                Y = p.Y / scaling,
                 Button = GetButton(e.ChangedButton),
                 Modifiers = GetModifiers(e),
             });
@@ -116,11 +124,12 @@ namespace AvaloniaVS.Views
         private void Preview_MouseUp(object sender, MouseButtonEventArgs e)
         {
             var p = e.GetPosition(preview);
+            var scaling = GetScaling();
 
             Process?.SendInputAsync(new PointerReleasedEventMessage
             {
-                X = p.X,
-                Y = p.Y,
+                X = p.X / scaling,
+                Y = p.Y / scaling,
                 Button = GetButton(e.ChangedButton),
                 Modifiers = GetModifiers(e),
             });

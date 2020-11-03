@@ -66,6 +66,18 @@ namespace AvaloniaVS.Views
         public static readonly DependencyProperty TargetsProperty =
             TargetsPropertyKey.DependencyProperty;
 
+        public static readonly DependencyProperty ZoomProperty =
+            DependencyProperty.Register(
+                nameof(Zoom),
+                typeof(string),
+                typeof(AvaloniaDesigner),
+                new PropertyMetadata("100%", HandleZoomChanged));
+
+        public static string[] Zooms { get; } = new string[]
+        {
+            "800%", "400%", "200%", "150%", "100%", "66.67%", "50%", "33.33%", "25%", "12.5%", "Fit All"
+        };
+
         private static readonly GridLength ZeroStar = new GridLength(0, GridUnitType.Star);
         private static readonly GridLength OneStar = new GridLength(1, GridUnitType.Star);
         private readonly Throttle<string> _throttle;
@@ -79,6 +91,7 @@ namespace AvaloniaVS.Views
         private bool _isPaused;
         private SemaphoreSlim _startingProcess = new SemaphoreSlim(1, 1);
         private bool _disposed;
+        private double _scaling = 1;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AvaloniaDesigner"/> class.
@@ -162,6 +175,15 @@ namespace AvaloniaVS.Views
         }
 
         /// <summary>
+        /// Gets or sets the type of view to display.
+        /// </summary>
+        public string Zoom
+        {
+            get => (string)GetValue(ZoomProperty);
+            set => SetValue(ZoomProperty, value);
+        }
+
+        /// <summary>
         /// Starts the designer.
         /// </summary>
         /// <param name="project">The project containing the XAML file.</param>
@@ -231,7 +253,7 @@ namespace AvaloniaVS.Views
 
         protected override void OnDpiChanged(DpiScale oldDpi, DpiScale newDpi)
         {
-            Process.SetScalingAsync(newDpi.DpiScaleX).FireAndForget();
+            Process.SetScalingAsync(newDpi.DpiScaleX * _scaling).FireAndForget();
         }
 
         private void InitializeEditor()
@@ -349,11 +371,43 @@ namespace AvaloniaVS.Views
                     await StartProcessAsync();
                 }
             }
-            else if(!IsPaused && IsLoaded)
+            else if (!IsPaused && IsLoaded)
             {
                 RebuildMetadata(null, null);
                 Process.Stop();
             }
+        }
+
+        private bool TryProcessZoomValue(out double scaling)
+        {
+            scaling = 1;
+
+            if (string.IsNullOrEmpty(Zoom))
+                return false;
+
+            if (Zoom.Equals("Fit All", StringComparison.OrdinalIgnoreCase))
+            {
+                if (Process.IsReady && Process.Bitmap != null)
+                {
+                    double x = previewer.ActualWidth / (Process.Bitmap.Width / Process.Scaling);
+                    double y = previewer.ActualHeight / (Process.Bitmap.Height / Process.Scaling);
+
+                    Zoom = $"{Math.Round(Math.Min(x, y), 2, MidpointRounding.ToEven) * 100}%";
+                }
+                else
+                {
+                    Zoom = "100%";
+                }
+
+                return false;
+            }
+            else if (double.TryParse(Zoom.Replace("%", ""), out double zoomPercent) && zoomPercent > 0)
+            {
+                scaling = zoomPercent / 100;
+                return true;
+            }
+
+            return false;
         }
 
         private async Task StartProcessAsync()
@@ -377,7 +431,7 @@ namespace AvaloniaVS.Views
 
                     if (!IsPaused)
                     {
-                        await Process.SetScalingAsync(VisualTreeHelper.GetDpi(this).DpiScaleX);
+                        await Process.SetScalingAsync(VisualTreeHelper.GetDpi(this).DpiScaleX * _scaling);
                         await Process.StartAsync(assemblyPath, executablePath, hostAppPath);
                         await Process.UpdateXamlAsync(await ReadAllTextAsync(_xamlPath));
                     }
@@ -605,6 +659,16 @@ namespace AvaloniaVS.Views
             }
         }
 
+        private void UpdateScaling(double scaling)
+        {
+            _scaling = scaling;
+
+            if (Process.IsReady)
+            {
+                Process.SetScalingAsync(VisualTreeHelper.GetDpi(this).DpiScaleX * _scaling).FireAndForget();
+            }
+        }
+
         private async Task SelectedTargetChangedAsync(object sender, DependencyPropertyChangedEventArgs e)
         {
             var oldValue = (DesignerRunTarget)e.OldValue;
@@ -656,6 +720,17 @@ namespace AvaloniaVS.Views
             {
                 designer.UpdateLayoutForView();
                 designer.StartStopProcessAsync().FireAndForget();
+            }
+        }
+
+        private static void HandleZoomChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is AvaloniaDesigner designer)
+            {
+                if (designer.TryProcessZoomValue(out double scaling))
+                {
+                    designer.UpdateScaling(scaling);
+                }
             }
         }
 
