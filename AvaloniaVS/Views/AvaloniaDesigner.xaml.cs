@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -392,7 +393,7 @@ namespace AvaloniaVS.Views
                     double x = previewer.ActualWidth / (Process.Bitmap.Width / Process.Scaling);
                     double y = previewer.ActualHeight / (Process.Bitmap.Height / Process.Scaling);
 
-                    Zoom = $"{Math.Round(Math.Min(x, y), 2, MidpointRounding.ToEven) * 100}%";
+                    Zoom = string.Format(CultureInfo.InvariantCulture, "{0}%", Math.Round(Math.Min(x, y), 2, MidpointRounding.ToEven) * 100);
                 }
                 else
                 {
@@ -401,7 +402,8 @@ namespace AvaloniaVS.Views
 
                 return false;
             }
-            else if (double.TryParse(Zoom.Replace("%", ""), out double zoomPercent) && zoomPercent > 0)
+            else if (double.TryParse(Zoom.TrimEnd('%'), NumberStyles.Number, CultureInfo.InvariantCulture, out double zoomPercent)
+                     && zoomPercent > 0 && zoomPercent <= 1000)
             {
                 scaling = zoomPercent / 100;
                 return true;
@@ -422,7 +424,6 @@ namespace AvaloniaVS.Views
 
             if (assemblyPath != null && executablePath != null && hostAppPath != null)
             {
-
                 RebuildMetadata(assemblyPath, executablePath);
 
                 try
@@ -491,6 +492,7 @@ namespace AvaloniaVS.Views
         }
 
         private static Dictionary<string, Task<Metadata>> _metadataCache;
+
         private static async Task CreateCompletionMetadataAsync(
             string executablePath,
             XamlBufferMetadata target)
