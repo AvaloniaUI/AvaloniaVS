@@ -176,7 +176,7 @@ namespace AvaloniaVS.Views
         }
 
         /// <summary>
-        /// Gets or sets the type of view to display.
+        /// Gets or sets the zoom level as a string.
         /// </summary>
         public string Zoom
         {
@@ -727,12 +727,9 @@ namespace AvaloniaVS.Views
 
         private static void HandleZoomChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            if (d is AvaloniaDesigner designer)
+            if (d is AvaloniaDesigner designer && designer.TryProcessZoomValue(out double scaling))
             {
-                if (designer.TryProcessZoomValue(out double scaling))
-                {
-                    designer.UpdateScaling(scaling);
-                }
+                designer.UpdateScaling(scaling);
             }
         }
 
