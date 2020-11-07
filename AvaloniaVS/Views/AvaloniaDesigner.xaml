@@ -63,8 +63,8 @@
             </ComboBox>
 
             <ComboBox DockPanel.Dock="Right"
-                      Text="{Binding Zoom, ElementName=root, Mode=TwoWay}" IsEditable="True" 
-                      ItemsSource="{x:Static local:AvaloniaDesigner.Zooms}"
+                      Text="{Binding ZoomLevel, ElementName=root, Mode=TwoWay}" IsEditable="True" 
+                      ItemsSource="{x:Static local:AvaloniaDesigner.ZoomLevels}"
                       Padding="2" Margin="0 0 10 0" local:VsTheme.UseVsTheme="True"/>
 
             <ListBox SelectedIndex="{Binding View, ElementName=root, Mode=TwoWay, Converter={StaticResource EnumToInt}}">

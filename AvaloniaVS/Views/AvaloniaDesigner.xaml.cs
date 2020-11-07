@@ -67,17 +67,22 @@ namespace AvaloniaVS.Views
         public static readonly DependencyProperty TargetsProperty =
             TargetsPropertyKey.DependencyProperty;
 
-        public static readonly DependencyProperty ZoomProperty =
+        public static readonly DependencyProperty ZoomLevelProperty =
             DependencyProperty.Register(
-                nameof(Zoom),
+                nameof(ZoomLevel),
                 typeof(string),
                 typeof(AvaloniaDesigner),
-                new PropertyMetadata("100%", HandleZoomChanged));
+                new PropertyMetadata("100%", HandleZoomLevelChanged));
 
-        public static string[] Zooms { get; } = new string[]
+        private static string FmtZoomLevel(double v) => $"{v.ToString(CultureInfo.InvariantCulture)}%";
+
+        public static string[] ZoomLevels { get; } = new string[]
         {
-            "800%", "400%", "200%", "150%", "100%", "66.67%", "50%", "33.33%", "25%", "12.5%", "Fit All"
+            FmtZoomLevel(800), FmtZoomLevel(400), FmtZoomLevel(200), FmtZoomLevel(150), FmtZoomLevel(100),
+            FmtZoomLevel(66.67), FmtZoomLevel(50), FmtZoomLevel(33.33), FmtZoomLevel(25), FmtZoomLevel(12.5),
+            "Fit All"
         };
+
 
         private static readonly GridLength ZeroStar = new GridLength(0, GridUnitType.Star);
         private static readonly GridLength OneStar = new GridLength(1, GridUnitType.Star);
@@ -178,10 +183,10 @@ namespace AvaloniaVS.Views
         /// <summary>
         /// Gets or sets the zoom level as a string.
         /// </summary>
-        public string Zoom
+        public string ZoomLevel
         {
-            get => (string)GetValue(ZoomProperty);
-            set => SetValue(ZoomProperty, value);
+            get => (string)GetValue(ZoomLevelProperty);
+            set => SetValue(ZoomLevelProperty, value);
         }
 
         /// <summary>
@@ -379,30 +384,30 @@ namespace AvaloniaVS.Views
             }
         }
 
-        private bool TryProcessZoomValue(out double scaling)
+        private bool TryProcessZoomLevelValue(out double scaling)
         {
             scaling = 1;
 
-            if (string.IsNullOrEmpty(Zoom))
+            if (string.IsNullOrEmpty(ZoomLevel))
                 return false;
 
-            if (Zoom.Equals("Fit All", StringComparison.OrdinalIgnoreCase))
+            if (ZoomLevel.Equals("Fit All", StringComparison.OrdinalIgnoreCase))
             {
                 if (Process.IsReady && Process.Bitmap != null)
                 {
                     double x = previewer.ActualWidth / (Process.Bitmap.Width / Process.Scaling);
                     double y = previewer.ActualHeight / (Process.Bitmap.Height / Process.Scaling);
 
-                    Zoom = string.Format(CultureInfo.InvariantCulture, "{0}%", Math.Round(Math.Min(x, y), 2, MidpointRounding.ToEven) * 100);
+                    ZoomLevel = string.Format(CultureInfo.InvariantCulture, "{0}%", Math.Round(Math.Min(x, y), 2, MidpointRounding.ToEven) * 100);
                 }
                 else
                 {
-                    Zoom = "100%";
+                    ZoomLevel = "100%";
                 }
 
                 return false;
             }
-            else if (double.TryParse(Zoom.TrimEnd('%'), NumberStyles.Number, CultureInfo.InvariantCulture, out double zoomPercent)
+            else if (double.TryParse(ZoomLevel.TrimEnd('%'), NumberStyles.Number, CultureInfo.InvariantCulture, out double zoomPercent)
                      && zoomPercent > 0 && zoomPercent <= 1000)
             {
                 scaling = zoomPercent / 100;
@@ -725,9 +730,9 @@ namespace AvaloniaVS.Views
             }
         }
 
-        private static void HandleZoomChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        private static void HandleZoomLevelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            if (d is AvaloniaDesigner designer && designer.TryProcessZoomValue(out double scaling))
+            if (d is AvaloniaDesigner designer && designer.TryProcessZoomLevelValue(out double scaling))
             {
                 designer.UpdateScaling(scaling);
             }
