@@ -80,6 +80,7 @@
     <Compile Include="ServiceProviderExtensions.cs" />
     <Compile Include="Services\PreviewerProcess.cs" />
     <Compile Include="TaskExtensions.cs" />
+    <Compile Include="Utils\FrameworkInfoUtils.cs" />
     <Compile Include="Views\AvaloniaPreviewer.xaml.cs">
       <DependentUpon>AvaloniaPreviewer.xaml</DependentUpon>
     </Compile>

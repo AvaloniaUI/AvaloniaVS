@@ -4,11 +4,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AvaloniaVS.Models;
+using AvaloniaVS.Utils;
 using EnvDTE;
 using EnvDTE80;
+using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
 using Microsoft.VisualStudio.Shell;
 using VSLangProj;
@@ -210,25 +211,18 @@ namespace AvaloniaVS.Services
                             BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
                         .GetMethod.Invoke(loaded, null) as Task<Microsoft.Build.Evaluation.Project>;
                     var msbuildProperties = (await task).AllEvaluatedProperties;
-                    var targetPath = msbuildProperties.FirstOrDefault(p => p.Name == "TargetPath")?.EvaluatedValue;
-                    var hostAppNetCore = msbuildProperties.FirstOrDefault(x => x.Name == "AvaloniaPreviewerNetCoreToolPath")?.EvaluatedValue;
-                    var hostAppNetFx = msbuildProperties.FirstOrDefault(x => x.Name == "AvaloniaPreviewerNetFullToolPath")?.EvaluatedValue;
+                    var targetPath = GetMsBuildProperty(msbuildProperties, "TargetPath");
 
                     if (!string.IsNullOrWhiteSpace(targetPath))
                     {
-                        if (!loaded.ProjectConfiguration.Dimensions.TryGetValue("TargetFramework", out var targetFw))
-                            targetFw = (await task).AllEvaluatedProperties.FirstOrDefault(p => p.Name == "TargetFramework")
-                                           ?.EvaluatedValue ?? "unknown";
+                        var hostAppNetCore = GetMsBuildProperty(msbuildProperties, "AvaloniaPreviewerNetCoreToolPath");
+                        var hostAppNetFx = GetMsBuildProperty(msbuildProperties, "AvaloniaPreviewerNetFullToolPath");
 
-                        var outputInfo = new ProjectOutputInfo
-                        {
-                            TargetAssembly = targetPath,
-                            TargetFramework = targetFw == "classic" ? "net40" : targetFw,
-                            HostApp = hostAppNetCore,
-                        };
+                        var tf = GetFrameworkInfo(loaded, msbuildProperties, "TargetFramework");
+                        var tfi = GetFrameworkInfo(loaded, msbuildProperties, "TargetFrameworkIdentifier");
+                        var hostApp = FrameworkInfoUtils.IsNetFramework(tfi) ? hostAppNetFx : hostAppNetCore;
 
-                        outputInfo.HostApp = outputInfo.IsFullDotNet ? hostAppNetFx : hostAppNetCore;
-                        alternatives[targetFw] = outputInfo;
+                        alternatives[tf] = new ProjectOutputInfo(targetPath, tf, tfi, hostApp);
                     }
                 }
             }
@@ -278,6 +272,23 @@ namespace AvaloniaVS.Services
             {
                 return null;
             }
+        }
+
+        private static string GetMsBuildProperty(
+            ICollection<Microsoft.Build.Evaluation.ProjectProperty> msbuildProperties,
+            string propertyName)
+        {
+            return msbuildProperties.FirstOrDefault(x => x.Name == propertyName)?.EvaluatedValue;
+        }
+
+        private static string GetFrameworkInfo(
+            ConfiguredProject loaded,
+            ICollection<Microsoft.Build.Evaluation.ProjectProperty> msbuildProperties,
+            string keyTargetInfo)
+        {
+            return loaded.ProjectConfiguration.Dimensions.TryGetValue(keyTargetInfo, out var info)
+                ? info
+                : GetMsBuildProperty(msbuildProperties, keyTargetInfo) ?? "unknown";
         }
     }
 }
