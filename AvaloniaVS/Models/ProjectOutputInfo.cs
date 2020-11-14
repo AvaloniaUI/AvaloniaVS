@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+﻿using AvaloniaVS.Utils;
 
 namespace AvaloniaVS.Models
 {
@@ -7,37 +7,48 @@ namespace AvaloniaVS.Models
     /// </summary>
     public class ProjectOutputInfo
     {
-        private static readonly Regex s_desktopFrameworkRegex = new Regex("^net[0-9]+$");
+        /// <summary>
+        /// Gets the full path to the target assembly for the output.
+        /// </summary>
+        public string TargetAssembly { get; }
 
         /// <summary>
-        /// Gets or sets the full path to the target assembly for the output.
+        /// Gets the friendly name of framework for the output.
         /// </summary>
-        public string TargetAssembly { get; set; }
+        public string TargetFramework { get; }
 
         /// <summary>
-        /// Gets or sets the target framework for the output.
+        /// Gets the long name of framework for the output.
         /// </summary>
-        public string TargetFramework { get; set; }
+        public string TargetFrameworkIdentifier { get; }
 
         /// <summary>
         /// Gets the full path to the Avalonia.Designer.HostApp.dll to use.
         /// </summary>
-        public string HostApp { get; set; }
+        public string HostApp { get; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether the target framework is the dotnet framework.
+        /// Gets a value indicating whether the target framework is .NET Framework.
         /// </summary>
-        public bool IsFullDotNet => TargetFramework != null ?
-            s_desktopFrameworkRegex.IsMatch(TargetFramework) : false;
+        public bool IsNetFramework => FrameworkInfoUtils.IsNetFramework(TargetFrameworkIdentifier);
 
         /// <summary>
-        /// Gets or sets a value indicating whether the target framework is dotnet core.
+        /// Gets a value indicating whether the target framework is .NET Core.
         /// </summary>
-        public bool IsNetCore => TargetFramework?.StartsWith("netcoreapp") ?? false;
+        public bool IsNetCore => FrameworkInfoUtils.IsNetCoreApp(TargetFrameworkIdentifier);
 
         /// <summary>
-        /// Gets or sets a value indicating whether the target framework is netstandard.
+        /// Gets a value indicating whether the target framework is .NET Standard.
         /// </summary>
-        public bool IsNetStandard => TargetFramework?.StartsWith("netstandard") ?? false;
+        public bool IsNetStandard => FrameworkInfoUtils.IsNetStandard(TargetFrameworkIdentifier);
+
+        public ProjectOutputInfo(
+            string targetAssembly, string targetFramework, string targetFrameworkIdentifier, string hostApp)
+        {
+            TargetAssembly = targetAssembly;
+            TargetFramework = targetFramework;
+            TargetFrameworkIdentifier = targetFrameworkIdentifier;
+            HostApp = hostApp;
+        }
     }
 }
