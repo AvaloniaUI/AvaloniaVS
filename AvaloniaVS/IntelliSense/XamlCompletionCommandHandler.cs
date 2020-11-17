@@ -93,7 +93,7 @@ namespace AvaloniaVS.IntelliSense
             {
                 if (_session == null || _session.IsDismissed)
                 {
-                    if (TriggerCompletion() && c != '<')
+                    if (TriggerCompletion() && c != '<' && c != '.' && c != ' ')
                     {
                         _session?.Filter();
                     }

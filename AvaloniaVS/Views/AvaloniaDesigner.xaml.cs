@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -7,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Avalonia.Ide.CompletionEngine;
 using Avalonia.Ide.CompletionEngine.AssemblyMetadata;
 using Avalonia.Ide.CompletionEngine.DnlibMetadataProvider;
 using AvaloniaVS.Models;
@@ -64,6 +67,23 @@ namespace AvaloniaVS.Views
         public static readonly DependencyProperty TargetsProperty =
             TargetsPropertyKey.DependencyProperty;
 
+        public static readonly DependencyProperty ZoomLevelProperty =
+            DependencyProperty.Register(
+                nameof(ZoomLevel),
+                typeof(string),
+                typeof(AvaloniaDesigner),
+                new PropertyMetadata("100%", HandleZoomLevelChanged));
+
+        private static string FmtZoomLevel(double v) => $"{v.ToString(CultureInfo.InvariantCulture)}%";
+
+        public static string[] ZoomLevels { get; } = new string[]
+        {
+            FmtZoomLevel(800), FmtZoomLevel(400), FmtZoomLevel(200), FmtZoomLevel(150), FmtZoomLevel(100),
+            FmtZoomLevel(66.67), FmtZoomLevel(50), FmtZoomLevel(33.33), FmtZoomLevel(25), FmtZoomLevel(12.5),
+            "Fit All"
+        };
+
+
         private static readonly GridLength ZeroStar = new GridLength(0, GridUnitType.Star);
         private static readonly GridLength OneStar = new GridLength(1, GridUnitType.Star);
         private readonly Throttle<string> _throttle;
@@ -77,6 +97,7 @@ namespace AvaloniaVS.Views
         private bool _isPaused;
         private SemaphoreSlim _startingProcess = new SemaphoreSlim(1, 1);
         private bool _disposed;
+        private double _scaling = 1;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AvaloniaDesigner"/> class.
@@ -93,6 +114,11 @@ namespace AvaloniaVS.Views
             previewer.Process = Process;
             pausedMessage.Visibility = Visibility.Collapsed;
             UpdateLayoutForView();
+
+            Loaded += (s, e) =>
+            {
+                StartStopProcessAsync().FireAndForget();
+            };
         }
 
         /// <summary>
@@ -155,6 +181,15 @@ namespace AvaloniaVS.Views
         }
 
         /// <summary>
+        /// Gets or sets the zoom level as a string.
+        /// </summary>
+        public string ZoomLevel
+        {
+            get => (string)GetValue(ZoomLevelProperty);
+            set => SetValue(ZoomLevelProperty, value);
+        }
+
+        /// <summary>
         /// Starts the designer.
         /// </summary>
         /// <param name="project">The project containing the XAML file.</param>
@@ -194,7 +229,7 @@ namespace AvaloniaVS.Views
                     typeof(XamlBufferMetadata),
                     out var metadata))
             {
-                metadata.CompletionMetadata = null;
+                metadata.NeedInvalidation = true;
             }
         }
 
@@ -224,7 +259,7 @@ namespace AvaloniaVS.Views
 
         protected override void OnDpiChanged(DpiScale oldDpi, DpiScale newDpi)
         {
-            Process.SetScalingAsync(newDpi.DpiScaleX).FireAndForget();
+            Process.SetScalingAsync(newDpi.DpiScaleX * _scaling).FireAndForget();
         }
 
         private void InitializeEditor()
@@ -330,7 +365,7 @@ namespace AvaloniaVS.Views
                     pausedMessage.Visibility = Visibility.Visible;
                     Process.Stop();
                 }
-                else if (!Process.IsRunning)
+                else if (!Process.IsRunning && IsLoaded)
                 {
                     pausedMessage.Visibility = Visibility.Collapsed;
 
@@ -342,11 +377,44 @@ namespace AvaloniaVS.Views
                     await StartProcessAsync();
                 }
             }
-            else
+            else if (!IsPaused && IsLoaded)
             {
                 RebuildMetadata(null, null);
                 Process.Stop();
             }
+        }
+
+        private bool TryProcessZoomLevelValue(out double scaling)
+        {
+            scaling = 1;
+
+            if (string.IsNullOrEmpty(ZoomLevel))
+                return false;
+
+            if (ZoomLevel.Equals("Fit All", StringComparison.OrdinalIgnoreCase))
+            {
+                if (Process.IsReady && Process.Bitmap != null)
+                {
+                    double x = previewer.ActualWidth / (Process.Bitmap.Width / Process.Scaling);
+                    double y = previewer.ActualHeight / (Process.Bitmap.Height / Process.Scaling);
+
+                    ZoomLevel = string.Format(CultureInfo.InvariantCulture, "{0}%", Math.Round(Math.Min(x, y), 2, MidpointRounding.ToEven) * 100);
+                }
+                else
+                {
+                    ZoomLevel = "100%";
+                }
+
+                return false;
+            }
+            else if (double.TryParse(ZoomLevel.TrimEnd('%'), NumberStyles.Number, CultureInfo.InvariantCulture, out double zoomPercent)
+                     && zoomPercent > 0 && zoomPercent <= 1000)
+            {
+                scaling = zoomPercent / 100;
+                return true;
+            }
+
+            return false;
         }
 
         private async Task StartProcessAsync()
@@ -361,7 +429,6 @@ namespace AvaloniaVS.Views
 
             if (assemblyPath != null && executablePath != null && hostAppPath != null)
             {
-
                 RebuildMetadata(assemblyPath, executablePath);
 
                 try
@@ -370,7 +437,7 @@ namespace AvaloniaVS.Views
 
                     if (!IsPaused)
                     {
-                        await Process.SetScalingAsync(VisualTreeHelper.GetDpi(this).DpiScaleX);
+                        await Process.SetScalingAsync(VisualTreeHelper.GetDpi(this).DpiScaleX * _scaling);
                         await Process.StartAsync(assemblyPath, executablePath, hostAppPath);
                         await Process.UpdateXamlAsync(await ReadAllTextAsync(_xamlPath));
                     }
@@ -422,25 +489,54 @@ namespace AvaloniaVS.Views
                     () => new XamlBufferMetadata());
                 buffer.Properties["AssemblyName"] = Path.GetFileNameWithoutExtension(assemblyPath);
 
-                if (metadata.CompletionMetadata == null)
+                if (metadata.CompletionMetadata == null || metadata.NeedInvalidation)
                 {
                     CreateCompletionMetadataAsync(executablePath, metadata).FireAndForget();
                 }
             }
         }
 
+        private static Dictionary<string, Task<Metadata>> _metadataCache;
+
         private static async Task CreateCompletionMetadataAsync(
             string executablePath,
             XamlBufferMetadata target)
         {
-            await TaskScheduler.Default;
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            Log.Logger.Verbose("Started AvaloniaDesigner.CreateCompletionMetadataAsync()");
+            if (_metadataCache == null)
+            {
+                _metadataCache = new Dictionary<string, Task<Metadata>>();
+                var dte = (DTE)Package.GetGlobalService(typeof(DTE));
+
+                dte.Events.BuildEvents.OnBuildBegin += (s, e) => _metadataCache.Clear();
+            }
+
+            Log.Logger.Verbose("Started AvaloniaDesigner.CreateCompletionMetadataAsync() for {ExecutablePath}", executablePath);
 
             try
             {
-                var metadataReader = new MetadataReader(new DnlibMetadataProvider());
-                target.CompletionMetadata = metadataReader.GetForTargetAssembly(executablePath);
+                var sw = Stopwatch.StartNew();
+
+                Task<Metadata> metadataLoad;
+
+                if (!_metadataCache.TryGetValue(executablePath, out metadataLoad))
+                {
+                    metadataLoad = Task.Run(() =>
+                                    {
+                                        var metadataReader = new MetadataReader(new DnlibMetadataProvider());
+                                        return metadataReader.GetForTargetAssembly(executablePath);
+                                    });
+                    _metadataCache[executablePath] = metadataLoad;
+                }
+
+                target.CompletionMetadata = await metadataLoad;
+
+                target.NeedInvalidation = false;
+
+                sw.Stop();
+
+                Log.Logger.Verbose("Finished AvaloniaDesigner.CreateCompletionMetadataAsync() took {Time} for {ExecutablePath}", sw.Elapsed, executablePath);
             }
             catch (Exception ex)
             {
@@ -570,6 +666,16 @@ namespace AvaloniaVS.Views
             }
         }
 
+        private void UpdateScaling(double scaling)
+        {
+            _scaling = scaling;
+
+            if (Process.IsReady)
+            {
+                Process.SetScalingAsync(VisualTreeHelper.GetDpi(this).DpiScaleX * _scaling).FireAndForget();
+            }
+        }
+
         private async Task SelectedTargetChangedAsync(object sender, DependencyPropertyChangedEventArgs e)
         {
             var oldValue = (DesignerRunTarget)e.OldValue;
@@ -621,6 +727,14 @@ namespace AvaloniaVS.Views
             {
                 designer.UpdateLayoutForView();
                 designer.StartStopProcessAsync().FireAndForget();
+            }
+        }
+
+        private static void HandleZoomLevelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is AvaloniaDesigner designer && designer.TryProcessZoomLevelValue(out double scaling))
+            {
+                designer.UpdateScaling(scaling);
             }
         }
 
