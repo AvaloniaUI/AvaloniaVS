@@ -80,6 +80,11 @@ namespace AvaloniaVS.Services
         public bool IsReady => IsRunning && _connection != null;
 
         /// <summary>
+        /// Gets scaling for the preview.
+        /// </summary>
+        public double Scaling => _scaling;
+
+        /// <summary>
         /// Raised when the <see cref="Error"/> state changes.
         /// </summary>
         public event EventHandler ErrorChanged;
