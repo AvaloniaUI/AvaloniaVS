@@ -173,6 +173,27 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\templates\FsAvaloniaMvvmApplicationTemplate\FsAvaloniaMvvmApplicationTemplate.csproj">
+      <Project>{8315febb-8acd-4ad4-950c-2f4768986d92}</Project>
+      <Name>FsAvaloniaMvvmApplicationTemplate</Name>
+      <VSIXSubPath>ProjectTemplates</VSIXSubPath>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+    </ProjectReference>
+    <ProjectReference Include="..\templates\FsAvaloniaUserControlTemplate\FsAvaloniaUserControlTemplate.csproj">
+      <Project>{807da0c2-1ddc-4693-8b6d-901692ec0180}</Project>
+      <Name>FsAvaloniaUserControlTemplate</Name>
+      <VSIXSubPath>ItemTemplates</VSIXSubPath>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+    </ProjectReference>
+    <ProjectReference Include="..\templates\FsAvaloniaWindowTemplate\FsAvaloniaWindowTemplate.csproj">
+      <Project>{f71567e3-ae77-4009-9901-6994596eafa6}</Project>
+      <Name>FsAvaloniaWindowTemplate</Name>
+      <VSIXSubPath>ItemTemplates</VSIXSubPath>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+    </ProjectReference>
     <ProjectReference Include="..\submodules\Avalonia.Ide\src\Avalonia.Ide.CompletionEngine.DnlibMetadataProvider\Avalonia.Ide.CompletionEngine.DnlibMetadataProvider.csproj">
       <Project>{317c91b4-1cb9-4bf2-8d5a-075ca214bf7c}</Project>
       <Name>Avalonia.Ide.CompletionEngine.DnlibMetadataProvider</Name>
@@ -210,6 +231,13 @@
       <Project>{c8b3ff98-50a3-4c04-8f8c-ed853ec0760c}</Project>
       <Name>AvaloniaWindowTemplate</Name>
       <VSIXSubPath>ItemTemplates</VSIXSubPath>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+    </ProjectReference>
+    <ProjectReference Include="..\templates\FsAvaloniaApplicationTemplate\FsAvaloniaApplicationTemplate.csproj">
+      <Project>{ecb52fc8-b704-405e-bc2f-086f8e217536}</Project>
+      <Name>FsAvaloniaApplicationTemplate</Name>
+      <VSIXSubPath>ProjectTemplates</VSIXSubPath>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
     </ProjectReference>
