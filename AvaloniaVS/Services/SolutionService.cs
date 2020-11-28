@@ -12,6 +12,7 @@ using EnvDTE80;
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
 using Microsoft.VisualStudio.Shell;
+using Serilog;
 using VSLangProj;
 
 namespace AvaloniaVS.Services
@@ -182,7 +183,7 @@ namespace AvaloniaVS.Services
         {
             return project.References
                 .OfType<Reference>()
-                .Where(x => x.SourceProject != null)
+                .Where(x => IsProjectReference(x))
                 .Select(x => x.SourceProject)
                 .ToList();
         }
@@ -191,8 +192,42 @@ namespace AvaloniaVS.Services
         {
             return project.References
                 .OfType<Reference>()
-                .Where(x => x.SourceProject == null)
+                .Where(x => IsNonProjectReference(x))
                 .Select(x => x.Name).ToList();
+        }
+
+        private static bool IsProjectReference(Reference r)
+        {
+            try
+            {
+                return r.SourceProject != null;
+            }
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
+            catch (Exception ex)
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
+            {
+                // it seems to happen when this reference is owned by project we dont "like" (C, C++, ...)
+                //Log.Logger.Error(ex, "Error when accessing Reference.SourceProject property.");
+            }
+
+            return false;
+        }
+
+        private static bool IsNonProjectReference(Reference r)
+        {
+            try
+            {
+                return r.SourceProject == null;
+            }
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
+            catch (Exception ex)
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
+            {
+                // it seems to happen when this reference is owned by project we dont "like" (C, C++, ...)
+                //Log.Logger.Error(ex, "Error when accessing Reference.SourceProject property.");
+            }
+
+            return false;
         }
 
         private static async Task<IReadOnlyList<ProjectOutputInfo>> GetOutputInfoAsync(Project project)
