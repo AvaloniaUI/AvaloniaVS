@@ -302,9 +302,21 @@ namespace AvaloniaVS.Views
 
                 bool IsValidTarget(ProjectInfo project)
                 {
-                    return (project.Project == _project || project.ProjectReferences.Contains(_project)) &&
-                        project.IsExecutable &&
+                    var validTarget =
+                     (project.Project == _project || project.ProjectReferences.Contains(_project)) &&
+                        (project.IsExecutable || project.IsLibrary) &&
                         project.References.Contains("Avalonia.DesignerSupport");
+
+                    if (validTarget)
+                    {
+                        Log.Logger.Information($"Project {project.Name} is valid target for Avalonia desinger.");
+                    }
+                    else
+                    {
+                        Log.Logger.Information($"Project {project.Name} is not valid target for Avalonia desinger.");
+                    }
+
+                    return validTarget;
                 }
 
                 bool IsValidOutput(ProjectOutputInfo output)

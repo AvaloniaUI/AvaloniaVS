@@ -173,6 +173,13 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\templates\AvaloniaClassLibraryTemplate\AvaloniaClassLibraryTemplate.csproj">
+      <Project>{D6A83288-DDBA-445E-94C6-69D0A94AEE17}</Project>
+      <Name>AvaloniaClassLibraryTemplate</Name>
+      <VSIXSubPath>ProjectTemplates</VSIXSubPath>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+    </ProjectReference>
     <ProjectReference Include="..\templates\FsAvaloniaMvvmApplicationTemplate\FsAvaloniaMvvmApplicationTemplate.csproj">
       <Project>{8315febb-8acd-4ad4-950c-2f4768986d92}</Project>
       <Name>FsAvaloniaMvvmApplicationTemplate</Name>

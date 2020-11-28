@@ -14,6 +14,14 @@ namespace AvaloniaVS.Models
         public bool IsExecutable { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether the project is an library.
+        /// From MSDN (https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-build):
+        /// To produce a library, omit the <OutputType> property or change its value to Library. 
+        /// The IL DLL for a library doesn't contain entry points and can't be executed.
+        /// </summary>
+        public bool IsLibrary { get; set; }
+
+        /// <summary>
         /// Gets or sets a value indicating whether the project is a startup project.
         /// </summary>
         public bool IsStartupProject { get; set; }

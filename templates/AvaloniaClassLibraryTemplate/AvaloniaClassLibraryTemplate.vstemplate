@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="Project" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" xmlns:sdk="http://schemas.microsoft.com/developer/vstemplate-sdkextension/2010">
+  <TemplateData>
+    <Name>Avalonia Class Library</Name>
+    <Description>Avalonia class library</Description>
+    <Icon>AvaloniaClassLibraryTemplate.ico</Icon>
+    <ProjectType>CSharp</ProjectType>
+    <SortOrder>1000</SortOrder>
+    <TemplateID>d734df9e-737c-4fae-a225-de45ec61ebac</TemplateID>
+    <CreateNewFolder>true</CreateNewFolder>
+    <DefaultName>AvaloniaClassLibrary</DefaultName>
+    <ProvideDefaultName>true</ProvideDefaultName>
+    <CreateInPlace>true</CreateInPlace>
+    <PromptForSaveOnCreation>true</PromptForSaveOnCreation>
+    <LanguageTag>C#</LanguageTag>
+    <PlatformTag>windows</PlatformTag>
+    <PlatformTag>linux</PlatformTag>
+    <PlatformTag>macOS</PlatformTag>
+    <ProjectTypeTag>desktop</ProjectTypeTag>
+  </TemplateData>
+  <TemplateContent>
+    <Project File="ProjectTemplate.csproj" ReplaceParameters="true">
+      <ProjectItem ReplaceParameters="false">nuget.config</ProjectItem>
+    </Project>
+  </TemplateContent>
+</VSTemplate>

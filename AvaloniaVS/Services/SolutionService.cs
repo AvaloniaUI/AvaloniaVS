@@ -114,7 +114,10 @@ namespace AvaloniaVS.Services
                     outputType?.ToLowerInvariant() == "exe" ||
                     outputType?.ToLowerInvariant() == "winexe";
 
+                var outputTypeIsLibrary = outputType == "2" || outputType?.ToLowerInvariant() == "library";
+
                 item.Value.IsExecutable = outputTypeIsExecutable;
+                item.Value.IsLibrary = outputTypeIsLibrary;
                 item.Value.Outputs = await GetOutputInfoAsync(item.Key);
                 item.Value.ProjectReferences = FlattenProjectReferences(result, item.Value.ProjectReferences);
             }
@@ -202,9 +205,7 @@ namespace AvaloniaVS.Services
             {
                 return r.SourceProject != null;
             }
-#pragma warning disable IDE0059 // Unnecessary assignment of a value
             catch (Exception ex)
-#pragma warning restore IDE0059 // Unnecessary assignment of a value
             {
                 // it seems to happen when this reference is owned by project we dont "like" (C, C++, ...)
                 //Log.Logger.Error(ex, "Error when accessing Reference.SourceProject property.");
@@ -219,9 +220,7 @@ namespace AvaloniaVS.Services
             {
                 return r.SourceProject == null;
             }
-#pragma warning disable IDE0059 // Unnecessary assignment of a value
             catch (Exception ex)
-#pragma warning restore IDE0059 // Unnecessary assignment of a value
             {
                 // it seems to happen when this reference is owned by project we dont "like" (C, C++, ...)
                 //Log.Logger.Error(ex, "Error when accessing Reference.SourceProject property.");
