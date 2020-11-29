@@ -202,9 +202,9 @@ namespace AvaloniaVS.Services
             {
                 return r.SourceProject != null;
             }
-#pragma warning disable IDE0059 // Unnecessary assignment of a value
+#pragma warning disable CS0168 // Variable is declared but never used
             catch (Exception ex)
-#pragma warning restore IDE0059 // Unnecessary assignment of a value
+#pragma warning restore CS0168 // Variable is declared but never used
             {
                 // it seems to happen when this reference is owned by project we dont "like" (C, C++, ...)
                 //Log.Logger.Error(ex, "Error when accessing Reference.SourceProject property.");
@@ -219,9 +219,9 @@ namespace AvaloniaVS.Services
             {
                 return r.SourceProject == null;
             }
-#pragma warning disable IDE0059 // Unnecessary assignment of a value
+#pragma warning disable CS0168 // Variable is declared but never used
             catch (Exception ex)
-#pragma warning restore IDE0059 // Unnecessary assignment of a value
+#pragma warning restore CS0168 // Variable is declared but never used
             {
                 // it seems to happen when this reference is owned by project we dont "like" (C, C++, ...)
                 //Log.Logger.Error(ex, "Error when accessing Reference.SourceProject property.");
