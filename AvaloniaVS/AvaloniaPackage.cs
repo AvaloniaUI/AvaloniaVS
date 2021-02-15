@@ -60,6 +60,7 @@ namespace AvaloniaVS
         public const string Name = "Avalonia Xaml Editor";
 
         public static SolutionService SolutionService { get; private set; }
+        public static UpdateSolutionEvents UpdateSolutionEvents { get; private set; }
 
         protected override async Task InitializeAsync(
             CancellationToken cancellationToken,
@@ -74,6 +75,9 @@ namespace AvaloniaVS
 
             var dte = (DTE)await GetServiceAsync(typeof(DTE));
             SolutionService = new SolutionService(dte);
+
+            UpdateSolutionEvents = new UpdateSolutionEvents(this, new ErrorListProvider(this));
+            await UpdateSolutionEvents.RegisterEventsAsync();
 
             Log.Logger.Information("Avalonia Package initialized");
         }
