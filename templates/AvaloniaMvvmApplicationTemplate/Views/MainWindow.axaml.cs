@@ -4,7 +4,7 @@ using Avalonia.Markup.Xaml;
 
 namespace $safeprojectname$.Views
 {
-    public class MainWindow : Window
+    public partial class MainWindow : Window
     {
         public MainWindow()
         {
