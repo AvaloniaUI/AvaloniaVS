@@ -4,7 +4,7 @@ using Avalonia.Markup.Xaml;
 
 namespace $rootnamespace$
 {
-    public class $safeitemrootname$ : Window
+    public partial class $safeitemrootname$ : Window
     {
         public $safeitemrootname$()
         {
