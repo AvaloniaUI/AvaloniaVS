@@ -6,8 +6,9 @@ open Avalonia.Controls.Templates
 open ViewModels
 
 type ViewLocator () =
+    member __.SupportsRecycling with get() = false
+
     interface IDataTemplate with
-        member __.SupportsRecycling with get() = false
         member __.Match data = data :? ViewModelBase
         member __.Build data : IControl =
             let name = data.GetType().FullName.Replace("ViewModel", "View")
