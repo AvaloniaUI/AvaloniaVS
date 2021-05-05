@@ -7,7 +7,7 @@
     <TemplateID>b2dc19ed-2273-47c0-a8cf-b32f8d85640b</TemplateID>
     <ProjectType>CSharp</ProjectType>
     <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
-    <DefaultName>UserControl.xaml</DefaultName>
+    <DefaultName>UserControl.axaml</DefaultName>
   </TemplateData>
   <TemplateContent>
     <ProjectItem ItemType="AvaloniaXaml" ReplaceParameters="true" TargetFileName="$fileinputname$.axaml">UserControl.axaml</ProjectItem>
