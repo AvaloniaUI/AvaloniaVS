@@ -3,7 +3,7 @@
     <TemplateData>
         <Name>Resource Dictionary (Avalonia)</Name>
         <Description>Avalonia Resource Dictionary</Description>
-        <Icon>AvaloniaResourceDictionarysTemplate.ico</Icon>
+        <Icon>AvaloniaResourceDictionaryTemplate.ico</Icon>
         <TemplateID>1d961ad6-ce20-4717-bd9d-37fd101520eb</TemplateID>
         <ProjectType>CSharp</ProjectType>
         <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
