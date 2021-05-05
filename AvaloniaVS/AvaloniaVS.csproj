@@ -173,6 +173,13 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\templates\AvaloniaResourceDictionaryTemplate\AvaloniaResourceDictionaryTemplate.csproj">
+      <Project>{F7EE3A1D-DDB2-4F82-A6E7-F444A24ABB62}</Project>
+      <Name>AvaloniaResourceDictionaryTemplate</Name>
+      <VSIXSubPath>ItemTemplates</VSIXSubPath>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+    </ProjectReference>
     <ProjectReference Include="..\templates\AvaloniaTemplatedControlTemplate\AvaloniaTemplatedControlTemplate.csproj">
       <Project>{8C4E8335-59BA-4E56-80FF-68C559E3F664}</Project>
       <Name>AvaloniaTemplatedControlTemplate</Name>
