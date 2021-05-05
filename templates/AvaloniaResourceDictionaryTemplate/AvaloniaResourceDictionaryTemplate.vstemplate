@@ -10,6 +10,6 @@
         <DefaultName>ResourceDictionary.axaml</DefaultName>
     </TemplateData>
     <TemplateContent>
-        <ProjectItem ItemType="AvaloniaXaml" ReplaceParameters="true" TargetFileName="$fileinputname$.axaml">ResourceDictionarys.axaml</ProjectItem>        
+        <ProjectItem ItemType="AvaloniaXaml" ReplaceParameters="true" TargetFileName="$fileinputname$.axaml">ResourceDictionary.axaml</ProjectItem>        
     </TemplateContent>
 </VSTemplate>
