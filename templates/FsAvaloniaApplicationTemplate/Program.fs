@@ -1,13 +1,12 @@
 ﻿open System
 open Avalonia
-open Avalonia.Logging.Serilog
 open $safeprojectname$
 
 [<CompiledName "BuildAvaloniaApp">] 
 let buildAvaloniaApp () = 
     AppBuilder.Configure<App>()
               .UsePlatformDetect()
-              .LogToDebug()
+              .LogToTrace(level = Logging.LogEventLevel.Warning)
 
 [<STAThread>][<EntryPoint>]
 let main argv =

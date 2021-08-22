@@ -1,6 +1,5 @@
 ﻿open System
 open Avalonia
-open Avalonia.Logging.Serilog
 open Avalonia.ReactiveUI
 open $safeprojectname$
 
@@ -8,7 +7,7 @@ open $safeprojectname$
 let buildAvaloniaApp () = 
     AppBuilder.Configure<App>()
               .UsePlatformDetect()
-              .LogToDebug()
+              .LogToTrace(level = Logging.LogEventLevel.Warning)
               .UseReactiveUI()
 
 [<STAThread>][<EntryPoint>]
