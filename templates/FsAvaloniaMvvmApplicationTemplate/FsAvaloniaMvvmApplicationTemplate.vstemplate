@@ -22,12 +22,12 @@
     <Project File="ProjectTemplate.fsproj" ReplaceParameters="true">
       <Folder Name="Models" TargetFolderName="Models"/>
       <ProjectItem>Assets\avalonia-logo.ico</ProjectItem>
-      <ProjectItem ReplaceParameters="false">ViewModels\ViewModelBase.fs</ProjectItem>
-      <ProjectItem ReplaceParameters="false">ViewModels\MainWindowViewModel.fs</ProjectItem>
-      <ProjectItem ReplaceParameters="false">Views\MainWindow.xaml.fs</ProjectItem>
-      <ProjectItem ReplaceParameters="true">Views\MainWindow.xaml</ProjectItem>
-      <ProjectItem ReplaceParameters="true">App.xaml.fs</ProjectItem>
-      <ProjectItem ReplaceParameters="true">App.xaml</ProjectItem>
+      <ProjectItem ReplaceParameters="true">ViewModels\ViewModelBase.fs</ProjectItem>
+      <ProjectItem ReplaceParameters="true">ViewModels\MainWindowViewModel.fs</ProjectItem>
+      <ProjectItem ReplaceParameters="true">Views\MainWindow.axaml.fs</ProjectItem>
+      <ProjectItem ReplaceParameters="true">Views\MainWindow.axaml</ProjectItem>
+      <ProjectItem ReplaceParameters="true">App.axaml.fs</ProjectItem>
+      <ProjectItem ReplaceParameters="true">App.axaml</ProjectItem>
       <ProjectItem ReplaceParameters="true">ViewLocator.fs</ProjectItem>
       <ProjectItem ReplaceParameters="true">Program.fs</ProjectItem>
     </Project>
