@@ -80,17 +80,17 @@
     <Content Include="FsAvaloniaApplicationTemplate.ico" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.xaml.fs" />
+    <None Include="App.axaml.fs" />
     <None Include="Program.fs" />
     <None Include="ProjectTemplate.fsproj" />
-    <None Include="MainWindow.xaml.fs" />
+    <None Include="MainWindow.axaml.fs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.xaml">
+    <None Include="App.axaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </None>
-    <None Include="MainWindow.xaml">
+    <None Include="MainWindow.axaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </None>
