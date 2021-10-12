@@ -7,10 +7,10 @@
     <TemplateID>f50b29b4-8396-45e8-9668-9b944681d371</TemplateID>
     <ProjectType>FSharp</ProjectType>
     <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
-    <DefaultName>Window.xaml</DefaultName>
+    <DefaultName>Window.axaml</DefaultName>
   </TemplateData>
   <TemplateContent>
-    <ProjectItem ReplaceParameters="true" TargetFileName="$fileinputname$.xaml.fs">Window.xaml.fs</ProjectItem>
-    <ProjectItem ItemType="AvaloniaXaml" ReplaceParameters="true" TargetFileName="$fileinputname$.xaml">Window.xaml</ProjectItem>
+    <ProjectItem ReplaceParameters="true" TargetFileName="$fileinputname$.axaml.fs">Window.axaml.fs</ProjectItem>
+    <ProjectItem ItemType="AvaloniaXaml" ReplaceParameters="true" TargetFileName="$fileinputname$.axaml">Window.axaml</ProjectItem>
   </TemplateContent>
 </VSTemplate>

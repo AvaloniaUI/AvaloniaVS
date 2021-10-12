@@ -1,15 +1,20 @@
-﻿open System
+namespace $safeprojectname$
+
+open System
 open Avalonia
 open Avalonia.ReactiveUI
 open $safeprojectname$
 
-[<CompiledName "BuildAvaloniaApp">] 
-let buildAvaloniaApp () = 
-    AppBuilder.Configure<App>()
-              .UsePlatformDetect()
-              .LogToTrace(level = Logging.LogEventLevel.Warning)
-              .UseReactiveUI()
+module Program =
 
-[<STAThread>][<EntryPoint>]
-let main argv =
-    buildAvaloniaApp().StartWithClassicDesktopLifetime(argv)
+    [<CompiledName "BuildAvaloniaApp">] 
+    let buildAvaloniaApp () = 
+        AppBuilder
+            .Configure<App>()
+            .UsePlatformDetect()
+            .LogToTrace(areas = Array.empty)
+            .UseReactiveUI()
+
+    [<EntryPoint; STAThread>]
+    let main argv =
+        buildAvaloniaApp().StartWithClassicDesktopLifetime(argv)

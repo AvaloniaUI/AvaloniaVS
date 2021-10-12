@@ -1,13 +1,18 @@
-﻿open System
+namespace $safeprojectname$
+
+open System
 open Avalonia
 open $safeprojectname$
 
-[<CompiledName "BuildAvaloniaApp">] 
-let buildAvaloniaApp () = 
-    AppBuilder.Configure<App>()
-              .UsePlatformDetect()
-              .LogToTrace(level = Logging.LogEventLevel.Warning)
+module Program =
 
-[<STAThread>][<EntryPoint>]
-let main argv =
-    buildAvaloniaApp().StartWithClassicDesktopLifetime(argv)
+    [<CompiledName "BuildAvaloniaApp">] 
+    let buildAvaloniaApp () = 
+        AppBuilder
+            .Configure<App>()
+            .UsePlatformDetect()
+            .LogToTrace(areas = Array.empty)
+
+    [<EntryPoint; STAThread>]
+    let main argv =
+        buildAvaloniaApp().StartWithClassicDesktopLifetime(argv)

@@ -85,19 +85,19 @@
     <Content Include="FsAvaloniaMvvmApplicationTemplate.ico" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.xaml.fs" />
+    <None Include="App.axaml.fs" />
     <None Include="Program.fs" />
     <None Include="ProjectTemplate.fsproj" />
     <None Include="ViewLocator.fs" />
     <None Include="ViewModels\MainWindowViewModel.fs" />
     <None Include="ViewModels\ViewModelBase.fs" />
-    <None Include="Views\MainWindow.xaml.fs" />
+    <None Include="Views\MainWindow.axaml.fs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.xaml">
+    <None Include="App.axaml">
       <Generator>MSBuild:Compile</Generator>
     </None>
-    <None Include="Views\MainWindow.xaml">
+    <None Include="Views\MainWindow.axaml">
       <Generator>MSBuild:Compile</Generator>
     </None>
   </ItemGroup>

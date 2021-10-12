@@ -1,4 +1,4 @@
-﻿namespace ViewModels
+namespace $safeprojectname$.ViewModels
 
 open ReactiveUI
 

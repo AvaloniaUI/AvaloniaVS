@@ -1,6 +1,6 @@
-﻿namespace ViewModels
+namespace $safeprojectname$.ViewModels
 
 type MainWindowViewModel() =
     inherit ViewModelBase()
 
-    member __.Greeting = "Hello World!"
+    member this.Greeting = "Welcome to Avalonia!"

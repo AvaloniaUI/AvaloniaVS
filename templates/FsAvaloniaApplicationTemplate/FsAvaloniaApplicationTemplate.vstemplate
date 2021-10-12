@@ -20,10 +20,10 @@
   </TemplateData>
   <TemplateContent>
     <Project File="ProjectTemplate.fsproj" ReplaceParameters="true">
-      <ProjectItem ReplaceParameters="true">App.xaml</ProjectItem>
-      <ProjectItem ReplaceParameters="true">MainWindow.xaml</ProjectItem>
-      <ProjectItem ReplaceParameters="false">MainWindow.xaml.fs</ProjectItem>
-      <ProjectItem ReplaceParameters="true">App.xaml.fs</ProjectItem>
+      <ProjectItem ReplaceParameters="true">App.axaml</ProjectItem>
+      <ProjectItem ReplaceParameters="true">MainWindow.axaml</ProjectItem>
+      <ProjectItem ReplaceParameters="true">MainWindow.axaml.fs</ProjectItem>
+      <ProjectItem ReplaceParameters="true">App.axaml.fs</ProjectItem>
       <ProjectItem ReplaceParameters="true">Program.fs</ProjectItem>
     </Project>
   </TemplateContent>

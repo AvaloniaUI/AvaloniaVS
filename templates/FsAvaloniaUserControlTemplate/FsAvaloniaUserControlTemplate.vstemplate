@@ -7,10 +7,10 @@
     <TemplateID>f50b29b4-8396-45e8-9668-9b944681d371</TemplateID>
     <ProjectType>FSharp</ProjectType>
     <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
-    <DefaultName>UserControl.xaml</DefaultName>
+    <DefaultName>UserControl.axaml</DefaultName>
   </TemplateData>
   <TemplateContent>
-     <ProjectItem ReplaceParameters="true" TargetFileName="$fileinputname$.xaml.fs">UserControl.xaml.fs</ProjectItem>
-     <ProjectItem ItemType="AvaloniaXaml" ReplaceParameters="true" TargetFileName="$fileinputname$.xaml">UserControl.xaml</ProjectItem>
+     <ProjectItem ReplaceParameters="true" TargetFileName="$fileinputname$.axaml.fs">UserControl.axaml.fs</ProjectItem>
+     <ProjectItem ItemType="AvaloniaXaml" ReplaceParameters="true" TargetFileName="$fileinputname$.axaml">UserControl.axaml</ProjectItem>
   </TemplateContent>
 </VSTemplate>

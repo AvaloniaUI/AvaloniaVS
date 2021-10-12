@@ -1,31 +1,25 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-   </PropertyGroup>
-  <ItemGroup>
-    <AvailableItemName Include="AvaloniaResource" />
-  </ItemGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
   <ItemGroup>
     <Folder Include="Models\" />
     <AvaloniaResource Include="Assets\**" />
-    <AvaloniaResource Include="**\*.xaml">
-      <SubType>Designer</SubType>
-    </AvaloniaResource>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Assets\avalonia-logo.ico" />
     <Compile Include="ViewModels\ViewModelBase.fs" />
     <Compile Include="ViewModels\MainWindowViewModel.fs" />
-    <Compile Include="Views\MainWindow.xaml.fs" />
+    <Compile Include="Views\MainWindow.axaml.fs" />
     <Compile Include="ViewLocator.fs" />
-    <Compile Include="App.xaml.fs" />
+    <Compile Include="App.axaml.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="0.10.3" />
-    <PackageReference Include="Avalonia.Desktop" Version="0.10.3" />
-    <PackageReference Include="Avalonia.Diagnostics" Version="0.10.3" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.3" />
+    <PackageReference Include="Avalonia" Version="0.10.8" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.10.8" />
+    <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="0.10.8" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.8" />
   </ItemGroup>
 </Project>
