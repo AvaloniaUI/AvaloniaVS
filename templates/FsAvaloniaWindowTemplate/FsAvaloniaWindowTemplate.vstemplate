@@ -10,7 +10,7 @@
     <DefaultName>Window.axaml</DefaultName>
   </TemplateData>
   <TemplateContent>
-    <ProjectItem ReplaceParameters="true" TargetFileName="$fileinputname$.xaml.fs">Window.axaml.fs</ProjectItem>
-    <ProjectItem ItemType="AvaloniaXaml" ReplaceParameters="true" TargetFileName="$fileinputname$.xaml">Window.axaml</ProjectItem>
+    <ProjectItem ReplaceParameters="true" TargetFileName="$fileinputname$.axaml.fs">Window.axaml.fs</ProjectItem>
+    <ProjectItem ItemType="AvaloniaXaml" ReplaceParameters="true" TargetFileName="$fileinputname$.axaml">Window.axaml</ProjectItem>
   </TemplateContent>
 </VSTemplate>

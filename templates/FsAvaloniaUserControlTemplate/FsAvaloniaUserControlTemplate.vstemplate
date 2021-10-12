@@ -10,7 +10,7 @@
     <DefaultName>UserControl.axaml</DefaultName>
   </TemplateData>
   <TemplateContent>
-     <ProjectItem ReplaceParameters="true" TargetFileName="$fileinputname$.xaml.fs">UserControl.axaml.fs</ProjectItem>
-     <ProjectItem ItemType="AvaloniaXaml" ReplaceParameters="true" TargetFileName="$fileinputname$.xaml">UserControl.axaml</ProjectItem>
+     <ProjectItem ReplaceParameters="true" TargetFileName="$fileinputname$.axaml.fs">UserControl.axaml.fs</ProjectItem>
+     <ProjectItem ItemType="AvaloniaXaml" ReplaceParameters="true" TargetFileName="$fileinputname$.axaml">UserControl.axaml</ProjectItem>
   </TemplateContent>
 </VSTemplate>
