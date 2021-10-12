@@ -85,13 +85,13 @@
     <Content Include="FsAvaloniaWindowTemplate.ico" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Window.xaml">
+    <None Include="Window.axaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Window.xaml.fs" />
+    <None Include="Window.axaml.fs" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.6">
