@@ -21,6 +21,7 @@
   <TemplateContent>
     <Project File="ProjectTemplate.csproj" ReplaceParameters="true">
       <Folder Name="Models" TargetFolderName="Models"/>
+      <ProjectItem>.gitignore</ProjectItem>
       <ProjectItem>Assets\avalonia-logo.ico</ProjectItem>
       <ProjectItem ReplaceParameters="true">ViewModels\MainWindowViewModel.cs</ProjectItem>
       <ProjectItem ReplaceParameters="true">ViewModels\ViewModelBase.cs</ProjectItem>
