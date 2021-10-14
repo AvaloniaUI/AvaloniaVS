@@ -20,6 +20,7 @@
   </TemplateData>
   <TemplateContent>
     <Project File="ProjectTemplate.csproj" ReplaceParameters="true">
+      <ProjectItem>.gitignore</ProjectItem>
       <ProjectItem ReplaceParameters="true">App.axaml</ProjectItem>
       <ProjectItem ReplaceParameters="true">App.axaml.cs</ProjectItem>
       <ProjectItem ReplaceParameters="true">MainWindow.axaml</ProjectItem>

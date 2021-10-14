@@ -82,6 +82,7 @@
     </VSTemplate>
   </ItemGroup>
   <ItemGroup>
+    <Content Include=".gitignore" />
     <Content Include="FsAvaloniaMvvmApplicationTemplate.ico" />
   </ItemGroup>
   <ItemGroup>
