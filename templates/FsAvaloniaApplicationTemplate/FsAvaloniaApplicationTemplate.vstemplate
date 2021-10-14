@@ -20,6 +20,7 @@
   </TemplateData>
   <TemplateContent>
     <Project File="ProjectTemplate.fsproj" ReplaceParameters="true">
+      <ProjectItem>.gitignore</ProjectItem>
       <ProjectItem ReplaceParameters="true">App.axaml</ProjectItem>
       <ProjectItem ReplaceParameters="true">MainWindow.axaml</ProjectItem>
       <ProjectItem ReplaceParameters="true">MainWindow.axaml.fs</ProjectItem>

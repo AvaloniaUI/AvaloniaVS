@@ -4,6 +4,9 @@
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove=".gitignore" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="MainWindow.axaml.fs" />
     <Compile Include="App.axaml.fs"/>
     <Compile Include="Program.fs" />
