@@ -72,6 +72,7 @@
     <Compile Include="Services\AvaloniaVSSettings.cs" />
     <Compile Include="Services\IAvaloniaVSSettings.cs" />
     <Compile Include="Services\OutputPaneEventSink.cs" />
+    <Compile Include="Services\UpdateSolutionEvents.cs" />
     <Compile Include="Services\SolutionService.cs" />
     <Compile Include="Services\Throttle.cs" />
     <Compile Include="Services\EditorFactory.cs" />

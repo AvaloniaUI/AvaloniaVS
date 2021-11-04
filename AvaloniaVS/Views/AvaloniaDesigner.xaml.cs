@@ -211,7 +211,27 @@ namespace AvaloniaVS.Views
             InitializeEditor();
             LoadTargetsAndStartProcessAsync().FireAndForget();
 
+            AvaloniaPackage.UpdateSolutionEvents.ActiveProjectConfigurationDidChange += (sender, vsh) => HandleConfigurationChangeAsync(sender, vsh).FireAndForget();
             Log.Logger.Verbose("Finished AvaloniaDesigner.Start()");
+        }
+
+        private async Task HandleConfigurationChangeAsync(object sender, Microsoft.VisualStudio.Shell.Interop.IVsHierarchy e)
+        {
+            /* We don't actually use the IVsHierarchy argument, but I thought I would...Given I'm looking for an opinion on this hack / 
+             * 'solution', then I'm leaving it in for the moment. I'm also thinking there probably exists a better of doing this, but I wanted to throw 
+             * together a first attempt at fixing the issue and then I'll tidy up. 
+             * 
+             * I'm thinking that UpdateSolutionEvents functionality could be merged into SolutionService 
+             */
+
+            //Lets pause the designer           
+            Process.Stop();
+
+            //Update targets
+            await LoadTargetsAsync();
+
+            //Start the designer again
+            await StartProcessAsync();
         }
 
         /// <summary>
