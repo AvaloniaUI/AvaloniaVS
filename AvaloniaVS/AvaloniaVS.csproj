@@ -109,13 +109,13 @@
     <PackageReference Include="Avalonia.dnlib">
       <Version>2018.11.26-git-67c321d7a4219415492a910d22c95f5efb0c30b8</Version>
     </PackageReference>
-    <PackageReference Include="Madskristensen.VisualStudio.SDK">
-      <Version>15.8.81-pre</Version>
-    </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.ProjectSystem">
       <Version>15.8.243</Version>
     </PackageReference>
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="15.9.3032">
+    <PackageReference Include="Microsoft.VisualStudio.SDK">
+      <Version>17.0.31902.203</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.0.5232">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
