@@ -240,10 +240,10 @@ namespace AvaloniaVS.Views
         {
             _disposed = true;
 
-            //if (_editor?.TextView.TextBuffer is ITextBuffer2 oldBuffer)
-            //{
-            //    oldBuffer.ChangedOnBackground -= TextChanged;
-            //}
+            if (_editor?.TextView.TextBuffer is ITextBuffer2 oldBuffer)
+            {
+                oldBuffer.ChangedOnBackground -= TextChanged;
+            }
 
             if (_editor?.IsClosed == false)
             {
@@ -269,10 +269,10 @@ namespace AvaloniaVS.Views
             _editor.TextView.TextBuffer.Properties.RemoveProperty(typeof(PreviewerProcess));
             _editor.TextView.TextBuffer.Properties.AddProperty(typeof(PreviewerProcess), Process);
 
-            //if (_editor.TextView.TextBuffer is ITextBuffer2 newBuffer)
-            //{
-            //    newBuffer.ChangedOnBackground += TextChanged;
-            //}
+            if (_editor.TextView.TextBuffer is ITextBuffer2 newBuffer)
+            {
+                newBuffer.ChangedOnBackground += TextChanged;
+            }
         }
 
         private async Task LoadTargetsAndStartProcessAsync()
