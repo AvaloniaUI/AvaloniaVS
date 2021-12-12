@@ -110,12 +110,12 @@
       <Version>2018.11.26-git-67c321d7a4219415492a910d22c95f5efb0c30b8</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.ProjectSystem">
-      <Version>15.8.243</Version>
+      <Version>17.0.1313-pre</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.SDK">
       <Version>17.0.31902.203</Version>
     </PackageReference>
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.0.5232">
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.1.3042-preview3">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
