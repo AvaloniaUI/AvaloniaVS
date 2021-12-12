@@ -115,6 +115,9 @@
     <PackageReference Include="Microsoft.VisualStudio.SDK">
       <Version>17.0.31902.203</Version>
     </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0">
+      <Version>17.0.31902.203</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.1.3042-preview3">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
