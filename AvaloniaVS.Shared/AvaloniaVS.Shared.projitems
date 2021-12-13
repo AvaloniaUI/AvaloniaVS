@@ -1,0 +1,92 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>40d9809e-d179-44b2-bf42-61d781fb74f6</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>AvaloniaVS.Shared</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)AvaloniaPackage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Converters\EnumToIntConverter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Converters\EnumValuesConverter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Converters\NotNullOrEmptyToVisibilityConverter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Guids.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IntelliSense\TextChangeAdapter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IntelliSense\XamlCompletion.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IntelliSense\XamlCompletionCommandHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IntelliSense\XamlCompletionHandlerProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IntelliSense\XamlCompletionSource.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IntelliSense\XamlCompletionSourceProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IntelliSense\XamlErrorTableEntry.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IntelliSense\XamlErrorTagger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IntelliSense\XamlErrorTaggerProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IntelliSense\XamlTextManipulatorRegistrar.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IntelliSense\XamlTextViewCreationListener.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\DesignerRunTarget.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\ProjectInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\ProjectOutputInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\XamlBufferMetadata.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ServiceProviderExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\AvaloniaVSSettings.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\EditorFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\IAvaloniaVSSettings.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\IVsFindTarget3.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\OutputPaneEventSink.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\PreviewerProcess.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SolutionService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\Throttle.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TaskExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\FrameworkInfoUtils.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Views\AvaloniaDesigner.xaml.cs">
+      <DependentUpon>AvaloniaDesigner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Views\AvaloniaPreviewer.xaml.cs">
+      <DependentUpon>AvaloniaPreviewer.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Views\DesignerPane.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Views\EditorHostPane.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Views\OptionsDialogPage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Views\OptionsView.xaml.cs">
+      <DependentUpon>OptionsView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Views\VsTheme.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="$(MSBuildThisFileDirectory)icon.ico" >
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(MSBuildThisFileDirectory)Resources\AvaloniaPackage.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="$(MSBuildThisFileDirectory)icons.pkgdef" >
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <None Include="$(MSBuildThisFileDirectory)Key.snk" >
+      <Link>Key.snk</Link>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)VSPackage.resx" >
+      <MergeWithCTO>true</MergeWithCTO>
+      <ManifestResourceName>VSPackage</ManifestResourceName>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="$(MSBuildThisFileDirectory)Views\AvaloniaDesigner.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="$(MSBuildThisFileDirectory)Views\AvaloniaPreviewer.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="$(MSBuildThisFileDirectory)Views\OptionsView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+</Project>
