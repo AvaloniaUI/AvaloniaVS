@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Runtime.InteropServices;
-using AvaloniaVS.Services;
 using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Editor.Internal;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;

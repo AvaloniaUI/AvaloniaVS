@@ -1,10 +1,13 @@
 # Avalonia for Visual Studio
 
-XAML previewer and templates for the Avalonia UI framework.
+XAML previewer and templates for the [Avalonia UI framework](https://github.com/AvaloniaUI/Avalonia).
 
-https://github.com/AvaloniaUI/Avalonia
+### VSIX packages for Visual Studio
+| [VS2019/VS2017](https://marketplace.visualstudio.com/items?itemName=AvaloniaTeam.AvaloniaforVisualStudio) | 
+| ------------- |
 
-https://marketplace.visualstudio.com/items?itemName=AvaloniaTeam.AvaloniaforVisualStudio
+| [VS2022](https://marketplace.visualstudio.com/items?itemName=AvaloniaTeam.AvaloniaVS) |
+| ------------- |
 
 # Building and debugging
 Before building project you will need to restore all submodules.
