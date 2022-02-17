@@ -98,6 +98,7 @@ namespace AvaloniaVS.Views
         private SemaphoreSlim _startingProcess = new SemaphoreSlim(1, 1);
         private bool _disposed;
         private double _scaling = 1;
+        private AvaloniaDesignerView _unPausedView;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AvaloniaDesigner"/> class.
@@ -135,6 +136,18 @@ namespace AvaloniaVS.Views
 
                     _isPaused = value;
                     StartStopProcessAsync().FireAndForget();
+
+                    if (value)
+                    {
+                        _unPausedView = View;
+                        // Hide the designer and only show the xaml source when debugging
+                        // This matches UWP/WPF's designer
+                        View = AvaloniaDesignerView.Source;
+                    }
+                    else
+                    {
+                        View = _unPausedView;
+                    }
                 }
             }
         }
@@ -550,7 +563,7 @@ namespace AvaloniaVS.Views
 
         private async void ErrorChanged(object sender, EventArgs e)
         {
-            if (Process.Bitmap == null && Process.Error != null)
+            if (Process.Bitmap == null || Process.Error != null)
             {
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
@@ -566,7 +579,7 @@ namespace AvaloniaVS.Views
 
         private async void FrameReceived(object sender, EventArgs e)
         {
-            if (Process.Bitmap != null)
+            if (Process.Bitmap != null && Process.Error == null)
             {
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
@@ -588,7 +601,7 @@ namespace AvaloniaVS.Views
 
         private void ShowError(string heading, string message)
         {
-            previewer.Visibility = Visibility.Collapsed;
+            previewer.Visibility = Visibility.Hidden;
             error.Visibility = Visibility.Visible;
             errorHeading.Text = heading;
             errorMessage.Text = message;

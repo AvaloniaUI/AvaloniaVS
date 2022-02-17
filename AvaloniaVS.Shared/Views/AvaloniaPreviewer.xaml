@@ -4,18 +4,19 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-        <ScrollViewer Name="previewScroll"
-                      HorizontalScrollBarVisibility="Auto"
-                      VerticalScrollBarVisibility="Auto">
+    <Grid x:Name="rootGrid">
+        <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                      VerticalScrollBarVisibility="Auto"
+                      x:Name="previewScroller">
             <Grid HorizontalAlignment="Center"
-                  VerticalAlignment="Center">
+                  VerticalAlignment="Center"
+                  x:Name="previewGrid">
                 <Border BorderBrush="Black" BorderThickness="2">
                     <Border.Effect>
                         <BlurEffect Radius="8" KernelType="Gaussian"/>
                     </Border.Effect>
                 </Border>
-                <Border Background="White">
+                <Border>
                     <Image Name="preview" Width="100" Height="100"
                            MouseMove="Preview_MouseMove"
                            MouseDown="Preview_MouseDown"
