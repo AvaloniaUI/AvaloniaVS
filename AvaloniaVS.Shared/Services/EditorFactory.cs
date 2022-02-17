@@ -141,7 +141,7 @@ namespace AvaloniaVS.Services
 
                 var guidIVSTextLines = typeof(IVsTextLines).GUID;
                 ErrorHandler.ThrowOnFailure(invisibleEditor.GetDocData(
-                    fEnsureWritable: 1,
+                    fEnsureWritable: 0,
                     riid: ref guidIVSTextLines,
                     ppDocData: out var docDataPointer));
 
