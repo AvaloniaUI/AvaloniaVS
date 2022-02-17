@@ -129,9 +129,9 @@ namespace AvaloniaVS.Views
                 previewScroller.Visibility = Visibility.Visible;
 
                 var fullScaling = scaling * Process.Scaling;
-
-                previewGrid.Margin = new Thickness(preview.Width * 2 / fullScaling, preview.Height * 2 / fullScaling, 
-                    preview.Width * 2 / fullScaling, preview.Height * 2 / fullScaling);
+                var hScale = preview.Width * 2 / fullScaling;
+                var vScale = preview.Height * 2 / fullScaling;
+                previewGrid.Margin = new Thickness(hScale, vScale, hScale, vScale);
 
                 // The bitmap size only changes if
                 // 1- The design size changes
