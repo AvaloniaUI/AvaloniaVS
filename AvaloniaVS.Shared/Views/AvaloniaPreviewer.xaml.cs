@@ -73,14 +73,9 @@ namespace AvaloniaVS.Views
         {
             if ((Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift)
             {
-                if (e.Delta > 0)
-                {
-                    previewScroller.LineLeft();
-                }
-                else
-                {
-                    previewScroller.LineRight();
-                }
+                previewScroller.ScrollToHorizontalOffset(
+                       previewScroller.HorizontalOffset - (2 * e.Delta) / 120 * 48);
+
                 e.Handled = true;
             }
 
