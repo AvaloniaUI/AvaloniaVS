@@ -6,7 +6,7 @@ using $safeprojectname$.Views;
 
 namespace $safeprojectname$
 {
-    public class App : Application
+    public partial class App : Application
     {
         public override void Initialize()
         {

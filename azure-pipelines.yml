@@ -40,7 +40,8 @@ steps:
     contents: |
       AvaloniaVS.VS2019AndEarlier\bin\Release\AvaloniaVS.VS2019AndEarlier.vsix
       AvaloniaVS.VS2022\bin\Release\AvaloniaVS.VS2022.vsix
-      publishManifest.json
+      AvaloniaVS.VS2019AndEarlier\bin\Release\publishManifest.json
+      AvaloniaVS.VS2022\bin\Release\publishManifest.json
       readme.md
     targetFolder: '$(Build.ArtifactStagingDirectory)'
   condition: succeeded()
