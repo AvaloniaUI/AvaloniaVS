@@ -4,7 +4,7 @@
     "identity": {
         "internalName": "AvaloniaforVisualStudio"
     },
-    "overview": "overview.md",
+    "overview": "/AvaloniaVS.VS2019AndEarlier/overview.md",
     "publisher": "AvaloniaTeam",
     "qna": true,
     "repo": "https://github.com/AvaloniaUI/AvaloniaVS"
