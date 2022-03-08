@@ -39,10 +39,11 @@ steps:
   inputs:
     contents: |
       AvaloniaVS.VS2019AndEarlier\bin\Release\AvaloniaVS.VS2019AndEarlier.vsix
-      AvaloniaVS.VS2022\bin\Release\AvaloniaVS.VS2022.vsix
       AvaloniaVS.VS2019AndEarlier\bin\Release\publishManifest.json
+      AvaloniaVS.VS2019AndEarlier\bin\Release\overview.md
+      AvaloniaVS.VS2022\bin\Release\AvaloniaVS.VS2022.vsix
       AvaloniaVS.VS2022\bin\Release\publishManifest.json
-      readme.md
+      AvaloniaVS.VS2022\bin\Release\overview.md
     targetFolder: '$(Build.ArtifactStagingDirectory)'
   condition: succeeded()
 

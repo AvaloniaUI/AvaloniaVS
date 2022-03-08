@@ -52,7 +52,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="overview.md" />
+    <None Include="overview.md">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="publishManifest.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
