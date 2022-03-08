@@ -1,3 +1,5 @@
+[![2022 marketplace](https://img.shields.io/visual-studio-marketplace/v/AvaloniaTeam.AvaloniaVS.svg?label=2022-Marketplace)](https://marketplace.visualstudio.com/items?itemName=AvaloniaTeam.AvaloniaVS)
+[![2019 marketplace](https://img.shields.io/visual-studio-marketplace/v/AvaloniaTeam.AvaloniaforVisualStudio.svg?label=2019-Marketplace)](https://marketplace.visualstudio.com/items?itemName=AvaloniaTeam.AvaloniaforVisualStudio)
 # Avalonia for Visual Studio
 
 XAML previewer and templates for the [Avalonia UI framework](https://github.com/AvaloniaUI/Avalonia).
