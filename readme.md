@@ -2,7 +2,7 @@
 [![2019 marketplace](https://img.shields.io/visual-studio-marketplace/v/AvaloniaTeam.AvaloniaforVisualStudio.svg?label=2019-Marketplace)](https://marketplace.visualstudio.com/items?itemName=AvaloniaTeam.AvaloniaforVisualStudio)
 # Avalonia for Visual Studio
 This repository is used to generate Avalonia Visual Studio extensions.
-Avalonia Visual Studio extension add such capabilities to your Visual Studio:
+Avalonia Visual Studio extension adds such capabilities to your Visual Studio:
 - XAML code completion.
 - XAML previewer.
 - It bundles Avalonia templates in your Visual Studio.
