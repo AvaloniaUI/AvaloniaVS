@@ -1,6 +1,12 @@
+[![2022 marketplace](https://img.shields.io/visual-studio-marketplace/v/AvaloniaTeam.AvaloniaVS.svg?label=2022-Marketplace)](https://marketplace.visualstudio.com/items?itemName=AvaloniaTeam.AvaloniaVS)
+[![2019 marketplace](https://img.shields.io/visual-studio-marketplace/v/AvaloniaTeam.AvaloniaforVisualStudio.svg?label=2019-Marketplace)](https://marketplace.visualstudio.com/items?itemName=AvaloniaTeam.AvaloniaforVisualStudio)
 # Avalonia for Visual Studio
-
-XAML previewer and templates for the [Avalonia UI framework](https://github.com/AvaloniaUI/Avalonia).
+This repository is used to generate Avalonia Visual Studio extensions.
+Avalonia Visual Studio extension add such capabilities to your Visual Studio:
+- XAML code completion.
+- XAML previewer.
+- It bundles Avalonia templates in your Visual Studio.
+- Icons for axaml files.
 
 ### VSIX packages for Visual Studio
 | [VS2019/VS2017](https://marketplace.visualstudio.com/items?itemName=AvaloniaTeam.AvaloniaforVisualStudio) | 
