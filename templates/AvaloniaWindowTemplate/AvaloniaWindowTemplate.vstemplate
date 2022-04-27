@@ -7,7 +7,7 @@
     <TemplateID>f50b29b4-8396-45e8-9668-9b944681d371</TemplateID>
     <ProjectType>CSharp</ProjectType>
     <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
-    <DefaultName>Window.xaml</DefaultName>
+    <DefaultName>Window.axaml</DefaultName>
   </TemplateData>
   <TemplateContent>
     <ProjectItem ItemType="AvaloniaXaml" ReplaceParameters="true" TargetFileName="$fileinputname$.axaml">Window.axaml</ProjectItem>
