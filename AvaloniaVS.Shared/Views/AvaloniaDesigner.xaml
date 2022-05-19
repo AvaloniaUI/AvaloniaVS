@@ -9,7 +9,7 @@
              xmlns:catalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
              xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:theming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
-             xmlns:util="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Utilities"
+             xmlns:util="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Utilities" xmlns:views="clr-namespace:AvaloniaVS.Shared.Views"
              mc:Ignorable="d" d:DesignHeight="450" d:DesignWidth="800"
              Name="root"
              Background="{DynamicResource VsBrush.ToolWindowBackground}"
@@ -101,6 +101,8 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition x:Name="codeRow"/>
             </Grid.RowDefinitions>
+
+            <views:GridLines Grid.Column="2" />
 
             <local:AvaloniaPreviewer x:Name="previewer" Grid.Column="2"/>
             <StackPanel Name="error"
