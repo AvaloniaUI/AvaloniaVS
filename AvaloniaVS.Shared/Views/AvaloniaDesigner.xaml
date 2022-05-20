@@ -9,7 +9,8 @@
              xmlns:catalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
              xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:theming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
-             xmlns:util="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Utilities" xmlns:views="clr-namespace:AvaloniaVS.Shared.Views"
+             xmlns:util="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Utilities" 
+             xmlns:views="clr-namespace:AvaloniaVS.Shared.Views"
              mc:Ignorable="d" d:DesignHeight="450" d:DesignWidth="800"
              Name="root"
              Background="{DynamicResource VsBrush.ToolWindowBackground}"
@@ -109,11 +110,6 @@
         </DockPanel>
 
         <Grid x:Name="mainGrid">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="142*"/>
-                <ColumnDefinition Width="9*"/>
-                <ColumnDefinition Width="9*"/>
-            </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition x:Name="previewRow"/>
                 <RowDefinition Height="Auto"/>
