@@ -67,15 +67,16 @@
                       ItemsSource="{x:Static local:AvaloniaDesigner.ZoomLevels}"
                       Padding="2" Margin="0 0 10 0" local:VsTheme.UseVsTheme="True"/>
 
-            <Grid Name="errorIndicator" Height="25" Width="25" Background="Red" DockPanel.Dock="Right" Margin="0 0 10 0">
+            <Grid DockPanel.Dock="Left" Name="errorIndicator">
                 <Grid.ToolTip>
                     <StackPanel Name="error"
                         HorizontalAlignment="Left"
-                        VerticalAlignment="Center" Margin="400,0,0,0">
+                        VerticalAlignment="Center">
                         <TextBlock Name="errorHeading" FontSize="18" HorizontalAlignment="Center"/>
                         <TextBlock Name="errorMessage" Margin="0,20,0,0"/>
                     </StackPanel>
                 </Grid.ToolTip>
+                <Ellipse Height="18" Width="18" Fill="#f55762" />
                 <TextBlock Text="!" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White" FontWeight="ExtraBold" />
             </Grid>
 
