@@ -601,16 +601,14 @@ namespace AvaloniaVS.Views
 
         private void ShowError(string heading, string message)
         {
-            previewer.Visibility = Visibility.Hidden;
-            error.Visibility = Visibility.Visible;
+            errorIndicator.Visibility = Visibility.Visible;
             errorHeading.Text = heading;
             errorMessage.Text = message;
         }
 
         private void ShowPreview()
         {
-            previewer.Visibility = Visibility.Visible;
-            error.Visibility = Visibility.Collapsed;
+            errorIndicator.Visibility = Visibility.Collapsed;
         }
 
         private void TextChanged(object sender, TextContentChangedEventArgs e)
