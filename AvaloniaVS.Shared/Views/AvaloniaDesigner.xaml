@@ -118,11 +118,12 @@
 
             <views:GridLines Grid.ColumnSpan="3" Margin="0,0,0,5" />
 
-            <local:AvaloniaPreviewer x:Name="previewer" Grid.ColumnSpan="3" Margin="0,0,0,5"/>
+            <local:AvaloniaPreviewer x:Name="previewer" Grid.Column="2" />
 
             <GridSplitter x:Name="splitter"
                           Grid.Row="1"
                           Grid.Column="1"
+                          VerticalAlignment="Stretch"
                           Height="5"
                           HorizontalAlignment="Stretch"
                           Background="{DynamicResource VsBrush.PanelSeparator}"/>
