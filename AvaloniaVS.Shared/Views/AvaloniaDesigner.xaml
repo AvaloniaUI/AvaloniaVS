@@ -125,11 +125,13 @@
             <local:AvaloniaPreviewer x:Name="previewer" Grid.ColumnSpan="3" Margin="0,0,0,5"/>
 
             <GridSplitter x:Name="splitter"
+                          Grid.Row="1"
+                          Grid.Column="1"
                           Height="5"
                           HorizontalAlignment="Stretch"
-                          Background="{DynamicResource VsBrush.PanelSeparator}" Grid.ColumnSpan="3" Margin="0,198,0,193" Grid.RowSpan="3"/>
+                          Background="{DynamicResource VsBrush.PanelSeparator}"/>
 
-            <Decorator Grid.Column="0" Name="editorHost" Grid.ColumnSpan="3" Margin="0,198,0,0" Grid.RowSpan="3"/>
+            <Decorator Grid.Row="2" Grid.Column="0" Name="editorHost"/>
         </Grid>
     </DockPanel>
 
