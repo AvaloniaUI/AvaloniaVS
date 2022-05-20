@@ -74,7 +74,7 @@ namespace AvaloniaVS.Views
                 typeof(AvaloniaDesigner),
                 new PropertyMetadata("100%", HandleZoomLevelChanged));
 
-        private static string FmtZoomLevel(double v) => $"{v.ToString(CultureInfo.InvariantCulture)}%";
+        public static string FmtZoomLevel(double v) => $"{v.ToString(CultureInfo.InvariantCulture)}%";
 
         public static string[] ZoomLevels { get; } = new string[]
         {
@@ -397,7 +397,7 @@ namespace AvaloniaVS.Views
             }
         }
 
-        private bool TryProcessZoomLevelValue(out double scaling)
+        public bool TryProcessZoomLevelValue(out double scaling)
         {
             scaling = 1;
 
