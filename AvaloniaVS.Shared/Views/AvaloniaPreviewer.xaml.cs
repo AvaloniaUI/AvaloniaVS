@@ -81,16 +81,24 @@ namespace AvaloniaVS.Views
             else if (Keyboard.Modifiers == ModifierKeys.Control)
             {
                 var designer = FindParent<AvaloniaDesigner>(this);
-                var currentZoomLevelIndex = Array.IndexOf(AvaloniaDesigner.ZoomLevels, designer.ZoomLevel);
-                if (e.Delta < 0 && currentZoomLevelIndex >= 0 && currentZoomLevelIndex + 1 < AvaloniaDesigner.ZoomLevels.Length - 1)
+
+                if (designer.TryProcessZoomLevelValue(out var currentZoomLevel))
                 {
-                    designer.ZoomLevel = AvaloniaDesigner.ZoomLevels[currentZoomLevelIndex + 1];
+                    currentZoomLevel += e.Delta * 0.01;
+
+                    if (currentZoomLevel < 0.125)
+                    {
+                        currentZoomLevel = 0.125;
+                    }
+                    else if (currentZoomLevel > 8)
+                    {
+                        currentZoomLevel = 8;
+                    }
+
+                    designer.ZoomLevel = AvaloniaDesigner.FmtZoomLevel(currentZoomLevel * 100);
+
+                    e.Handled = true;
                 }
-                else if (e.Delta > 0 && currentZoomLevelIndex > 0)
-                {
-                    designer.ZoomLevel = AvaloniaDesigner.ZoomLevels[currentZoomLevelIndex - 1];
-                }
-                e.Handled = true;
             }
 
             base.OnPreviewMouseWheel(e);

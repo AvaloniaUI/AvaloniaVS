@@ -9,7 +9,8 @@
              xmlns:catalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
              xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:theming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
-             xmlns:util="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Utilities"
+             xmlns:util="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Utilities" 
+             xmlns:views="clr-namespace:AvaloniaVS.Shared.Views"
              mc:Ignorable="d" d:DesignHeight="450" d:DesignWidth="800"
              Name="root"
              Background="{DynamicResource VsBrush.ToolWindowBackground}"
@@ -67,6 +68,19 @@
                       ItemsSource="{x:Static local:AvaloniaDesigner.ZoomLevels}"
                       Padding="2" Margin="0 0 10 0" local:VsTheme.UseVsTheme="True"/>
 
+            <Grid DockPanel.Dock="Left" Name="errorIndicator">
+                <Grid.ToolTip>
+                    <StackPanel Name="error"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center">
+                        <TextBlock Name="errorHeading" FontSize="18" HorizontalAlignment="Center"/>
+                        <TextBlock Name="errorMessage" Margin="0,20,0,0"/>
+                    </StackPanel>
+                </Grid.ToolTip>
+                <Ellipse Height="18" Width="18" Fill="#f55762" />
+                <TextBlock Text="!" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White" FontWeight="ExtraBold" />
+            </Grid>
+
             <ListBox SelectedIndex="{Binding View, ElementName=root, Mode=TwoWay, Converter={StaticResource EnumToInt}}">
                 <ListBoxItem ToolTip="Split View">
                     <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Splitter}"/>
@@ -102,15 +116,9 @@
                 <RowDefinition x:Name="codeRow"/>
             </Grid.RowDefinitions>
 
-            <local:AvaloniaPreviewer x:Name="previewer" Grid.Column="2"/>
-            <StackPanel Name="error"
-                        Grid.Column="2"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        Visibility="Collapsed">
-                <TextBlock Name="errorHeading" FontSize="18" HorizontalAlignment="Center"/>
-                <TextBlock Name="errorMessage" Margin="0,20,0,0"/>
-            </StackPanel>
+            <views:GridLines Grid.ColumnSpan="3" Margin="0,0,0,5" />
+
+            <local:AvaloniaPreviewer x:Name="previewer" Grid.ColumnSpan="3" Margin="0,0,0,5"/>
 
             <GridSplitter x:Name="splitter"
                           Grid.Row="1"
@@ -122,5 +130,5 @@
             <Decorator Grid.Row="2" Grid.Column="0" Name="editorHost"/>
         </Grid>
     </DockPanel>
-    
+
 </UserControl>

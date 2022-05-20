@@ -48,6 +48,7 @@
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Views\DesignerPane.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\EditorHostPane.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Views\GridLines.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\OptionsDialogPage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\OptionsView.xaml.cs">
       <DependentUpon>OptionsView.xaml</DependentUpon>
