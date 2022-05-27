@@ -84,7 +84,7 @@ namespace AvaloniaVS.Views
 
                 if (designer.TryProcessZoomLevelValue(out var currentZoomLevel))
                 {
-                    currentZoomLevel += e.Delta * 0.01;
+                    currentZoomLevel += e.Delta > 0 ? 0.25 : -0.25;
 
                     if (currentZoomLevel < 0.125)
                     {
