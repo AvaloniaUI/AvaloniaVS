@@ -282,6 +282,9 @@ namespace AvaloniaVS.Views
             _editor.TextView.TextBuffer.Properties.RemoveProperty(typeof(PreviewerProcess));
             _editor.TextView.TextBuffer.Properties.AddProperty(typeof(PreviewerProcess), Process);
 
+            _editor.TextView.Properties.RemoveProperty(typeof(AvaloniaDesigner));
+            _editor.TextView.Properties.AddProperty(typeof(AvaloniaDesigner), this);
+
             if (_editor.TextView.TextBuffer is ITextBuffer2 newBuffer)
             {
                 newBuffer.ChangedOnBackground += TextChanged;

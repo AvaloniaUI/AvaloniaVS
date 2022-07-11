@@ -10,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)AvaloniaPackage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\ViewCodeCommandHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Converters\EnumToIntConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Converters\EnumValuesConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Converters\NotNullOrEmptyToVisibilityConverter.cs" />
@@ -56,22 +57,22 @@
     <Compile Include="$(MSBuildThisFileDirectory)Views\VsTheme.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="$(MSBuildThisFileDirectory)icon.ico" >
+    <Content Include="$(MSBuildThisFileDirectory)icon.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(MSBuildThisFileDirectory)Resources\AvaloniaPackage.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="$(MSBuildThisFileDirectory)icons.pkgdef" >
+    <Content Include="$(MSBuildThisFileDirectory)icons.pkgdef">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <None Include="$(MSBuildThisFileDirectory)Key.snk" >
+    <None Include="$(MSBuildThisFileDirectory)Key.snk">
       <Link>Key.snk</Link>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="$(MSBuildThisFileDirectory)VSPackage.resx" >
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)VSPackage.resx">
       <MergeWithCTO>true</MergeWithCTO>
       <ManifestResourceName>VSPackage</ManifestResourceName>
     </EmbeddedResource>
