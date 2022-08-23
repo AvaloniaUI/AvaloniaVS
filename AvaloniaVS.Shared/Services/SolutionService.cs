@@ -59,7 +59,7 @@ namespace AvaloniaVS.Services
                         IsStartupProject = startupProjects?.Contains(project.UniqueName) ?? false,
                         Name = project.Name,
                         Project = project,
-                        ProjectReferences = GetProjectReferences(vsProject),
+                        LazyProjectReferences = LazyGetProjectReferences(vsProject),
                         References = GetReferences(vsProject),
                     };
 
@@ -86,7 +86,7 @@ namespace AvaloniaVS.Services
                         // Here we're assuming that all references will be added at once, so the
                         // fact we've got one means we've got them all. Is this guaranteed to be
                         // true? No idea, but it *seems* to be the case.
-                        i.Value.ProjectReferences = GetProjectReferences(i.Key);
+                        i.Value.LazyProjectReferences = LazyGetProjectReferences(i.Key);
                         i.Value.References = GetReferences(i.Key);
                         i.Key.Events.ReferencesEvents.ReferenceAdded -= Handler;
                         uninitialized.Remove(i.Key);
@@ -115,7 +115,7 @@ namespace AvaloniaVS.Services
 
                 item.Value.IsExecutable = outputTypeIsExecutable;
                 item.Value.Outputs = await GetOutputInfoAsync(item.Key);
-                item.Value.ProjectReferences = FlattenProjectReferences(result, item.Value.ProjectReferences);
+                item.Value.LazyProjectReferences = LazyFlattenProjectReferences(result, item.Value.ProjectReferences);
             }
 
             return result.Values.ToList();
@@ -178,6 +178,11 @@ namespace AvaloniaVS.Services
             }
         }
 
+        private static Lazy<IReadOnlyList<Project>> LazyGetProjectReferences(VSProject project)
+        {
+            return new Lazy<IReadOnlyList<Project>>(() => GetProjectReferences(project));
+        }
+
         private static IReadOnlyList<Project> GetProjectReferences(VSProject project)
         {
             return project.References
@@ -228,6 +233,13 @@ namespace AvaloniaVS.Services
             }
 
             return alternatives.Values.ToList();
+        }
+
+        private static Lazy<IReadOnlyList<Project>> LazyFlattenProjectReferences(
+            Dictionary<Project, ProjectInfo> projects,
+            IReadOnlyList<Project> references)
+        {
+            return new Lazy<IReadOnlyList<Project>>(() => FlattenProjectReferences(projects, references));
         }
 
         private static IReadOnlyList<Project> FlattenProjectReferences(

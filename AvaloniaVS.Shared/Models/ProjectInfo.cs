@@ -8,6 +8,8 @@ namespace AvaloniaVS.Models
     /// </summary>
     internal class ProjectInfo
     {
+        private IReadOnlyList<Project> _projectReferences;
+
         /// <summary>
         /// Gets or sets a value indicating whether the project is an executable.
         /// </summary>
@@ -33,10 +35,16 @@ namespace AvaloniaVS.Models
         /// </summary>
         public IReadOnlyList<ProjectOutputInfo> Outputs { get; set; }
 
+        public System.Lazy<IReadOnlyList<Project>> LazyProjectReferences { get; set; }
+
         /// <summary>
         /// Gets or sets the project's project references.
         /// </summary>
-        public IReadOnlyList<Project> ProjectReferences { get; set; }
+        public IReadOnlyList<Project> ProjectReferences
+        {
+            get => _projectReferences ?? (_projectReferences = LazyProjectReferences?.Value);
+            set => _projectReferences = value;
+        }
 
         /// <summary>
         /// Gets or sets the project's assembly references.
