@@ -10,10 +10,9 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Avalonia.Ide.CompletionEngine;
-using Avalonia.Ide.CompletionEngine.AssemblyMetadata;
-using Avalonia.Ide.CompletionEngine.DnlibMetadataProvider;
 using AvaloniaVS.Models;
 using AvaloniaVS.Services;
+using AvaloniaVS.Shared.Completion.Metadata;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
@@ -540,7 +539,7 @@ namespace AvaloniaVS.Views
                 {
                     metadataLoad = Task.Run(() =>
                                     {
-                                        var metadataReader = new MetadataReader(new DnlibMetadataProvider());
+                                        var metadataReader = new AvVSMetadataReader();
                                         return metadataReader.GetForTargetAssembly(executablePath);
                                     });
                     _metadataCache[executablePath] = metadataLoad;

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using Avalonia.Ide.CompletionEngine;
 using AvaloniaVS.Models;
+using AvaloniaVS.Shared.Completion.Manipulation;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Serilog;
@@ -38,13 +39,12 @@ namespace AvaloniaVS.IntelliSense
                     metadata.CompletionMetadata != null)
                 {
                     var sw = Stopwatch.StartNew();
-                    var pos = _textView.Caret.Position.BufferPosition;
                     var text = _buffer.CurrentSnapshot.GetText();
 
 
                     foreach (Microsoft.VisualStudio.Text.ITextChange change in e.Changes.ToList())
                     {
-                        var textManipulator = new TextManipulator(text, change.NewPosition);
+                        var textManipulator = new AvVSTextManipulator(text, change.NewPosition);
                         var avaloniaChange = new TextChangeAdapter(change);
                         var manipulations = textManipulator.ManipulateText(avaloniaChange);
                         if (manipulations?.Count > 0)

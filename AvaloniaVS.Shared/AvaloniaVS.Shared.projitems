@@ -11,6 +11,13 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)AvaloniaPackage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\ViewCodeCommandHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Completion\IAvVSAssemblyInformation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Completion\Manipulation\AvVSCloseXmlTagManipulation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Completion\Manipulation\AvVSTextManipulator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Completion\Metadata\AvVSDnLibMetadataProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Completion\Metadata\AvVSMetadataConverter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Completion\Metadata\AvVSMetadataReader.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Completion\Metadata\MetadataUtils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Converters\EnumToIntConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Converters\EnumValuesConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Converters\NotNullOrEmptyToVisibilityConverter.cs" />
