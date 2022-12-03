@@ -437,13 +437,6 @@ namespace AvaloniaVS.Shared.Completion
                     completions.AddRange(GetHintCompletions(setterProp.Type, state.AttributeValue, currentAssemblyName));
                 }
             }
-
-            //bool isControlTheme()
-            //{
-            //    var parentTag = state.GetParentTagName(state.NestingLevel - 1);
-                
-            //    return parentTag?.Equals("ControlTheme") ?? false;
-            //}
         }
 
         public IEnumerable<string> FilterHintValues(MetadataType type, string entered, string currentAssemblyName, XmlParser state)
