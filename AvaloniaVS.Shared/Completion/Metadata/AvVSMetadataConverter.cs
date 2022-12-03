@@ -66,6 +66,7 @@ namespace AvaloniaVS.Shared.Completion.Metadata
             var metadata = new AvMetadata();
             var resourceUrls = new List<string>();
             var avaresValues = new List<AvaresInfo>();
+            var pseudoclasses = new HashSet<string>();
 
             var ignoredResExt = new[] { ".resources", ".rd.xml", "!AvaloniaResources" };
 
@@ -129,6 +130,13 @@ namespace AvaloniaVS.Shared.Completion.Metadata
                 int level = 0;
                 while (typeDef != null)
                 {
+                    var typePseudoclasses = typeDef.Pseudoclasses;
+
+                    foreach (var pc in typePseudoclasses)
+                    {
+                        pseudoclasses.Add(pc);
+                    }
+
                     var currentType = types.GetValueOrDefault(typeDef.FullName);
                     foreach (var prop in typeDef.Properties)
                     {
@@ -227,7 +235,7 @@ namespace AvaloniaVS.Shared.Completion.Metadata
                 }
             }
 
-            PostProcessTypes(types, metadata, resourceUrls, avaresValues);
+            PostProcessTypes(types, metadata, resourceUrls, avaresValues, pseudoclasses);
 
             return metadata;
         }
@@ -458,7 +466,8 @@ namespace AvaloniaVS.Shared.Completion.Metadata
         }
 
         private static void PostProcessTypes(Dictionary<string, MetadataType> types, 
-            AvMetadata metadata, IEnumerable<string> resourceUrls, List<AvaresInfo> avaResValues)
+            AvMetadata metadata, IEnumerable<string> resourceUrls, List<AvaresInfo> avaResValues,
+            HashSet<string> pseudoclasses)
         {
             bool rhasext(string resource, string ext) => resource.StartsWith("resm:") ? 
                 resource.Contains(ext + "?assembly=") : resource.EndsWith(ext);
@@ -637,15 +646,9 @@ namespace AvaloniaVS.Shared.Completion.Metadata
                 List<string> hints = new List<string>();
 
                 //some reserved words
-                hints.AddRange(new[] { "/template/", ":is()", ">", "#", "." });
+                hints.AddRange(new[] { "/template/", ":is()", ">", "#", ".", "^", ":not()" });
 
-                //some pseudo classes
-                hints.AddRange(new[]
-                {
-                    ":pointerover", ":pressed", ":disabled", ":focus",
-                    ":selected", ":vertical", ":horizontal",
-                    ":checked", ":unchecked", ":indeterminate"
-                });
+                hints.AddRange(pseudoclasses);
 
                 hints.AddRange(types.Where(t => t.Value.IsAvaloniaObjectType).Select(t => t.Value.Name.Replace(":", "|")));
 

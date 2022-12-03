@@ -143,6 +143,34 @@ namespace AvaloniaVS.Shared.Completion.Metadata
 
         public override string ToString() => Name;
 
+        public IEnumerable<string> Pseudoclasses
+        {
+            get
+            {
+                // There is probably a much nicer way to do this, but it works
+                // Would be nice if we had a ref to the PseudoClassesAttribute to just pull
+                // the values from though...
+                var attr = _type.CustomAttributes
+                    .Where(x => x.TypeFullName.Contains("PseudoClassesAttribute"));
+
+                var selector = attr.Select(x =>
+                {
+                    if (x.HasConstructorArguments)
+                    {
+                        return (x.ConstructorArguments[0].Value as IEnumerable<CAArgument>)
+                                .Select(y => y.Value.ToString());
+                    }
+
+                    return Enumerable.Empty<string>();
+                });
+
+                foreach (var ret in selector)
+                    foreach (var ret2 in ret)
+                        yield return ret2;
+
+            }
+        }
+
         public IEnumerable<ITypeInformation> NestedTypes =>
             _type.HasNestedTypes ? _type.NestedTypes.Select(t => new TypeWrapper(t)) : Array.Empty<TypeWrapper>();
     }

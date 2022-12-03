@@ -1,4 +1,6 @@
-﻿using Avalonia.Ide.CompletionEngine.AssemblyMetadata;
+﻿using System.Collections;
+using System.Collections.Generic;
+using Avalonia.Ide.CompletionEngine.AssemblyMetadata;
 
 namespace AvaloniaVS.Shared.Completion
 {
@@ -12,7 +14,7 @@ namespace AvaloniaVS.Shared.Completion
 
     public interface IAvVSTypeInformation : ITypeInformation
     {
-
+        IEnumerable<string> Pseudoclasses { get; }
     }
 
     public interface IAvVSMethodInformation : IMethodInformation
