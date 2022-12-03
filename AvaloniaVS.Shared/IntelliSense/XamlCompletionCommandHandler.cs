@@ -106,7 +106,7 @@ namespace AvaloniaVS.IntelliSense
                     // the previous completion session and start a new one starting at the ':'
                     // Otherwise typing 'Control:' won't show the intellisense popup with the
                     // pseudoclasses until after you start typing a pseudoclass
-                    if (c == ':')
+                    if (c == ':' || c == '.')
                     {
                         _session.Dismiss();
                         return HandleSessionStart(c);
@@ -151,7 +151,9 @@ namespace AvaloniaVS.IntelliSense
 
                         // If the spacebar is used to complete then it should be entered into the
                         // buffer, all other chars should be swallowed.
-                        var skip = c != ' ';
+                        // Don't swallow '.' either, otherwise it will require two presses of the '.' key
+                        // for something like 'Window.Resources'
+                        var skip = c != ' ' && c != '.';
 
                         _session.Commit();
 
