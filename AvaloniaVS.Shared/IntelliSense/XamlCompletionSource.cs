@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using AvaloniaVS.Models;
+using AvaloniaVS.Shared.Completion;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Serilog;
-using CompletionEngine = Avalonia.Ide.CompletionEngine.CompletionEngine;
 
 namespace AvaloniaVS.IntelliSense
 {
@@ -15,13 +15,13 @@ namespace AvaloniaVS.IntelliSense
     {
         private readonly ITextBuffer _buffer;
         private readonly IVsImageService2 _imageService;
-        private readonly CompletionEngine _engine;
+        private readonly AvVSCompletionEngine _engine;
 
         public XamlCompletionSource(ITextBuffer textBuffer, IVsImageService2 imageService)
         {
             _buffer = textBuffer;
             _imageService = imageService;
-            _engine = new CompletionEngine();
+            _engine = new AvVSCompletionEngine();
         }
 
         public void AugmentCompletionSession(ICompletionSession session, IList<CompletionSet> completionSets)
@@ -34,7 +34,7 @@ namespace AvaloniaVS.IntelliSense
                 var text = pos.Snapshot.GetText();
                 _buffer.Properties.TryGetProperty("AssemblyName", out string assemblyName);
                 var completions = _engine.GetCompletions(metadata.CompletionMetadata, text, pos, assemblyName);
-
+                
                 if (completions?.Completions.Count > 0)
                 {
                     var start = completions.StartPosition;
