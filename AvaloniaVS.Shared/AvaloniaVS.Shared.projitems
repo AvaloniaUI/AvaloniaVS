@@ -11,6 +11,7 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)AvaloniaPackage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\ViewCodeCommandHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Completion\AvVSCompletionEngine.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Completion\IAvVSAssemblyInformation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Completion\Manipulation\AvVSCloseXmlTagManipulation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Completion\Manipulation\AvVSTextManipulator.cs" />

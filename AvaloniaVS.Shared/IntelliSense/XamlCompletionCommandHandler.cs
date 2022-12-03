@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using AvaloniaVS.Shared.Completion;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.OLE.Interop;
@@ -87,8 +88,7 @@ namespace AvaloniaVS.IntelliSense
         private bool HandleSessionStart(char c)
         {
             // If the pressed key is a key that can start a completion session.
-            if (char.IsLetterOrDigit(c) ||
-                c == '\a' || c == '<' || c == '.' || c == ' ' || c == ':' || c == '{')
+            if (AvVSCompletionEngine.ShouldTriggerCompletionListOn(c) ||  c == '\a')
             {
                 if (_session == null || _session.IsDismissed)
                 {
@@ -101,6 +101,17 @@ namespace AvaloniaVS.IntelliSense
                 }
                 else
                 {
+                    // Special case for pseudoclasses - since they don't have spaces between
+                    // them and the element before (Control:pointerover) we need to cancel
+                    // the previous completion session and start a new one starting at the ':'
+                    // Otherwise typing 'Control:' won't show the intellisense popup with the
+                    // pseudoclasses until after you start typing a pseudoclass
+                    if (c == ':')
+                    {
+                        _session.Dismiss();
+                        return HandleSessionStart(c);
+                    }
+
                     _session.Filter();
                 }
             }
@@ -128,8 +139,8 @@ namespace AvaloniaVS.IntelliSense
         {
             // If the pressed key is a key that can commit a completion session.
             if (char.IsWhiteSpace(c) ||
-                (char.IsPunctuation(c) && c != ':' && c != '/') ||
-                c == '\n' || c == '\r' || c == '=' )
+                (char.IsPunctuation(c) && c != ':' && c != '/' && c != '-') ||
+                c == '\n' || c == '\r' || c == '=')
             {
                 // And commit or dismiss the completion session depending its state.
                 if (_session != null && !_session.IsDismissed)
@@ -183,7 +194,7 @@ namespace AvaloniaVS.IntelliSense
             {
                 return false;
             }
-
+            
             _session = _completionBroker.CreateCompletionSession(
                 _textView,
                 caretPoint?.Snapshot.CreateTrackingPoint(caretPoint.Value.Position, PointTrackingMode.Positive),

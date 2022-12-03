@@ -311,6 +311,12 @@ namespace AvaloniaVS.Shared.Completion
                             var last = search.Split(' ', ',').LastOrDefault();
                             curStart = curStart + search.Length - last?.Length ?? 0;
                             search = last;
+
+                            // Special case for pseudoclasses within the current edit
+                            if (state.AttributeName.Equals("Selector") && search.Contains(":"))
+                            {
+                                search = ":";
+                            }
                         }
 
                         completions.AddRange(GetHintCompletions(prop.Type, search, currentAssemblyName));
@@ -364,6 +370,7 @@ namespace AvaloniaVS.Shared.Completion
 
             if (completions.Count != 0)
                 return new CompletionSet() { Completions = completions, StartPosition = curStart };
+
             return null;
         }
 
@@ -653,7 +660,8 @@ namespace AvaloniaVS.Shared.Completion
         public static bool ShouldTriggerCompletionListOn(char typedChar)
         {
             return char.IsLetterOrDigit(typedChar) || typedChar == '/' || typedChar == '<'
-                || typedChar == ' ' || typedChar == '.' || typedChar == ':' || typedChar == '$' || typedChar == '#';
+                || typedChar == ' ' || typedChar == '.' || typedChar == ':' || typedChar == '$' 
+                || typedChar == '#' || typedChar == '-' || typedChar == '^';
         }
 
         public static CompletionKind GetCompletionKindForHintValues(MetadataType type)
