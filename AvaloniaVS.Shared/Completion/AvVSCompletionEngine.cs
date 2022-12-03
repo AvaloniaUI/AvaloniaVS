@@ -378,12 +378,20 @@ namespace AvaloniaVS.Shared.Completion
         {
             const string selectorTypes = @"(?<type>([\w|])+)|([:\.#/]\w+)";
 
-            var selector = state.FindParentAttributeValue("Selector", 1, maxLevels: 0);
-            var matches = Regex.Matches(selector ?? "", selectorTypes);
-            var types = matches.OfType<Match>().Select(m => m.Groups["type"].Value).Where(v => !string.IsNullOrEmpty(v));
-            var selectorTypeName = types.LastOrDefault()?.Replace('|', ':') ?? "Control";
+            string stypeName = null;
+            if (state.GetParentTagName(1)?.Equals("ControlTheme") == true)
+            {
+                stypeName = state.FindParentAttributeValue("TargetType", 1, maxLevels: 0);
+            }
+            else
+            {
+                var selector = state.FindParentAttributeValue("Selector", 1, maxLevels: 0);
+                var matches = Regex.Matches(selector ?? "", selectorTypes);
+                var types = matches.OfType<Match>().Select(m => m.Groups["type"].Value).Where(v => !string.IsNullOrEmpty(v));
+                stypeName = types.LastOrDefault()?.Replace('|', ':') ?? "Control";
+            }
 
-            if (string.IsNullOrEmpty(selectorTypeName))
+            if (string.IsNullOrEmpty(stypeName))
                 return;
 
             if (setterPropertyName == "Property")
@@ -405,7 +413,7 @@ namespace AvaloniaVS.Shared.Completion
                 }
                 else
                 {
-                    completions.AddRange(_helper.FilterPropertyNames(selectorTypeName, value, attached: false, hasSetter: true)
+                    completions.AddRange(_helper.FilterPropertyNames(stypeName, value, attached: false, hasSetter: true)
                             .Select(x => new AvCompletion(x, CompletionKind.Property)));
 
                     completions.AddRange(_helper.FilterTypeNames(value, withAttachedPropertiesOrEventsOnly: true).Select(x => new AvCompletion(x, CompletionKind.Class)));
@@ -419,16 +427,23 @@ namespace AvaloniaVS.Shared.Completion
                 if (setterProperty.Contains("."))
                 {
                     var vals = setterProperty.Split('.');
-                    selectorTypeName = vals[0];
+                    stypeName = vals[0];
                     setterProperty = vals[1];
                 }
 
-                var setterProp = _helper.LookupProperty(selectorTypeName, setterProperty);
+                var setterProp = _helper.LookupProperty(stypeName, setterProperty);
                 if (setterProp?.Type?.HasHintValues == true)
                 {
                     completions.AddRange(GetHintCompletions(setterProp.Type, state.AttributeValue, currentAssemblyName));
                 }
             }
+
+            //bool isControlTheme()
+            //{
+            //    var parentTag = state.GetParentTagName(state.NestingLevel - 1);
+                
+            //    return parentTag?.Equals("ControlTheme") ?? false;
+            //}
         }
 
         public IEnumerable<string> FilterHintValues(MetadataType type, string entered, string currentAssemblyName, XmlParser state)
