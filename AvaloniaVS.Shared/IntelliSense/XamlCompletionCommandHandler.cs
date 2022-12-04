@@ -120,7 +120,7 @@ namespace AvaloniaVS.IntelliSense
                             var state = XmlParser.Parse(_textView.TextSnapshot.GetText().AsMemory(),
                                 0, pos.BufferPosition.Position);
 
-                            if (!state.AttributeName.Equals("Selector"))
+                            if (!state?.AttributeName?.Equals("Selector") == true)
                             {
                                 _session?.Filter();
                                 return false;
