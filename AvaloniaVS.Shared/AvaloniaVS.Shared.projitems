@@ -47,13 +47,13 @@
     <Compile Include="$(MSBuildThisFileDirectory)Views\AvaloniaPreviewer.xaml.cs">
       <DependentUpon>AvaloniaPreviewer.xaml</DependentUpon>
     </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)Views\DesignerPane.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Views\EditorHostPane.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Views\EditorPane.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\GridLines.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\OptionsDialogPage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\OptionsView.xaml.cs">
       <DependentUpon>OptionsView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Views\TextEditorHost.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\VsTheme.cs" />
   </ItemGroup>
   <ItemGroup>

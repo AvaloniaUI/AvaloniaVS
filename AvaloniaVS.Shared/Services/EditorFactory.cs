@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using System.Windows.Controls;
-using AvaloniaVS.Models;
-using AvaloniaVS.Views;
+using AvaloniaVS.Shared.Views;
 using EnvDTE;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Serilog;
 using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
@@ -22,8 +20,6 @@ namespace AvaloniaVS.Services
     /// </summary>
     internal sealed class EditorFactory : IVsEditorFactory, IDisposable
     {
-        private static readonly Guid XmlLanguageServiceGuid = new Guid("f6819a78-a205-47b5-be1c-675b3c7f0b8e");
-        private static readonly Guid XamlLanguageServiceGuid = new Guid("cd53c9a1-6bc2-412b-be36-cc715ed8dd41");
         private readonly AvaloniaPackage _package;
         private IOleServiceProvider _oleServiceProvider;
         private ServiceProvider _serviceProvider;
@@ -88,18 +84,48 @@ namespace AvaloniaVS.Services
                 return VSConstants.E_INVALIDARG;
             }
 
-            var project = GetProject(pvHier);
+            // For reference of the new way this works:
+            // https://github.com/madskristensen/EditorConfigLanguage/blob/master/src/LanguageService/EditorFactory.cs
+            // and this sample
+            // https://github.com/microsoft/VSSDK-Extensibility-Samples/tree/master/WPFDesigner_XML/WPFDesigner_XML
 
-            if (project == null)
+            IVsTextLines textLines = GetTextBuffer(punkDocDataExisting);
+            if (punkDocDataExisting != IntPtr.Zero)
             {
-                return VSConstants.S_FALSE;
+                // We had an existing text buffer
+                ppunkDocData = punkDocDataExisting;
+                Marshal.AddRef(ppunkDocData);
+            }
+            else
+            {
+                // We created our own VsTextBuffer
+                ppunkDocData = Marshal.GetIUnknownForObject(textLines);
             }
 
-            var textBuffer = GetTextBuffer(pszMkDocument, punkDocDataExisting);
-            var (editorWindow, editorControl) = CreateEditorControl(textBuffer);
-            var pane = new DesignerPane(project, pszMkDocument, editorWindow, editorControl);
-            ppunkDocView = Marshal.GetIUnknownForObject(pane);
-            ppunkDocData = Marshal.GetIUnknownForObject(textBuffer);
+            try
+            {
+                // Prepare the way for the IVsCodeWindow...Note that it may not be created yet
+                // as we need to wait for the IVsTextBuffer to fully initialize first. This is all
+                // handled from CreateDocumentView and the TextEditorHost
+                var docViewObject = CreateDocumentView(pszMkDocument, pszPhysicalView, textLines,
+                    punkDocDataExisting == IntPtr.Zero);
+
+                // Create the pane that will host our previewer and will be associated with this text data
+                var pane = new EditorPane(GetProject(pvHier), docViewObject);
+
+                ppunkDocView = Marshal.GetIUnknownForObject(pane);
+            }
+            finally
+            {
+                if (ppunkDocView == IntPtr.Zero)
+                {
+                    if (punkDocDataExisting != ppunkDocData && ppunkDocData != IntPtr.Zero)
+                    {
+                        Marshal.Release(ppunkDocData);
+                        ppunkDocData = IntPtr.Zero;
+                    }
+                }
+            }
 
             Log.Logger.Verbose("Finished EditorFactory.CreateEditorInstance({Filename})", pszMkDocument);
             return VSConstants.S_OK;
@@ -116,101 +142,87 @@ namespace AvaloniaVS.Services
             _serviceProvider = null;
         }
 
-        private IVsTextLines GetTextBuffer(string fileName, IntPtr punkDocDataExisting)
+        private IVsTextLines GetTextBuffer(IntPtr docDataExisting)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            IVsTextLines result;
-
-            Log.Logger.Verbose("Started EditorFactory.GetTextBuffer({Filename})", fileName);
-
-            if (punkDocDataExisting == IntPtr.Zero)
+            IVsTextLines textLines;
+            if (docDataExisting == IntPtr.Zero)
             {
-                // Get an invisible editor over the file. This is much easier than having to
-                // manually figure out the right content type and language service, and it will
-                // automatically associate the document with its owning project, meaning we will
-                // get intellisense in our editor with no extra work.
-                var iem = _serviceProvider.GetService<IVsInvisibleEditorManager, SVsInvisibleEditorManager>();
+                // Create a new IVsTextLines buffer.
+                Log.Logger.Verbose("Creating new IVsTextBuffer");
 
-                ErrorHandler.ThrowOnFailure(iem.RegisterInvisibleEditor(
-                    fileName,
-                    pProject: null,
-                    dwFlags: (uint)_EDITORREGFLAGS.RIEF_ENABLECACHING,
-                    pFactory: null,
-                    ppEditor: out var invisibleEditor));
+                // amwx - The old way involved using an invisible editor, except that was failing
+                // when calling GetDocData, most likely because the text buffer hadn't initialized
+                // and there's no way to get the text buffer to query for initialization from
+                // and invisible editor. But, there is a way to create it manually, and this seems
+                // to be the "correct" way to do it now, and leads me to believe the invisible
+                // editor is archaic and phased out internally and without announcement
 
-                var guidIVSTextLines = typeof(IVsTextLines).GUID;
-                ErrorHandler.ThrowOnFailure(invisibleEditor.GetDocData(
-                    fEnsureWritable: 0,
-                    riid: ref guidIVSTextLines,
-                    ppDocData: out var docDataPointer));
+                Type textLinesType = typeof(IVsTextLines);
+                Guid riid = textLinesType.GUID;
+                Guid clsid = typeof(VsTextBufferClass).GUID;
+                textLines = _package.CreateInstance(ref clsid, ref riid, textLinesType) as IVsTextLines;
 
-                result = (IVsTextLines)Marshal.GetObjectForIUnknown(docDataPointer);
+                // set the buffer's site
+                ((IObjectWithSite)textLines).SetSite(_serviceProvider.GetService(typeof(IOleServiceProvider)));
             }
             else
             {
-                result = Marshal.GetObjectForIUnknown(punkDocDataExisting) as IVsTextLines;
-
-                if (result == null)
+                Log.Logger.Verbose("Using Existing IVsTextBuffer");
+                // Use the existing text buffer
+                object dataObject = Marshal.GetObjectForIUnknown(docDataExisting);
+                textLines = dataObject as IVsTextLines;
+                if (textLines == null)
                 {
-                    ErrorHandler.ThrowOnFailure(VSConstants.VS_E_INCOMPATIBLEDOCDATA);
+                    // Try get the text buffer from textbuffer provider
+                    if (dataObject is IVsTextBufferProvider textBufferProvider)
+                    {
+                        textBufferProvider.GetTextBuffer(out textLines);
+                    }
                 }
+                if (textLines == null)
+                {
+                    // Unknown docData type then, so we have to force VS to close the other editor.
+                    throw Marshal.GetExceptionForHR(VSConstants.VS_E_INCOMPATIBLEDOCDATA);
+                }
+
             }
-
-            // Set buffer content type to XML. The default XAML content type will cause blue
-            // squiggly lines to be displayed on the elements, as the XAML language service is
-            // hard-coded as to the XAML dialects it supports and Avalonia isn't one of them :(
-            ErrorHandler.ThrowOnFailure(result.SetLanguageServiceID(XmlLanguageServiceGuid));
-
-            Log.Logger.Verbose("Finished EditorFactory.GetTextBuffer({Filename})", fileName);
-            return result;
+            return textLines;
         }
 
-        private (IVsCodeWindow, IWpfTextViewHost) CreateEditorControl(IVsTextLines bufferAdapter)
+        private TextEditorHost CreateDocumentView(string documentMoniker, string physicalView, IVsTextLines textLines, bool createdDocData)
         {
-            Log.Logger.Verbose("Started EditorFactory.CreateEditorControl()");
+            ThreadHelper.ThrowIfNotOnUIThread();
 
-            var componentModel = _serviceProvider.GetService<IComponentModel, SComponentModel>();
-            var eafs = componentModel.GetService<IVsEditorAdaptersFactoryService>();
-            var codeWindow = eafs.CreateVsCodeWindowAdapter(_oleServiceProvider);
-
-            // Disable the splitter control on the editor as leaving it enabled causes a crash if the user
-            // tries to use it here.
-            ((IVsCodeWindowEx)codeWindow).Initialize(
-                (uint)_codewindowbehaviorflags.CWB_DISABLESPLITTER,
-                VSUSERCONTEXTATTRIBUTEUSAGE.VSUC_Usage_Filter,
-                szNameAuxUserContext: "",
-                szValueAuxUserContext: "",
-                InitViewFlags: 0,
-                pInitView: new INITVIEW[1]);
-
-            // Add metadata to the buffer so we can identify it as containing Avalonia XAML.
-            var buffer = eafs.GetDataBuffer(bufferAdapter);
-
-            // HACK: VS has given us an uninitialized IVsTextLines in punkDocDataExisting. Not sure what
-            // we can do here except tell VS to close the tab and repopen it.
-            if (buffer == null)
+            Log.Logger.Verbose("Creating Document View");
+            if (string.IsNullOrEmpty(physicalView))
             {
-                ErrorHandler.ThrowOnFailure(VSConstants.VS_E_INCOMPATIBLEDOCDATA);
+                // create code window as default physical view
+                var componentModel = _serviceProvider.GetService<IComponentModel, SComponentModel>();
+                var editorHost = new TextEditorHost(textLines, documentMoniker, componentModel, _oleServiceProvider);
+
+                if (!createdDocData)
+                {
+                    var adapterService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
+                    var buf = adapterService.GetDocumentBuffer(textLines);
+
+                    // It seems we may get an uninitialized IVsTextBuffer here. Inspecting via break point shows the content type
+                    // is "Inert" and the document/data buffers are empty, thus we aren't actually initialized yet? IIRC this
+                    // relates to some change with intellisense around VS 2019 16.3-ish. So if we aren't initialized yet, we
+                    // don't want to "force" OnLoadCompleted here and we'll wait for the event to actually fire
+                    // We will only get an initialized text buffer if the document had been previously opened in the current
+                    // session, closed, and now reopened and its buffer was in the RunningDocumentTable. 
+                    if (buf != null)
+                        editorHost.OnLoadCompleted(0);
+                }
+
+                return editorHost;
             }
 
-            buffer.Properties.GetOrCreateSingletonProperty(() => new XamlBufferMetadata());
-
-            ErrorHandler.ThrowOnFailure(codeWindow.SetBuffer(bufferAdapter));
-            ErrorHandler.ThrowOnFailure(codeWindow.GetPrimaryView(out var textViewAdapter));
-
-            // In VS2019 preview 3, the IWpfTextViewHost.HostControl comes parented. Remove the
-            // control from its parent otherwise we can't reparent it. This is probably a bug
-            // in the preview and can probably be removed later.
-            var textViewHost = eafs.GetWpfTextViewHost(textViewAdapter);
-
-            if (textViewHost.HostControl.Parent is Decorator parent)
-            {
-                parent.Child = null;
-            }
-
-            Log.Logger.Verbose("Finished EditorFactory.CreateEditorControl()");
-            return (codeWindow, textViewHost);
+            // We couldn't create the view
+            // Return special error code so VS can try another editor factory.
+            throw Marshal.GetExceptionForHR(VSConstants.VS_E_UNSUPPORTEDFORMAT);
         }
 
         private static Project GetProject(IVsHierarchy hierarchy)
