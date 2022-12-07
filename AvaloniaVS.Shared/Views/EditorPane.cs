@@ -1,8 +1,5 @@
 ﻿using System;
-using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
-using System.Windows.Controls;
-using System.Windows.Media;
 using AvaloniaVS.Services;
 using AvaloniaVS.Views;
 using EnvDTE;
@@ -73,12 +70,6 @@ namespace AvaloniaVS.Shared.Views
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            //if (pguidCmdGroup == VSConstants.GUID_VSStandardCommandSet97 && nCmdID == (int)VSConstants.VSStd97CmdID.ViewCode)
-            //{
-            //    //ViewCode();
-            //    return VSConstants.S_OK;
-            //}
-
             if (_textEditorHost.VsCodeWindow is IOleCommandTarget oleCT)
                 return oleCT.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
 
@@ -88,18 +79,6 @@ namespace AvaloniaVS.Shared.Views
         int IOleCommandTarget.QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
-
-            //if (pguidCmdGroup == VSConstants.GUID_VSStandardCommandSet97)
-            //{
-            //    for (int i = 0; i < prgCmds.Length; i++)
-            //    {
-            //        if (prgCmds[i].cmdID == (int)VSConstants.VSStd97CmdID.ViewCode)
-            //        {
-            //            prgCmds[i].cmdf = (uint)(OLECMDF.OLECMDF_ENABLED | OLECMDF.OLECMDF_SUPPORTED);
-            //            return VSConstants.S_OK;
-            //        }
-            //    }
-            //}
 
             if (_textEditorHost.VsCodeWindow is IOleCommandTarget oleCT)
                 return oleCT.QueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
@@ -155,13 +134,6 @@ namespace AvaloniaVS.Shared.Views
         {
             base.Initialize();
             _isInitialized = true;
-
-            //// Setup a command to use the "View Code" menu item
-            //var mcs = GetService(typeof(IMenuCommandService)) as IMenuCommandService;
-            //if (mcs != null)
-            //{
-            //    mcs.AddCommand(new MenuCommand((s, e) => ViewCode(), new CommandID(VSConstants.GUID_VSStandardCommandSet97, (int)VSConstants.VSStd97CmdID.ViewCode)));
-            //}
 
             // It's possible TextBuffer was initialized before we subscribed to the event, so we'll never 
             // get that notification and the designer won't initialize propertly
@@ -261,18 +233,6 @@ namespace AvaloniaVS.Shared.Views
                 _content.IsPaused = _isPaused;
             }
         }
-
-        //private void ViewCode()
-        //{
-        //    ThreadHelper.ThrowIfNotOnUIThread();
-
-        //    // TODO: This is the Xaml file name, we need the corresponding code file
-        //    // This needs to be language specific, so how do we find this??
-        //    var fileName = _textEditorHost.FileName;
-        //    var ct = _project.ProjectItems.Count;
-
-            
-        //}
 
         int IVsDeferredDocView.get_CmdUIGuid(out System.Guid pGuidCmdId)
         {
