@@ -20,6 +20,7 @@ namespace AvaloniaVS.Shared.Views
     [ComVisible(true)]
     internal class EditorPane : WindowPane,
         IOleCommandTarget,
+        IVsDeferredDocView,
         IVsFindTarget,
         IVsFindTarget2,
         IVsFindTarget3,
@@ -273,6 +274,18 @@ namespace AvaloniaVS.Shared.Views
             
         //}
 
+        int IVsDeferredDocView.get_CmdUIGuid(out System.Guid pGuidCmdId)
+        {
+            pGuidCmdId = Guids.AvaloniaDesignerEditorFactory;
+            return VSConstants.S_OK;
+        }
+
+        int IVsDeferredDocView.get_DocView(out System.IntPtr ppUnkDocView)
+        {
+            ppUnkDocView = Marshal.GetIUnknownForObject(this);
+            return VSConstants.S_OK;
+        }
+
         // NOTE (amwx): We have to null check the VsCodeWindow. It is delayed in when its created
         // (see TextEditorHost for more) and some of these may be called in the in-between
         // time. Wasn't completely sure what to do then, so I'm returning E_PENDING. Some
@@ -280,8 +293,11 @@ namespace AvaloniaVS.Shared.Views
         // sounds reasonable since we're waiting on something else
         // As far as I can tell, there's no side effects of doing this everything still
         // initializes and works fine
+        // UPDATE: After implementing IVsDeferredDocView, these are no longer called
+        // earlier than we create the IVsCodeWindow, so it may not be necessary anymore
+        // But for the time being, I'm leaving the edits just in case
 #pragma warning disable VSTHRD010
-        int IVsFindTarget.GetCapabilities(bool[] pfImage, uint[] pgrfOptions) => 
+        int IVsFindTarget.GetCapabilities(bool[] pfImage, uint[] pgrfOptions) =>
             (_textEditorHost.VsCodeWindow as IVsFindTarget)?.GetCapabilities(pfImage, pgrfOptions) ?? VSConstants.E_PENDING;
         int IVsFindTarget.GetProperty(uint propid, out object pvar)
         {
@@ -317,11 +333,11 @@ namespace AvaloniaVS.Shared.Views
         }
         int IVsFindTarget.GetMatchRect(RECT[] prc) =>
             (_textEditorHost.VsCodeWindow as IVsFindTarget)?.GetMatchRect(prc) ?? VSConstants.E_PENDING;
-        int IVsFindTarget.NavigateTo(TextSpan[] pts) => 
+        int IVsFindTarget.NavigateTo(TextSpan[] pts) =>
             (_textEditorHost.VsCodeWindow as IVsFindTarget)?.NavigateTo(pts) ?? VSConstants.E_PENDING;
-        int IVsFindTarget.GetCurrentSpan(TextSpan[] pts) => 
+        int IVsFindTarget.GetCurrentSpan(TextSpan[] pts) =>
             (_textEditorHost.VsCodeWindow as IVsFindTarget)?.GetCurrentSpan(pts) ?? VSConstants.E_PENDING;
-        int IVsFindTarget.SetFindState(object pUnk) => 
+        int IVsFindTarget.SetFindState(object pUnk) =>
             (_textEditorHost.VsCodeWindow as IVsFindTarget)?.SetFindState(pUnk) ?? VSConstants.E_PENDING;
         int IVsFindTarget.GetFindState(out object ppunk)
         {
@@ -331,15 +347,15 @@ namespace AvaloniaVS.Shared.Views
             ppunk = null;
             return VSConstants.E_PENDING;
         }
-        int IVsFindTarget.NotifyFindTarget(uint notification) => 
+        int IVsFindTarget.NotifyFindTarget(uint notification) =>
             (_textEditorHost.VsCodeWindow as IVsFindTarget)?.NotifyFindTarget(notification) ?? VSConstants.E_PENDING;
-        int IVsFindTarget.MarkSpan(TextSpan[] pts) => 
+        int IVsFindTarget.MarkSpan(TextSpan[] pts) =>
             (_textEditorHost.VsCodeWindow as IVsFindTarget)?.MarkSpan(pts) ?? VSConstants.E_PENDING;
-        int IVsFindTarget2.NavigateTo2(IVsTextSpanSet pSpans, TextSelMode iSelMode) => 
+        int IVsFindTarget2.NavigateTo2(IVsTextSpanSet pSpans, TextSelMode iSelMode) =>
             (_textEditorHost.VsCodeWindow as IVsFindTarget2)?.NavigateTo2(pSpans, iSelMode) ?? VSConstants.E_PENDING;
         int IVsFindTarget3.get_IsNewUISupported() => 0;
         int IVsFindTarget3.NotifyShowingNewUI() => 0;
-        int IVsDropdownBarManager.AddDropdownBar(int cCombos, IVsDropdownBarClient pClient) => 
+        int IVsDropdownBarManager.AddDropdownBar(int cCombos, IVsDropdownBarClient pClient) =>
             (_textEditorHost.VsCodeWindow as IVsDropdownBarManager)?.AddDropdownBar(cCombos, pClient) ?? VSConstants.E_PENDING;
         int IVsDropdownBarManager.GetDropdownBar(out IVsDropdownBar ppDropdownBar)
         {
@@ -349,9 +365,9 @@ namespace AvaloniaVS.Shared.Views
             ppDropdownBar = null;
             return VSConstants.E_PENDING;
         }
-        int IVsDropdownBarManager.RemoveDropdownBar() => 
+        int IVsDropdownBarManager.RemoveDropdownBar() =>
             (_textEditorHost.VsCodeWindow as IVsDropdownBarManager)?.RemoveDropdownBar() ?? VSConstants.E_PENDING;
-        int IVsUserData.GetData(ref Guid riidKey, out object pvtData) 
+        int IVsUserData.GetData(ref Guid riidKey, out object pvtData)
         {
             if (_textEditorHost.VsCodeWindow is IVsUserData ud)
                 return ud.GetData(ref riidKey, out pvtData);
@@ -359,16 +375,16 @@ namespace AvaloniaVS.Shared.Views
             pvtData = null;
             return VSConstants.E_PENDING;
         }
-        int IVsUserData.SetData(ref Guid riidKey, object vtData) => 
+        int IVsUserData.SetData(ref Guid riidKey, object vtData) =>
             (_textEditorHost.VsCodeWindow as IVsUserData)?.SetData(ref riidKey, vtData) ?? VSConstants.E_PENDING;
-        int IVsHasRelatedSaveItems.GetRelatedSaveTreeItems(VSSAVETREEITEM saveItem, uint celt, VSSAVETREEITEM[] rgSaveTreeItems, out uint pcActual) 
+        int IVsHasRelatedSaveItems.GetRelatedSaveTreeItems(VSSAVETREEITEM saveItem, uint celt, VSSAVETREEITEM[] rgSaveTreeItems, out uint pcActual)
         {
             if (_textEditorHost.VsCodeWindow is IVsHasRelatedSaveItems si)
                 return si.GetRelatedSaveTreeItems(saveItem, celt, rgSaveTreeItems, out pcActual);
 
             pcActual = 0;
             return VSConstants.E_PENDING;
-        } 
+        }
         int IVsToolboxUser.IsSupported(IDataObject pDO) => (_textEditorHost.VsCodeWindow as IVsToolboxUser)?.IsSupported(pDO) ?? VSConstants.E_PENDING;
         int IVsToolboxUser.ItemPicked(IDataObject pDO) => (_textEditorHost.VsCodeWindow as IVsToolboxUser)?.ItemPicked(pDO) ?? VSConstants.E_PENDING;
         int IVsStatusbarUser.SetInfo() => (_textEditorHost.VsCodeWindow as IVsStatusbarUser)?.SetInfo() ?? VSConstants.E_PENDING;
@@ -397,7 +413,7 @@ namespace AvaloniaVS.Shared.Views
             ppView = null;
             return VSConstants.E_PENDING;
         }
-        int IVsCodeWindow.SetViewClassID(ref Guid clsidView) => 
+        int IVsCodeWindow.SetViewClassID(ref Guid clsidView) =>
             _textEditorHost.VsCodeWindow?.SetViewClassID(ref clsidView) ?? VSConstants.E_PENDING;
         int IVsCodeWindow.GetViewClassID(out Guid pclsidView)
         {
@@ -407,7 +423,7 @@ namespace AvaloniaVS.Shared.Views
             pclsidView = Guid.Empty;
             return VSConstants.E_PENDING;
         }
-        int IVsCodeWindow.SetBaseEditorCaption(string[] pszBaseEditorCaption) => 
+        int IVsCodeWindow.SetBaseEditorCaption(string[] pszBaseEditorCaption) =>
             _textEditorHost.VsCodeWindow?.SetBaseEditorCaption(pszBaseEditorCaption) ?? VSConstants.E_PENDING;
         int IVsCodeWindow.GetEditorCaption(READONLYSTATUS dwReadOnly, out string pbstrEditorCaption)
         {
@@ -417,7 +433,7 @@ namespace AvaloniaVS.Shared.Views
             pbstrEditorCaption = string.Empty;
             return VSConstants.E_PENDING;
         }
-            
+
         int IVsCodeWindow.Close() => _textEditorHost.VsCodeWindow?.Close() ?? VSConstants.E_PENDING;
         int IVsCodeWindow.GetLastActiveView(out IVsTextView ppView)
         {
@@ -427,8 +443,8 @@ namespace AvaloniaVS.Shared.Views
             ppView = null;
             return VSConstants.E_PENDING;
         }
-        int IVsCodeWindowEx.Initialize(uint grfCodeWindowBehaviorFlags, VSUSERCONTEXTATTRIBUTEUSAGE usageAuxUserContext, 
-            string szNameAuxUserContext, string szValueAuxUserContext, uint InitViewFlags, INITVIEW[] pInitView) => 
+        int IVsCodeWindowEx.Initialize(uint grfCodeWindowBehaviorFlags, VSUSERCONTEXTATTRIBUTEUSAGE usageAuxUserContext,
+            string szNameAuxUserContext, string szValueAuxUserContext, uint InitViewFlags, INITVIEW[] pInitView) =>
             (_textEditorHost.VsCodeWindow as IVsCodeWindowEx)?.Initialize(grfCodeWindowBehaviorFlags, usageAuxUserContext, szNameAuxUserContext, szValueAuxUserContext, InitViewFlags, pInitView) ?? VSConstants.E_PENDING;
         int IVsCodeWindowEx.IsReadOnly() => (_textEditorHost.VsCodeWindow as IVsCodeWindowEx)?.IsReadOnly() ?? VSConstants.E_PENDING;
         void IConnectionPointContainer.EnumConnectionPoints(out IEnumConnectionPoints ppEnum)
@@ -436,7 +452,7 @@ namespace AvaloniaVS.Shared.Views
             ppEnum = null;
             if (_textEditorHost.VsCodeWindow is IConnectionPointContainer cpc)
                 cpc.EnumConnectionPoints(out ppEnum);
-        }  
+        }
         void IConnectionPointContainer.FindConnectionPoint(ref Guid riid, out IConnectionPoint ppCP)
         {
             ppCP = null;
@@ -450,16 +466,16 @@ namespace AvaloniaVS.Shared.Views
             ppvSite = IntPtr.Zero;
             if (_textEditorHost.VsCodeWindow is IObjectWithSite ows)
                 ows.GetSite(ref riid, out ppvSite);
-        }            
+        }
         int IServiceProvider.QueryService(ref Guid guidService, ref Guid riid, out IntPtr ppvObject)
         {
             if (_textEditorHost.VsCodeWindow is IServiceProvider sp)
                 return sp.QueryService(ref guidService, ref riid, out ppvObject);
 
-            ppvObject= IntPtr.Zero;
+            ppvObject = IntPtr.Zero;
             return VSConstants.E_PENDING;
-        }            
-        int IVsBackForwardNavigation.NavigateTo(IVsWindowFrame pFrame, string bstrData, object punk) => 
+        }
+        int IVsBackForwardNavigation.NavigateTo(IVsWindowFrame pFrame, string bstrData, object punk) =>
             (_textEditorHost.VsCodeWindow as IVsBackForwardNavigation)?.NavigateTo(pFrame, bstrData, punk) ?? VSConstants.E_PENDING;
         int IVsBackForwardNavigation.IsEqual(IVsWindowFrame pFrame, string bstrData, object punk, out int fReplaceSelf)
         {
@@ -469,7 +485,7 @@ namespace AvaloniaVS.Shared.Views
             fReplaceSelf = 0;
             return VSConstants.E_PENDING;
         }
-        bool IVsBackForwardNavigation2.RequestAddNavigationItem(IVsWindowFrame frame) => 
+        bool IVsBackForwardNavigation2.RequestAddNavigationItem(IVsWindowFrame frame) =>
             (_textEditorHost.VsCodeWindow as IVsBackForwardNavigation2)?.RequestAddNavigationItem(frame) ?? false;
         int IVsDocOutlineProvider.GetOutlineCaption(VSOUTLINECAPTION nCaptionType, out string pbstrCaption)
         {
@@ -490,7 +506,7 @@ namespace AvaloniaVS.Shared.Views
         }
         int IVsDocOutlineProvider.ReleaseOutline(IntPtr hwnd, IOleCommandTarget pCmdTarget) =>
             (_textEditorHost.VsCodeWindow as IVsDocOutlineProvider)?.ReleaseOutline(hwnd, pCmdTarget) ?? VSConstants.E_PENDING;
-        int IVsDocOutlineProvider.OnOutlineStateChange(uint dwMask, uint dwState) => 
+        int IVsDocOutlineProvider.OnOutlineStateChange(uint dwMask, uint dwState) =>
             (_textEditorHost.VsCodeWindow as IVsDocOutlineProvider)?.OnOutlineStateChange(dwMask, dwState) ?? VSConstants.E_PENDING;
         int IVsTextEditorPropertyContainer.GetProperty(VSEDITPROPID idProp, out object pvar)
         {
@@ -499,10 +515,10 @@ namespace AvaloniaVS.Shared.Views
 
             pvar = null;
             return VSConstants.E_PENDING;
-        }            
+        }
         int IVsTextEditorPropertyContainer.SetProperty(VSEDITPROPID idProp, object var) =>
             (_textEditorHost.VsCodeWindow as IVsTextEditorPropertyContainer)?.SetProperty(idProp, var) ?? VSConstants.E_PENDING;
-        int IVsTextEditorPropertyContainer.RemoveProperty(VSEDITPROPID idProp) => 
+        int IVsTextEditorPropertyContainer.RemoveProperty(VSEDITPROPID idProp) =>
             (_textEditorHost.VsCodeWindow as IVsTextEditorPropertyContainer)?.RemoveProperty(idProp) ?? VSConstants.E_PENDING;
 
 #pragma warning restore VSTHRD010
