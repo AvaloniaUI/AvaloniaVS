@@ -87,12 +87,12 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\submodules\Avalonia.Ide\src\Avalonia.Ide.CompletionEngine.DnlibMetadataProvider\Avalonia.Ide.CompletionEngine.DnlibMetadataProvider.csproj">
-      <Project>{317c91b4-1cb9-4bf2-8d5a-075ca214bf7c}</Project>
+    <ProjectReference Include="..\CompletionEngine\Avalonia.Ide.CompletionEngine.DnlibMetadataProvider\Avalonia.Ide.CompletionEngine.DnlibMetadataProvider.csproj">
+      <Project>{5f0f9262-3527-46af-acf6-986b7f7b4c90}</Project>
       <Name>Avalonia.Ide.CompletionEngine.DnlibMetadataProvider</Name>
     </ProjectReference>
-    <ProjectReference Include="..\submodules\Avalonia.Ide\src\Avalonia.Ide.CompletionEngine\Avalonia.Ide.CompletionEngine.csproj">
-      <Project>{152a7aaf-2a76-461f-b05b-e8545bc2a277}</Project>
+    <ProjectReference Include="..\CompletionEngine\Avalonia.Ide.CompletionEngine\Avalonia.Ide.CompletionEngine.csproj">
+      <Project>{cd7db042-4282-4dfb-9910-958036dd621d}</Project>
       <Name>Avalonia.Ide.CompletionEngine</Name>
     </ProjectReference>
     <ProjectReference Include="..\submodules\Avalonia\src\Avalonia.Remote.Protocol\Avalonia.Remote.Protocol.csproj">

@@ -72,12 +72,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		azure-pipelines.yml = azure-pipelines.yml
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Avalonia.Ide.CompletionEngine", "CompletionEngine\Avalonia.Ide.CompletionEngine\Avalonia.Ide.CompletionEngine.csproj", "{CD7DB042-4282-4DFB-9910-958036DD621D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CompletionEngine", "CompletionEngine", "{8F7FC7D4-7E16-46A4-BA35-2CA47734AE5E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Avalonia.Ide.CompletionEngine.DnlibMetadataProvider", "CompletionEngine\Avalonia.Ide.CompletionEngine.DnlibMetadataProvider\Avalonia.Ide.CompletionEngine.DnlibMetadataProvider.csproj", "{5F0F9262-3527-46AF-ACF6-986B7F7B4C90}"
+EndProject
 Global
-	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		AvaloniaVS.Shared\AvaloniaVS.Shared.projitems*{1029ec08-7b2e-4018-b20d-e85ca58deb59}*SharedItemsImports = 4
-		AvaloniaVS.Shared\AvaloniaVS.Shared.projitems*{40d9809e-d179-44b2-bf42-61d781fb74f6}*SharedItemsImports = 13
-		AvaloniaVS.Shared\AvaloniaVS.Shared.projitems*{79a4832c-9d3e-42d9-9215-d786565269b5}*SharedItemsImports = 4
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|x86 = Debug|x86
@@ -317,6 +318,22 @@ Global
 		{1029EC08-7B2E-4018-B20D-E85CA58DEB59}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1029EC08-7B2E-4018-B20D-E85CA58DEB59}.Release|x86.ActiveCfg = Release|x86
 		{1029EC08-7B2E-4018-B20D-E85CA58DEB59}.Release|x86.Build.0 = Release|x86
+		{CD7DB042-4282-4DFB-9910-958036DD621D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CD7DB042-4282-4DFB-9910-958036DD621D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CD7DB042-4282-4DFB-9910-958036DD621D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CD7DB042-4282-4DFB-9910-958036DD621D}.Debug|x86.Build.0 = Debug|Any CPU
+		{CD7DB042-4282-4DFB-9910-958036DD621D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CD7DB042-4282-4DFB-9910-958036DD621D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CD7DB042-4282-4DFB-9910-958036DD621D}.Release|x86.ActiveCfg = Release|Any CPU
+		{CD7DB042-4282-4DFB-9910-958036DD621D}.Release|x86.Build.0 = Release|Any CPU
+		{5F0F9262-3527-46AF-ACF6-986B7F7B4C90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F0F9262-3527-46AF-ACF6-986B7F7B4C90}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F0F9262-3527-46AF-ACF6-986B7F7B4C90}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5F0F9262-3527-46AF-ACF6-986B7F7B4C90}.Debug|x86.Build.0 = Debug|Any CPU
+		{5F0F9262-3527-46AF-ACF6-986B7F7B4C90}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F0F9262-3527-46AF-ACF6-986B7F7B4C90}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F0F9262-3527-46AF-ACF6-986B7F7B4C90}.Release|x86.ActiveCfg = Release|Any CPU
+		{5F0F9262-3527-46AF-ACF6-986B7F7B4C90}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -349,8 +366,15 @@ Global
 		{8C4E8335-59BA-4E56-80FF-68C559E3F664} = {FC634911-168A-4FDD-8758-11FAD5B8696B}
 		{F7EE3A1D-DDB2-4F82-A6E7-F444A24ABB62} = {FC634911-168A-4FDD-8758-11FAD5B8696B}
 		{9FEF480A-5A56-489D-AD89-53970FD2B2A1} = {FC634911-168A-4FDD-8758-11FAD5B8696B}
+		{CD7DB042-4282-4DFB-9910-958036DD621D} = {8F7FC7D4-7E16-46A4-BA35-2CA47734AE5E}
+		{5F0F9262-3527-46AF-ACF6-986B7F7B4C90} = {8F7FC7D4-7E16-46A4-BA35-2CA47734AE5E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0CE7163D-D505-4965-B2B9-9E9068C77A62}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		AvaloniaVS.Shared\AvaloniaVS.Shared.projitems*{1029ec08-7b2e-4018-b20d-e85ca58deb59}*SharedItemsImports = 4
+		AvaloniaVS.Shared\AvaloniaVS.Shared.projitems*{40d9809e-d179-44b2-bf42-61d781fb74f6}*SharedItemsImports = 13
+		AvaloniaVS.Shared\AvaloniaVS.Shared.projitems*{79a4832c-9d3e-42d9-9215-d786565269b5}*SharedItemsImports = 4
 	EndGlobalSection
 EndGlobal
