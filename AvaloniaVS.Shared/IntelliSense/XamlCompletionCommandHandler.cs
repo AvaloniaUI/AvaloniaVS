@@ -108,8 +108,26 @@ namespace AvaloniaVS.IntelliSense
                     // pseudoclasses until after you start typing a pseudoclass
                     if (c == ':' || c == '.')
                     {
+                        // But, we don't want to trigger a new session for the ':' char if we're
+                        // not in a Selector. Otherwise, we'll trigger a new session for something
+                        // like 'xmlns:' or 'xmlsn:ui="using:' or '<ui:' (for third party controls)
+                        // which causes the intellisense popup to temporarily disappear and we don't
+                        // want that
+                        if (c == ':')
+                        {
+                            var pos = _textView.Caret.Position;
+                            var state = XmlParser.Parse(_textView.TextSnapshot.GetText().AsMemory(),
+                                0, pos.BufferPosition.Position);
+
+                            if (!(state?.AttributeName?.Equals("Selector") == true))
+                            {
+                                _session?.Filter();
+                                return false;
+                            }
+                        }
+
                         _session.Dismiss();
-                        return HandleSessionStart(c);
+                        return false;
                     }
 
                     _session.Filter();
