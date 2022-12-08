@@ -38,6 +38,22 @@ namespace AvaloniaVS.IntelliSense
                 if (completions?.Completions.Count > 0)
                 {
                     var start = completions.StartPosition;
+
+                    // pseudoclasses should only be returned in a Selector, so this is an easy filter
+                    // We need to offset the start though for pseudoclasses to remove what they're 
+                    // attached to: Control:pointerover -> :pointerover
+                    if (completions.Completions[0].DisplayText.StartsWith(":"))
+                    {
+                        for (int i = pos - 1; i >= 0; i--)
+                        {
+                            if (char.IsWhiteSpace(text[i]) || text[i] == ':')
+                            {
+                                start = i;
+                                break;
+                            }
+                        }
+                    }
+
                     var span = new SnapshotSpan(pos.Snapshot, start, pos.Position - start);
                     var applicableTo = pos.Snapshot.CreateTrackingSpan(span, SpanTrackingMode.EdgeInclusive);
 
@@ -47,6 +63,17 @@ namespace AvaloniaVS.IntelliSense
                         applicableTo,
                         XamlCompletion.Create(completions.Completions, _imageService),
                         null));
+
+                    // This selects the first item in the completion popup - otherwise you have to physically
+                    // interact with the completion list (either via mouse or keyboard arrows) otherwise tab
+                    // or space won't trigger it
+                    // TODO: We should really try to find the best match of the completion list and select that
+                    // instead, but that's more than I want to do right now
+                    if (completions.Completions.Count > 0)
+                    {
+                        completionSets[0].SelectionStatus = new CompletionSelectionStatus(
+                            completionSets[0].Completions[0], true, false);
+                    }
 
                     string completionHint = completions.Completions.Count == 0 ?
                         "no completions found" :
