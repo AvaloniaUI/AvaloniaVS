@@ -197,7 +197,37 @@ namespace AvaloniaVS.IntelliSense
                 return false;
             }
 
-            _session = _completionBroker.CreateCompletionSession(
+            // When adding an xmlns definition, we were getting 2 intellisense popups because (I think)
+            // the VS XML intellisense handler was popping one up and then we are creating our own session
+            // here. It turns out one of the completionsets though is an Avalonia one, so if a session already
+            // exists and one of the CompletionSets is from Avalonia, use that session instead of creating
+            // a new one - and we won't get the double popup
+            ICompletionSession existingSession = null;
+            var sessions = _completionBroker.GetSessions(_textView);
+            if (sessions.Count > 0)
+            {
+                for (int i = sessions.Count - 1; i >= 0; i--)
+                {
+                    if (sessions[i].CompletionSets.Count == 0)
+                        sessions[i].Dismiss();
+
+                    var sets = sessions[i].CompletionSets;
+
+                    for (int j = sets.Count - 1; j >= 0; j--)
+                    {
+                        if (sets[j].Moniker.Equals("Avalonia"))
+                        {
+                            existingSession = sessions[i];
+                            break;
+                        }
+                    }
+
+                    if (existingSession != null)
+                        break;
+                }
+            }
+
+            _session = existingSession ?? _completionBroker.CreateCompletionSession(
                 _textView,
                 caretPoint?.Snapshot.CreateTrackingPoint(caretPoint.Value.Position, PointTrackingMode.Positive),
                 true);
