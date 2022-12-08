@@ -383,10 +383,23 @@ namespace Avalonia.Ide.CompletionEngine
         {
             const string selectorTypes = @"(?<type>([\w|])+)|([:\.#/]\w+)";
 
-            var selector = state.FindParentAttributeValue("Selector", 1, maxLevels: 0);
-            var matches = Regex.Matches(selector ?? "", selectorTypes);
-            var types = matches.OfType<Match>().Select(m => m.Groups["type"].Value).Where(v => !string.IsNullOrEmpty(v));
-            var selectorTypeName = types.LastOrDefault()?.Replace('|', ':') ?? "Control";
+            // TODO: This improves ControlThemes to properly suggest properties in Setters,
+            // but we still need to improve this for nested Styles:
+            // <Style Selector="^:pointerover">
+            // Won't show suggestions (or incorrect ones), because the else clause below will fail
+            // to find a type in that selector and we don't search up the Xml tree
+            string selectorTypeName = null;
+            if (state.GetParentTagName(1)?.Equals("ControlTheme") == true)
+            {
+                selectorTypeName = state.FindParentAttributeValue("TargetType", 1, maxLevels: 0);
+            }
+            else
+            {
+                var selector = state.FindParentAttributeValue("Selector", 1, maxLevels: 0);
+                var matches = Regex.Matches(selector ?? "", selectorTypes);
+                var types = matches.OfType<Match>().Select(m => m.Groups["type"].Value).Where(v => !string.IsNullOrEmpty(v));
+                selectorTypeName = types.LastOrDefault()?.Replace('|', ':') ?? "Control";
+            }
 
             if (string.IsNullOrEmpty(selectorTypeName))
                 return;
