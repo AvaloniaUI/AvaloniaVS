@@ -33,6 +33,7 @@ namespace Avalonia.Ide.CompletionEngine.AssemblyMetadata
         IEnumerable<IPropertyInformation> Properties { get; }
         IEnumerable<IEventInformation> Events { get; }
         IEnumerable<IFieldInformation> Fields { get; }
+        IEnumerable<string> Pseudoclasses { get; }
 
         bool IsEnum { get; }
         bool IsStatic { get; }
