@@ -29,14 +29,16 @@ namespace AvaloniaVS.Shared.Commands
             var dte = (DTE)AvaloniaPackage.GetGlobalService(typeof(DTE));
 
             var activeDocument = dte.ActiveDocument;
+            var activeDocumentName = activeDocument.FullName;
 
             // We only want to handle "View Code" if our designer pane is active
-            if (!activeDocument.FullName.EndsWith(".axaml", StringComparison.OrdinalIgnoreCase))
+            if (!activeDocumentName.EndsWith(".axaml", StringComparison.OrdinalIgnoreCase) &&
+                !activeDocumentName.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase))
                 return false;
 
             if (args.TextView.Properties.ContainsProperty(typeof(AvaloniaVS.Views.AvaloniaDesigner)))
             {
-                var pi = dte.ActiveDocument.ProjectItem;
+                var pi = activeDocument.ProjectItem;
 
                 var codeFile = FindCodeFileForXaml(pi, out var codeProjectItem);
                 if (!codeFile)
@@ -70,8 +72,6 @@ namespace AvaloniaVS.Shared.Commands
             if (projectItem.ProjectItems.Count == 0)
                 return false;
 
-
-            var x = projectItem.Properties.Parent;
             // Search the project items under the current project item
             // "MainWindow.axaml" <-- projectItem
             //   "MainWindow.axaml.cs" <-- projectItem.ProjectItems
