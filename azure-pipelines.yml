@@ -4,7 +4,7 @@
 # https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
 
 pool:
-  vmImage: 'windows-2019'
+  vmImage: 'windows-2022'
 
 variables:
   solution: 'AvaloniaVS.sln'
@@ -12,13 +12,14 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
-- task: DotNetCoreInstaller@0
+- task: UseDotNet@2
+  displayName: 'Use .NET Core SDK 7.0'
   inputs:
-    version: '2.2.105'
-    
+    version: 7.0.100
+
 - task: NuGetToolInstaller@0
   inputs:
-    versionSpec: '>=4.4.1' 
+    versionSpec: '>=6.4.0' 
 
 - task: NuGetCommand@2
   inputs:
