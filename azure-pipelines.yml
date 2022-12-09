@@ -17,13 +17,9 @@ steps:
   inputs:
     version: 7.0.100
 
-- task: NuGetToolInstaller@0
+- task: DotNetCoreCLI@2
   inputs:
-    versionSpec: '>=6.4.0' 
-
-- task: NuGetCommand@2
-  inputs:
-    restoreSolution: '$(solution)'
+  command: 'restore'
 
 - task: VSBuild@1
   inputs:
