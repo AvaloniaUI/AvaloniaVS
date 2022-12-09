@@ -5,10 +5,6 @@ VisualStudioVersion = 17.0.31919.166
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "submodules", "submodules", "{BA40CDDD-84AA-4B4A-A729-7EFB9E1E9B22}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Avalonia.Ide.CompletionEngine", "submodules\Avalonia.Ide\src\Avalonia.Ide.CompletionEngine\Avalonia.Ide.CompletionEngine.csproj", "{152A7AAF-2A76-461F-B05B-E8545BC2A277}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Avalonia.Ide.CompletionEngine.DnlibMetadataProvider", "submodules\Avalonia.Ide\src\Avalonia.Ide.CompletionEngine.DnlibMetadataProvider\Avalonia.Ide.CompletionEngine.DnlibMetadataProvider.csproj", "{317C91B4-1CB9-4BF2-8D5A-075CA214BF7C}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Avalonia.Remote.Protocol", "submodules\Avalonia\src\Avalonia.Remote.Protocol\Avalonia.Remote.Protocol.csproj", "{B089E051-A987-4946-AE04-E7EEC3F91A7F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "templates", "templates", "{FC634911-168A-4FDD-8758-11FAD5B8696B}"
@@ -46,11 +42,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		azure-pipelines.yml = azure-pipelines.yml
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Avalonia.Ide.CompletionEngine", "CompletionEngine\Avalonia.Ide.CompletionEngine\Avalonia.Ide.CompletionEngine.csproj", "{CD7DB042-4282-4DFB-9910-958036DD621D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Avalonia.Ide.CompletionEngine", "CompletionEngine\Avalonia.Ide.CompletionEngine\Avalonia.Ide.CompletionEngine.csproj", "{CD7DB042-4282-4DFB-9910-958036DD621D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CompletionEngine", "CompletionEngine", "{8F7FC7D4-7E16-46A4-BA35-2CA47734AE5E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Avalonia.Ide.CompletionEngine.DnlibMetadataProvider", "CompletionEngine\Avalonia.Ide.CompletionEngine.DnlibMetadataProvider\Avalonia.Ide.CompletionEngine.DnlibMetadataProvider.csproj", "{5F0F9262-3527-46AF-ACF6-986B7F7B4C90}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Avalonia.Ide.CompletionEngine.DnlibMetadataProvider", "CompletionEngine\Avalonia.Ide.CompletionEngine.DnlibMetadataProvider\Avalonia.Ide.CompletionEngine.DnlibMetadataProvider.csproj", "{5F0F9262-3527-46AF-ACF6-986B7F7B4C90}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompletionEngineTests", "CompletionEngine\CompletionEngineTests\CompletionEngineTests.csproj", "{48ACDA63-C690-4653-B7E0-D36AFB64EADB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -60,22 +58,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{152A7AAF-2A76-461F-B05B-E8545BC2A277}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{152A7AAF-2A76-461F-B05B-E8545BC2A277}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{152A7AAF-2A76-461F-B05B-E8545BC2A277}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{152A7AAF-2A76-461F-B05B-E8545BC2A277}.Debug|x86.Build.0 = Debug|Any CPU
-		{152A7AAF-2A76-461F-B05B-E8545BC2A277}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{152A7AAF-2A76-461F-B05B-E8545BC2A277}.Release|Any CPU.Build.0 = Release|Any CPU
-		{152A7AAF-2A76-461F-B05B-E8545BC2A277}.Release|x86.ActiveCfg = Release|Any CPU
-		{152A7AAF-2A76-461F-B05B-E8545BC2A277}.Release|x86.Build.0 = Release|Any CPU
-		{317C91B4-1CB9-4BF2-8D5A-075CA214BF7C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{317C91B4-1CB9-4BF2-8D5A-075CA214BF7C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{317C91B4-1CB9-4BF2-8D5A-075CA214BF7C}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{317C91B4-1CB9-4BF2-8D5A-075CA214BF7C}.Debug|x86.Build.0 = Debug|Any CPU
-		{317C91B4-1CB9-4BF2-8D5A-075CA214BF7C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{317C91B4-1CB9-4BF2-8D5A-075CA214BF7C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{317C91B4-1CB9-4BF2-8D5A-075CA214BF7C}.Release|x86.ActiveCfg = Release|Any CPU
-		{317C91B4-1CB9-4BF2-8D5A-075CA214BF7C}.Release|x86.Build.0 = Release|Any CPU
 		{B089E051-A987-4946-AE04-E7EEC3F91A7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B089E051-A987-4946-AE04-E7EEC3F91A7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B089E051-A987-4946-AE04-E7EEC3F91A7F}.Debug|x86.ActiveCfg = Debug|Any CPU
@@ -204,13 +186,19 @@ Global
 		{5F0F9262-3527-46AF-ACF6-986B7F7B4C90}.Release|Any CPU.Build.0 = Release|Any CPU
 		{5F0F9262-3527-46AF-ACF6-986B7F7B4C90}.Release|x86.ActiveCfg = Release|Any CPU
 		{5F0F9262-3527-46AF-ACF6-986B7F7B4C90}.Release|x86.Build.0 = Release|Any CPU
+		{48ACDA63-C690-4653-B7E0-D36AFB64EADB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{48ACDA63-C690-4653-B7E0-D36AFB64EADB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{48ACDA63-C690-4653-B7E0-D36AFB64EADB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{48ACDA63-C690-4653-B7E0-D36AFB64EADB}.Debug|x86.Build.0 = Debug|Any CPU
+		{48ACDA63-C690-4653-B7E0-D36AFB64EADB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{48ACDA63-C690-4653-B7E0-D36AFB64EADB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{48ACDA63-C690-4653-B7E0-D36AFB64EADB}.Release|x86.ActiveCfg = Release|Any CPU
+		{48ACDA63-C690-4653-B7E0-D36AFB64EADB}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{152A7AAF-2A76-461F-B05B-E8545BC2A277} = {BA40CDDD-84AA-4B4A-A729-7EFB9E1E9B22}
-		{317C91B4-1CB9-4BF2-8D5A-075CA214BF7C} = {BA40CDDD-84AA-4B4A-A729-7EFB9E1E9B22}
 		{B089E051-A987-4946-AE04-E7EEC3F91A7F} = {BA40CDDD-84AA-4B4A-A729-7EFB9E1E9B22}
 		{75104AA0-3B1B-47D4-9C4D-501A8185ACFC} = {FC634911-168A-4FDD-8758-11FAD5B8696B}
 		{D458691F-3B40-4E54-8BC2-782D017CFD2B} = {FC634911-168A-4FDD-8758-11FAD5B8696B}
@@ -225,6 +213,7 @@ Global
 		{9FEF480A-5A56-489D-AD89-53970FD2B2A1} = {FC634911-168A-4FDD-8758-11FAD5B8696B}
 		{CD7DB042-4282-4DFB-9910-958036DD621D} = {8F7FC7D4-7E16-46A4-BA35-2CA47734AE5E}
 		{5F0F9262-3527-46AF-ACF6-986B7F7B4C90} = {8F7FC7D4-7E16-46A4-BA35-2CA47734AE5E}
+		{48ACDA63-C690-4653-B7E0-D36AFB64EADB} = {8F7FC7D4-7E16-46A4-BA35-2CA47734AE5E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0CE7163D-D505-4965-B2B9-9E9068C77A62}
