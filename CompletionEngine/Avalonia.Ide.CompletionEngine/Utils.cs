@@ -56,7 +56,7 @@ namespace Avalonia.Ide.CompletionEngine
             return rv;
         }
 
-        public static TValue GetOrCreate<TKey, TValue>(this Dictionary<TKey, TValue> dic, TKey key) where TValue :new()
+        public static TValue GetOrCreate<TKey, TValue>(this Dictionary<TKey, TValue> dic, TKey key) where TValue : new()
         {
             TValue rv;
             if (!dic.TryGetValue(key, out rv))
@@ -64,12 +64,43 @@ namespace Avalonia.Ide.CompletionEngine
             return rv;
         }
 
-        public static TValue GetValueOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dic, TKey key) 
+        public static TValue GetValueOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dic, TKey key)
         {
             TValue rv;
             if (!dic.TryGetValue(key, out rv))
                 return default(TValue);
             return rv;
+        }
+
+        public static TValue GetValueOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dic, params TKey[] keys)
+        {
+            TValue rv = default;
+            var found = false;
+            for (int i = 0; i < keys.Length; i++)
+            {
+                if (dic.TryGetValue(keys[i], out rv))
+                {
+                    found = true;
+                    break;
+                }
+            }
+            return found
+                ? rv
+                : default(TValue);
+        }
+
+        public static bool TryGetValue<TKey, TValue>(this IDictionary<TKey, TValue> dic, Func<TKey, bool> keyMatch, out TValue value)
+        {
+            foreach (var kv in dic)
+            {
+                if (keyMatch(kv.Key))
+                {
+                    value = kv.Value;
+                    return true;
+                }
+            }
+            value = default;
+            return false;
         }
     }
 }

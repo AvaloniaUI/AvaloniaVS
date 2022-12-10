@@ -18,6 +18,9 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider
 
         public string Name => _asm.Name;
 
+        public string AssemblyName
+            => _asm.GetFullNameWithPublicKeyToken();
+
         public IEnumerable<ITypeInformation> Types
             => _asm.Modules.SelectMany(m => m.Types).Select(TypeWrapper.FromDef);
 
@@ -26,6 +29,9 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider
 
         public IEnumerable<string> ManifestResourceNames
             => _asm.ManifestModule.Resources.Select(r => r.Name.ToString());
+
+        public IEnumerable<string> InternalsVisibleTo
+            => _asm.GetVisibleTo();
 
         public Stream GetManifestResourceStream(string name)
             => _asm.ManifestModule.Resources.FindEmbeddedResource(name).CreateReader().AsStream();
@@ -44,10 +50,13 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider
             if (type == null)
                 throw new ArgumentNullException();
             _type = type;
+
+            AssemblyQualifiedName = _type.AssemblyQualifiedName;
         }
 
         public string FullName => _type.FullName;
         public string Name => _type.Name;
+        public string AssemblyQualifiedName { get; }
         public string Namespace => _type.Namespace;
         public ITypeInformation GetBaseType() => FromDef(_type.GetBaseType().ResolveTypeDef());
 
@@ -71,6 +80,8 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider
         public bool IsInterface => _type.IsInterface;
         public bool IsPublic => _type.IsPublic;
         public bool IsGeneric => _type.HasGenericParameters;
+        public bool IsAbstract => _type.IsAbstract && !_type.IsSealed;
+        public bool IsInternal => _type.IsNotPublic && !_type.IsNestedPrivate;
         public IEnumerable<string> EnumValues
         {
             get
@@ -149,14 +160,19 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider
             if (setMethod?.IsPublicOrInternal() == true)
             {
                 HasPublicSetter = true;
-                TypeFullName = setMethod.Parameters[setMethod.IsStatic ? 0 : 1].Type.FullName;
+                var type = setMethod.Parameters[setMethod.IsStatic ? 0 : 1].Type;
+                TypeFullName = type.FullName;
+                QualifiedTypeFullName = type.AssemblyQualifiedName;
             }
 
             if (getMethod?.IsPublicOrInternal() == true)
             {
                 HasPublicGetter = true;
                 if (TypeFullName == null)
+                {
                     TypeFullName = getMethod.ReturnType.FullName;
+                    QualifiedTypeFullName = getMethod.ReturnType.AssemblyQualifiedName;
+                }
             }
         }
 
@@ -164,6 +180,7 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider
         public bool HasPublicSetter { get; }
         public bool HasPublicGetter { get; }
         public string TypeFullName { get; }
+        public string QualifiedTypeFullName { get; }
         public string Name { get; }
         public override string ToString() => Name;
     }
@@ -176,12 +193,12 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider
             IsPublic = f.IsPublic || f.IsAssembly;
             Name = f.Name;
             ReturnTypeFullName = f.FieldType.FullName;
-
+            QualifiedTypeFullName = f.FieldType.AssemblyQualifiedName;
             bool isRoutedEvent = false;
             ITypeDefOrRef t = f.FieldType.ToTypeDefOrRef();
-            while(t != null)
+            while (t != null)
             {
-                if(t.Name == "RoutedEvent" && t.Namespace == "Avalonia.Interactivity")
+                if (t.Name == "RoutedEvent" && t.Namespace == "Avalonia.Interactivity")
                 {
                     isRoutedEvent = true;
                     break;
@@ -201,6 +218,7 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider
         public string Name { get; }
 
         public string ReturnTypeFullName { get; }
+        public string QualifiedTypeFullName { get; }
     }
 
     class EventWrapper : IEventInformation
@@ -209,11 +227,13 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider
         {
             Name = @event.Name;
             TypeFullName = @event.EventType.FullName;
+            QualifiedTypeFullName = @event.EventType.AssemblyQualifiedName;
         }
 
         public string Name { get; }
 
         public string TypeFullName { get; }
+        public string QualifiedTypeFullName { get; }
     }
 
     class MethodWrapper : IMethodInformation
@@ -227,6 +247,10 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider
             _parameters = new Lazy<IList<IParameterInformation>>(() =>
                 _method.Parameters.Skip(_method.IsStatic ? 0 : 1).Select(p => (IParameterInformation)new ParameterWrapper(p)).ToList() as
                     IList<IParameterInformation>);
+            if (!(_method.ReturnType is null))
+            {
+                QualifiedReturnTypeFullName = _method.ReturnType.AssemblyQualifiedName;
+            }
         }
 
         public bool IsStatic => _method.IsStatic;
@@ -234,6 +258,8 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider
         public string Name => _method.Name;
         public IList<IParameterInformation> Parameters => _parameters.Value;
         public string ReturnTypeFullName => _method.ReturnType?.FullName;
+        public string QualifiedReturnTypeFullName { get; }
+
         public override string ToString() => Name;
     }
 
@@ -244,13 +270,25 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider
         public ParameterWrapper(Parameter param)
         {
             _param = param;
+            QualifiedTypeFullName = _param.Type.AssemblyQualifiedName;
         }
         public string TypeFullName => _param.Type.FullName;
+        public string QualifiedTypeFullName { get; }
     }
 
     static class WrapperExtensions
     {
         public static bool IsPublicOrInternal(this MethodDef methodDef)
                             => methodDef?.IsPublic == true || methodDef?.IsAssembly == true;
+
+        public static IEnumerable<string> GetVisibleTo(this AssemblyDef assemblyDef)
+        {
+            var result = assemblyDef.CustomAttributes
+                     .Where(att => att.TypeFullName == "System.Runtime.CompilerServices.InternalsVisibleToAttribute")
+                     .Select(att => att.ConstructorArguments[0].Value.ToString())
+                     .ToArray();
+            return result;
+        }
+
     }
 }

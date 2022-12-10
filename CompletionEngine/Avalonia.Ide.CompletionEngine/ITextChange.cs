@@ -1,6 +1,4 @@
-﻿using System.Text;
-
-namespace Avalonia.Ide.CompletionEngine
+﻿namespace Avalonia.Ide.CompletionEngine
 {
     /// <summary>
     /// Abstracts text change from editor

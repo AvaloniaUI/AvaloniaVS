@@ -40,6 +40,7 @@ namespace Avalonia.Ide.CompletionEngine
         public bool IsCompositeValue { get; set; }
         public bool IsGeneric { get; set; }
         public bool IsXamlDirective { get; set; }
+        public string AssemblyQualifiedName { get; set; }
 
         public MetadataType CloneAs(string name, string fullName)
         {
