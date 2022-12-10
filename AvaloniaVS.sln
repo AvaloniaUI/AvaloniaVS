@@ -3,10 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31919.166
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "submodules", "submodules", "{BA40CDDD-84AA-4B4A-A729-7EFB9E1E9B22}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Avalonia.Remote.Protocol", "submodules\Avalonia\src\Avalonia.Remote.Protocol\Avalonia.Remote.Protocol.csproj", "{B089E051-A987-4946-AE04-E7EEC3F91A7F}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "templates", "templates", "{FC634911-168A-4FDD-8758-11FAD5B8696B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaApplicationTemplate", "templates\AvaloniaApplicationTemplate\AvaloniaApplicationTemplate.csproj", "{75104AA0-3B1B-47D4-9C4D-501A8185ACFC}"
@@ -65,14 +61,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{B089E051-A987-4946-AE04-E7EEC3F91A7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B089E051-A987-4946-AE04-E7EEC3F91A7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B089E051-A987-4946-AE04-E7EEC3F91A7F}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{B089E051-A987-4946-AE04-E7EEC3F91A7F}.Debug|x86.Build.0 = Debug|Any CPU
-		{B089E051-A987-4946-AE04-E7EEC3F91A7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B089E051-A987-4946-AE04-E7EEC3F91A7F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B089E051-A987-4946-AE04-E7EEC3F91A7F}.Release|x86.ActiveCfg = Release|Any CPU
-		{B089E051-A987-4946-AE04-E7EEC3F91A7F}.Release|x86.Build.0 = Release|Any CPU
 		{75104AA0-3B1B-47D4-9C4D-501A8185ACFC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{75104AA0-3B1B-47D4-9C4D-501A8185ACFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{75104AA0-3B1B-47D4-9C4D-501A8185ACFC}.Debug|x86.ActiveCfg = Debug|x86
@@ -222,7 +210,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{B089E051-A987-4946-AE04-E7EEC3F91A7F} = {BA40CDDD-84AA-4B4A-A729-7EFB9E1E9B22}
 		{75104AA0-3B1B-47D4-9C4D-501A8185ACFC} = {FC634911-168A-4FDD-8758-11FAD5B8696B}
 		{D458691F-3B40-4E54-8BC2-782D017CFD2B} = {FC634911-168A-4FDD-8758-11FAD5B8696B}
 		{3BFD12BB-E6D8-46D7-9D5F-119A9896941E} = {FC634911-168A-4FDD-8758-11FAD5B8696B}
