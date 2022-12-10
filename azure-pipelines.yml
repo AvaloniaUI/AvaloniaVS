@@ -21,15 +21,15 @@ steps:
   inputs:
     command: 'restore'
 
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'test'
+
 - task: VSBuild@1
   inputs:
     solution: '$(solution)'
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
-    
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'test'
 
 - task: CopyFiles@2
   inputs:
