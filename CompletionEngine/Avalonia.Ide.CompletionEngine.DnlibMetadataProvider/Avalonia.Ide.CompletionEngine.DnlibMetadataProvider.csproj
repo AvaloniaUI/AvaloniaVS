@@ -8,7 +8,7 @@
     <AssemblyOriginatorKeyFile>$(SolutionDir)Key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Avalonia.dnlib" Version="2018.11.26-git-67c321d7a4219415492a910d22c95f5efb0c30b8" />
+    <PackageReference Include="dnlib" Version="3.6.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Avalonia.Ide.CompletionEngine\Avalonia.Ide.CompletionEngine.csproj" />
