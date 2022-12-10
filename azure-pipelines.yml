@@ -12,28 +12,24 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
-- task: DotNetCoreInstaller@0
+- task: UseDotNet@2
+  displayName: 'Use .NET Core SDK 7.0'
   inputs:
-    version: '2.2.105'
-    
-- task: NuGetToolInstaller@0
-  inputs:
-    versionSpec: '>=4.4.1' 
+    version: 7.0.100
 
-- task: NuGetCommand@2
+- task: DotNetCoreCLI@2
   inputs:
-    restoreSolution: '$(solution)'
+  command: 'restore'
 
 - task: VSBuild@1
   inputs:
     solution: '$(solution)'
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
-
-- task: VSTest@2
+    
+- task: DotNetCoreCLI@2
   inputs:
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
+  command: 'test'
 
 - task: CopyFiles@2
   inputs:

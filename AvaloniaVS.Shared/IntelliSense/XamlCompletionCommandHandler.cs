@@ -88,8 +88,7 @@ namespace AvaloniaVS.IntelliSense
         private bool HandleSessionStart(char c)
         {
             // If the pressed key is a key that can start a completion session.
-            if (char.IsLetterOrDigit(c) ||
-                c == '\a' || c == '<' || c == '.' || c == ' ' || c == ':' || c == '{')
+            if (CompletionEngine.ShouldTriggerCompletionListOn(c) || c == '\a')
             {
                 if (_session == null || _session.IsDismissed)
                 {
@@ -102,6 +101,35 @@ namespace AvaloniaVS.IntelliSense
                 }
                 else
                 {
+                    // Special case for pseudoclasses - since they don't have spaces between
+                    // them and the element before (Control:pointerover) we need to cancel
+                    // the previous completion session and start a new one starting at the ':'
+                    // Otherwise typing 'Control:' won't show the intellisense popup with the
+                    // pseudoclasses until after you start typing a pseudoclass
+                    if (c == ':' || c == '.')
+                    {
+                        // But, we don't want to trigger a new session for the ':' char if we're
+                        // not in a Selector. Otherwise, we'll trigger a new session for something
+                        // like 'xmlns:' or 'xmlsn:ui="using:' or '<ui:' (for third party controls)
+                        // which causes the intellisense popup to temporarily disappear and we don't
+                        // want that
+                        if (c == ':')
+                        {
+                            var pos = _textView.Caret.Position;
+                            var state = XmlParser.Parse(_textView.TextSnapshot.GetText().AsMemory(),
+                                0, pos.BufferPosition.Position);
+
+                            if (!(state?.AttributeName?.Equals("Selector") == true))
+                            {
+                                _session?.Filter();
+                                return false;
+                            }
+                        }
+
+                        _session.Dismiss();
+                        return false;
+                    }
+
                     _session.Filter();
                 }
             }
@@ -129,8 +157,8 @@ namespace AvaloniaVS.IntelliSense
         {
             // If the pressed key is a key that can commit a completion session.
             if (char.IsWhiteSpace(c) ||
-                (char.IsPunctuation(c) && c != ':' && c != '/') ||
-                c == '\n' || c == '\r' || c == '=' )
+                (char.IsPunctuation(c) && c != ':' && c != '/' && c != '-') ||
+                c == '\n' || c == '\r' || c == '=')
             {
                 // And commit or dismiss the completion session depending its state.
                 if (_session != null && !_session.IsDismissed)
@@ -141,7 +169,9 @@ namespace AvaloniaVS.IntelliSense
 
                         // If the spacebar is used to complete then it should be entered into the
                         // buffer, all other chars should be swallowed.
-                        var skip = c != ' ';
+                        // Don't swallow '.' either, otherwise it will require two presses of the '.' key
+                        // for something like 'Window.Resources'
+                        var skip = c != ' ' && c != '.';
 
                         _session.Commit();
 
@@ -185,7 +215,37 @@ namespace AvaloniaVS.IntelliSense
                 return false;
             }
 
-            _session = _completionBroker.CreateCompletionSession(
+            // When adding an xmlns definition, we were getting 2 intellisense popups because (I think)
+            // the VS XML intellisense handler was popping one up and then we are creating our own session
+            // here. It turns out one of the completionsets though is an Avalonia one, so if a session already
+            // exists and one of the CompletionSets is from Avalonia, use that session instead of creating
+            // a new one - and we won't get the double popup
+            ICompletionSession existingSession = null;
+            var sessions = _completionBroker.GetSessions(_textView);
+            if (sessions.Count > 0)
+            {
+                for (int i = sessions.Count - 1; i >= 0; i--)
+                {
+                    if (sessions[i].CompletionSets.Count == 0)
+                        sessions[i].Dismiss();
+
+                    var sets = sessions[i].CompletionSets;
+
+                    for (int j = sets.Count - 1; j >= 0; j--)
+                    {
+                        if (sets[j].Moniker.Equals("Avalonia"))
+                        {
+                            existingSession = sessions[i];
+                            break;
+                        }
+                    }
+
+                    if (existingSession != null)
+                        break;
+                }
+            }
+
+            _session = existingSession ?? _completionBroker.CreateCompletionSession(
                 _textView,
                 caretPoint?.Snapshot.CreateTrackingPoint(caretPoint.Value.Position, PointTrackingMode.Positive),
                 true);
