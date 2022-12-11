@@ -4,7 +4,7 @@
 # https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
 
 pool:
-  vmImage: 'windows-2019'
+  vmImage: 'windows-2022'
 
 variables:
   solution: 'AvaloniaVS.sln'
@@ -12,17 +12,19 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
-- task: DotNetCoreInstaller@0
+- task: UseDotNet@2
+  displayName: 'Use .NET Core SDK 7.0'
   inputs:
-    version: '2.2.105'
-    
-- task: NuGetToolInstaller@0
-  inputs:
-    versionSpec: '>=4.4.1' 
+    version: 7.0.100
 
-- task: NuGetCommand@2
+- task: DotNetCoreCLI@2
   inputs:
-    restoreSolution: '$(solution)'
+    command: 'restore'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'test'
+    projects: '.\CompletionEngine\CompletionEngineTests\CompletionEngineTests.csproj'
 
 - task: VSBuild@1
   inputs:
@@ -30,25 +32,20 @@ steps:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
 
-- task: VSTest@2
-  inputs:
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
-
 - task: CopyFiles@2
   inputs:
-    contents: |
+    Contents: |
       AvaloniaVS.VS2019AndEarlier\bin\Release\AvaloniaVS.VS2019AndEarlier.vsix
       AvaloniaVS.VS2019AndEarlier\bin\Release\publishManifest.json
       AvaloniaVS.VS2019AndEarlier\bin\Release\overview.md
       AvaloniaVS.VS2022\bin\Release\AvaloniaVS.VS2022.vsix
       AvaloniaVS.VS2022\bin\Release\publishManifest.json
       AvaloniaVS.VS2022\bin\Release\overview.md
-    targetFolder: '$(Build.ArtifactStagingDirectory)'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
   condition: succeeded()
 
 - task: PublishBuildArtifacts@1
   inputs:
-    pathToPublish: '$(Build.ArtifactStagingDirectory)'
-    artifactName: 'publish'
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'publish'
   condition: succeeded()

@@ -27,6 +27,7 @@
     <IncludeDebugSymbolsInLocalVSIXDeployment>true</IncludeDebugSymbolsInLocalVSIXDeployment>
     <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
     <CopyOutputSymbolsToOutputDirectory>false</CopyOutputSymbolsToOutputDirectory>
+    <RuntimeIdentifier>win</RuntimeIdentifier>
     <StartAction>Program</StartAction>
     <StartProgram Condition="'$(DevEnvDir)' != ''">$(DevEnvDir)devenv.exe</StartProgram>
     <StartArguments>/rootsuffix Exp</StartArguments>
@@ -63,41 +64,35 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Avalonia.dnlib">
-      <Version>2018.11.26-git-67c321d7a4219415492a910d22c95f5efb0c30b8</Version>
-    </PackageReference>
+    <PackageReference Include="Avalonia.Remote.Protocol" Version="11.0-preview4" />
     <PackageReference Include="Microsoft.VisualStudio.ProjectSystem">
       <Version>15.8.243</Version>
     </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.SDK" Version="16.0.202" ExcludeAssets="runtime">
+    <PackageReference Include="Microsoft.VisualStudio.SDK" Version="16.0.208" ExcludeAssets="runtime">
       <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.0.5232">
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.4.2119">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Serilog">
-      <Version>2.8.0</Version>
+      <Version>2.12.0</Version>
     </PackageReference>
     <PackageReference Include="Serilog.Sinks.Trace">
-      <Version>2.1.0</Version>
+      <Version>3.0.0</Version>
     </PackageReference>
     <PackageReference Include="SerilogAnalyzer">
       <Version>0.15.0</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\submodules\Avalonia.Ide\src\Avalonia.Ide.CompletionEngine.DnlibMetadataProvider\Avalonia.Ide.CompletionEngine.DnlibMetadataProvider.csproj">
-      <Project>{317c91b4-1cb9-4bf2-8d5a-075ca214bf7c}</Project>
+    <ProjectReference Include="..\CompletionEngine\Avalonia.Ide.CompletionEngine.DnlibMetadataProvider\Avalonia.Ide.CompletionEngine.DnlibMetadataProvider.csproj">
+      <Project>{5f0f9262-3527-46af-acf6-986b7f7b4c90}</Project>
       <Name>Avalonia.Ide.CompletionEngine.DnlibMetadataProvider</Name>
     </ProjectReference>
-    <ProjectReference Include="..\submodules\Avalonia.Ide\src\Avalonia.Ide.CompletionEngine\Avalonia.Ide.CompletionEngine.csproj">
-      <Project>{152a7aaf-2a76-461f-b05b-e8545bc2a277}</Project>
+    <ProjectReference Include="..\CompletionEngine\Avalonia.Ide.CompletionEngine\Avalonia.Ide.CompletionEngine.csproj">
+      <Project>{cd7db042-4282-4dfb-9910-958036dd621d}</Project>
       <Name>Avalonia.Ide.CompletionEngine</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\submodules\Avalonia\src\Avalonia.Remote.Protocol\Avalonia.Remote.Protocol.csproj">
-      <Project>{b089e051-a987-4946-ae04-e7eec3f91a7f}</Project>
-      <Name>Avalonia.Remote.Protocol</Name>
     </ProjectReference>
     <ProjectReference Include="..\templates\AvaloniaApplicationTemplate\AvaloniaApplicationTemplate.csproj">
       <Project>{75104aa0-3b1b-47d4-9c4d-501a8185acfc}</Project>

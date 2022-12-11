@@ -1,6 +1,0 @@
-[submodule "submodules/Avalonia"]
-	path = submodules/Avalonia
-	url = https://github.com/AvaloniaUI/Avalonia
-[submodule "submodules/Avalonia.Ide"]
-	path = submodules/Avalonia.Ide
-	url = https://github.com/kekekeks/Avalonia.Ide
