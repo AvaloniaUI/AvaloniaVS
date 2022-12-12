@@ -70,6 +70,15 @@ namespace Avalonia.Ide.CompletionEngine
 
                 new CloseXmlTagManipulation(_state, _text, _position).TryCloseTag(textChange, maniplations);
             }
+            else if (_state.State == XmlParser.ParserState.None && textChange.OldText == string.Empty && textChange.NewText == ">")
+            {
+                var pp = textChange.NewPosition - 2;
+                // if xmltag already closed ingnore '>'
+                if (pp > -1 && _text.Span[pp] == '/' && _text.Span[pp + 1] == '>')
+                {
+                    maniplations.Add(TextManipulation.Delete(textChange.NewPosition, 1));
+                }
+            }
 
             return maniplations.OrderByDescending(n => n.Start).ToList();
         }
