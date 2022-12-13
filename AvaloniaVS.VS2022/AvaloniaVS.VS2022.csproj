@@ -27,6 +27,7 @@
     <IncludeDebugSymbolsInLocalVSIXDeployment>true</IncludeDebugSymbolsInLocalVSIXDeployment>
     <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
     <CopyOutputSymbolsToOutputDirectory>false</CopyOutputSymbolsToOutputDirectory>
+    <RuntimeIdentifier>win</RuntimeIdentifier>
     <StartAction>Program</StartAction>
     <StartProgram Condition="'$(DevEnvDir)' != ''">$(DevEnvDir)devenv.exe</StartProgram>
     <StartArguments>/rootsuffix Exp</StartArguments>
@@ -63,6 +64,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Avalonia.Remote.Protocol" Version="11.0-preview4" />
     <PackageReference Include="Microsoft.VisualStudio.ProjectSystem">
       <Version>15.8.243</Version>
     </PackageReference>
@@ -99,10 +101,6 @@
     <ProjectReference Include="..\CompletionEngine\Avalonia.Ide.CompletionEngine\Avalonia.Ide.CompletionEngine.csproj">
       <Project>{cd7db042-4282-4dfb-9910-958036dd621d}</Project>
       <Name>Avalonia.Ide.CompletionEngine</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\submodules\Avalonia\src\Avalonia.Remote.Protocol\Avalonia.Remote.Protocol.csproj">
-      <Project>{b089e051-a987-4946-ae04-e7eec3f91a7f}</Project>
-      <Name>Avalonia.Remote.Protocol</Name>
     </ProjectReference>
     <ProjectReference Include="..\templates\AvaloniaApplicationTemplate\AvaloniaApplicationTemplate.csproj">
       <Project>{75104aa0-3b1b-47d4-9c4d-501a8185acfc}</Project>

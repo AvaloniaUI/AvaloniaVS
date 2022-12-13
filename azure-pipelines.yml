@@ -4,7 +4,7 @@
 # https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
 
 pool:
-  vmImage: 'windows-2019'
+  vmImage: 'windows-2022'
 
 variables:
   solution: 'AvaloniaVS.sln'
@@ -19,32 +19,33 @@ steps:
 
 - task: DotNetCoreCLI@2
   inputs:
-  command: 'restore'
+    command: 'restore'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'test'
+    projects: '.\CompletionEngine\CompletionEngineTests\CompletionEngineTests.csproj'
 
 - task: VSBuild@1
   inputs:
     solution: '$(solution)'
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
-    
-- task: DotNetCoreCLI@2
-  inputs:
-  command: 'test'
 
 - task: CopyFiles@2
   inputs:
-    contents: |
+    Contents: |
       AvaloniaVS.VS2019AndEarlier\bin\Release\AvaloniaVS.VS2019AndEarlier.vsix
       AvaloniaVS.VS2019AndEarlier\bin\Release\publishManifest.json
       AvaloniaVS.VS2019AndEarlier\bin\Release\overview.md
       AvaloniaVS.VS2022\bin\Release\AvaloniaVS.VS2022.vsix
       AvaloniaVS.VS2022\bin\Release\publishManifest.json
       AvaloniaVS.VS2022\bin\Release\overview.md
-    targetFolder: '$(Build.ArtifactStagingDirectory)'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
   condition: succeeded()
 
 - task: PublishBuildArtifacts@1
   inputs:
-    pathToPublish: '$(Build.ArtifactStagingDirectory)'
-    artifactName: 'publish'
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'publish'
   condition: succeeded()
