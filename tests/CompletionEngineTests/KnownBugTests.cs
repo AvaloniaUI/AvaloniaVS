@@ -47,7 +47,7 @@ namespace CompletionEngineTests
         {
             Assert.Empty(GetCompletionsFor("<Button ").Completions.Where(c => c.InsertText.Contains("IStyleable")));
         }
-        
+
         [Fact]
         public void OnlyAttachedPropertiesShouldBeShownInDottedXamlTag()
         {
@@ -67,6 +67,17 @@ namespace CompletionEngineTests
                 Assert.True(completions.Any(c => c.DisplayText == a), "Attached property " + a + " is not shown");
             }
 
+        }
+
+        [Fact]
+        public void RowDefinitionsDirtyShouldNotBeShown()
+        {
+            var comp = GetCompletionsFor("<UserControl><Grid Row");
+            Assert.NotNull(comp);
+
+            Assert.Single(comp.Completions);
+
+            Assert.Equal("RowDefinitions", comp.Completions[0].Description);
         }
     }
 }
