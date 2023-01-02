@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Avalonia.Ide.CompletionEngine.AssemblyMetadata;
 using dnlib.DotNet;
 
@@ -59,7 +60,6 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider
         public string AssemblyQualifiedName { get; }
         public string Namespace => _type.Namespace;
         public ITypeInformation GetBaseType() => FromDef(_type.GetBaseType().ResolveTypeDef());
-
 
         public IEnumerable<IEventInformation> Events => _type.Events.Select(e => new EventWrapper(e));
 
@@ -149,6 +149,9 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider
 
     class PropertyWrapper : IPropertyInformation
     {
+        private readonly PropertyDef _prop;
+        private readonly Func<PropertyDef, string, bool> _isVisbleTo;
+
         public PropertyWrapper(PropertyDef prop)
         {
             Name = prop.Name;
@@ -156,32 +159,85 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider
             var getMethod = prop.GetMethod;
 
             IsStatic = setMethod?.IsStatic ?? getMethod?.IsStatic ?? false;
+            IsPublic = prop.IsPublic();
 
-            if (setMethod?.IsPublicOrInternal() == true)
+            HasPublicSetter = setMethod.IsPublic();
+            HasPublicGetter = getMethod.IsPublic();
+
+            TypeSig? type = default;
+            if (getMethod is not null)
             {
-                HasPublicSetter = true;
-                var type = setMethod.Parameters[setMethod.IsStatic ? 0 : 1].Type;
-                TypeFullName = type.FullName;
-                QualifiedTypeFullName = type.AssemblyQualifiedName;
+                type = getMethod.ReturnType;
+            }
+            else if(setMethod is not null)
+            {
+                type = setMethod.Parameters[setMethod.IsStatic ? 0 : 1].Type;
+            }
+            else
+            {
+                //TODO Trow??
             }
 
-            if (getMethod?.IsPublicOrInternal() == true)
+            TypeFullName = type.FullName;
+            QualifiedTypeFullName = type.AssemblyQualifiedName;
+            
+            _prop = prop;
+            if (HasPublicGetter || HasPublicSetter)
             {
-                HasPublicGetter = true;
-                if (TypeFullName == null)
+                _isVisbleTo = static (_, _) => true;
+            }
+            else
+            {
+                _isVisbleTo = static (property, targetAssemblyName) =>
                 {
-                    TypeFullName = getMethod.ReturnType.FullName;
-                    QualifiedTypeFullName = getMethod.ReturnType.AssemblyQualifiedName;
-                }
+                    if (property.DeclaringType.DefinitionAssembly is AssemblyDef assembly)
+                    {
+                        if (string.Equals(targetAssemblyName, assembly.GetFullNameWithPublicKeyToken(), StringComparison.OrdinalIgnoreCase))
+                        {
+                            return true;
+                        }
+                        var nameParts = targetAssemblyName.Split(',');
+
+                        var enumerator = assembly.GetVisibleTo()?.GetEnumerator();
+                        while (enumerator?.MoveNext() == true)
+                        {
+                            if (string.Equals(targetAssemblyName, enumerator.Current, StringComparison.OrdinalIgnoreCase))
+                            {
+                                return true;
+                            }
+                            else
+                            {
+                                var attParts = enumerator.Current.Split(',');
+                                var min = Math.Min(attParts.Length, nameParts.Length);
+                                var i = 0;
+                                for (; i < min && attParts[i] == nameParts[i]; i++)
+                                {
+
+                                }
+                                if (i == min)
+                                {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                    return false;
+                };
             }
         }
 
         public bool IsStatic { get; }
+        public bool IsPublic { get; }
+        public bool IsInternal { get; }
         public bool HasPublicSetter { get; }
         public bool HasPublicGetter { get; }
         public string TypeFullName { get; }
         public string QualifiedTypeFullName { get; }
         public string Name { get; }
+
+        public bool IsVisbleTo(string assemblyName) =>
+            _isVisbleTo(_prop, assemblyName);
+
         public override string ToString() => Name;
     }
 
@@ -228,12 +284,16 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider
             Name = @event.Name;
             TypeFullName = @event.EventType.FullName;
             QualifiedTypeFullName = @event.EventType.AssemblyQualifiedName;
+            IsPublic = @event.IsPublic();
+            IsInternal = @event.IsInternal();
         }
 
         public string Name { get; }
 
         public string TypeFullName { get; }
         public string QualifiedTypeFullName { get; }
+        public bool IsPublic { get; }
+        public bool IsInternal { get; }
     }
 
     class MethodWrapper : IMethodInformation
@@ -274,21 +334,5 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider
         }
         public string TypeFullName => _param.Type.FullName;
         public string QualifiedTypeFullName { get; }
-    }
-
-    static class WrapperExtensions
-    {
-        public static bool IsPublicOrInternal(this MethodDef methodDef)
-                            => methodDef?.IsPublic == true || methodDef?.IsAssembly == true;
-
-        public static IEnumerable<string> GetVisibleTo(this AssemblyDef assemblyDef)
-        {
-            var result = assemblyDef.CustomAttributes
-                     .Where(att => att.TypeFullName == "System.Runtime.CompilerServices.InternalsVisibleToAttribute")
-                     .Select(att => att.ConstructorArguments[0].Value.ToString())
-                     .ToArray();
-            return result;
-        }
-
     }
 }

@@ -79,11 +79,14 @@ namespace Avalonia.Ide.CompletionEngine.AssemblyMetadata
     public interface IPropertyInformation
     {
         bool IsStatic { get; }
+        bool IsPublic { get; }
+        bool IsInternal { get; }
         bool HasPublicSetter { get; }
         bool HasPublicGetter { get; }
         string TypeFullName { get; }
         string QualifiedTypeFullName { get; }
         string Name { get; }
+        bool IsVisbleTo(string assemblyName);
     }
 
     public interface IEventInformation
@@ -91,5 +94,7 @@ namespace Avalonia.Ide.CompletionEngine.AssemblyMetadata
         string Name { get; }
         string TypeFullName { get; }
         string QualifiedTypeFullName { get; }
+        bool IsPublic {get; }
+        bool IsInternal { get; }
     }
 }

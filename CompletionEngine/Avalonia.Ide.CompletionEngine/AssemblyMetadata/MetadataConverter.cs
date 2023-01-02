@@ -155,9 +155,8 @@ namespace Avalonia.Ide.CompletionEngine
                     var currentType = types.GetValueOrDefault(typeDef.AssemblyQualifiedName);
                     foreach (var prop in typeDef.Properties)
                     {
-                        if (!prop.HasPublicGetter && !prop.HasPublicSetter)
+                        if (!prop.IsVisbleTo(provider.TargetAssemblyName))
                             continue;
-
                         var p = new MetadataProperty(prop.Name, types.GetValueOrDefault(prop.TypeFullName, prop.QualifiedTypeFullName),
                             currentType, false, prop.IsStatic, prop.HasPublicGetter,
                             prop.HasPublicSetter);

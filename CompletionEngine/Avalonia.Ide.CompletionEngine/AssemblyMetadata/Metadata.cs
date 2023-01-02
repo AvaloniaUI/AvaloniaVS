@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using Avalonia.Ide.CompletionEngine.AssemblyMetadata;
 
 namespace Avalonia.Ide.CompletionEngine
 {
