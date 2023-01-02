@@ -68,46 +68,133 @@ namespace CompletionEngineTests
             Assert.Equal(clrTypeA2.AssemblyQualifiedName, typeA2.AssemblyQualifiedName);
         }
 
-
-        [Fact]
-        public void Discover_InternalsVisibleTo()
+        [Theory]
+        [MemberData(nameof(GetCasese))]
+        public void Discover_InternalsVisibleTo(TestScenario scenario)
         {
-            // Check local 
-            Type clrType = typeof(Models.InternalAttachedBehavior);
-            string nsName = "clr-namespace:" + clrType.Namespace + ";assembly=" + clrType.Assembly.GetName().Name;
+            Assert.NotNull(scenario.ClrType);
+            string nsName = "clr-namespace:" + scenario.ClrType.Namespace + ";assembly=" + scenario.ClrType.Assembly.GetName().Name;
             Dictionary<string, MetadataType> ns = Metadata.Namespaces[nsName];
 
             Assert.NotNull(ns);
-            ns.TryGetValue(clrType.Name, out var type);
-            Assert.NotNull(type);
-            Assert.Equal(clrType.AssemblyQualifiedName, type.AssemblyQualifiedName);
-
-            Type clrTypeA1 = typeof(A1::CompletionEngineTests.Models.InternalAttachedBehavior);
-            nsName = "clr-namespace:" + clrTypeA1.Namespace + ";assembly=" + clrTypeA1.Assembly.GetName().Name;
-
-            ns = Metadata.Namespaces[nsName];
-
-            Assert.NotNull(ns);
-
-            ns.TryGetValue(clrTypeA1.Name, out var typeA1);
-
-            Assert.NotNull(typeA1);
-
-            Assert.Equal(clrTypeA1.AssemblyQualifiedName, typeA1.AssemblyQualifiedName);
-
-
-            Type clrTypeA2 = Type.GetType("CompletionEngineTests.Models.InternalAttachedBehavior, Ass2, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null");
-            nsName = "clr-namespace:" + clrTypeA1.Namespace + ";assembly=" + clrTypeA2.Assembly.GetName().Name;
-
-            ns = Metadata.Namespaces[nsName];
-
-            Assert.NotNull(ns);
-
-            ns.TryGetValue(clrTypeA2.Name, out var typeA2);
-
-            Assert.Null(typeA2);
-            
+            ns.TryGetValue(scenario.ClrType.Name, out var type);
+            scenario.CheckAction(scenario.ClrType, type);
         }
+
+        public static IEnumerable<object[]> GetCasese()
+        {
+            // Local Assembly
+            yield return new object[]
+            {
+                 new TestScenario("Local Internal Attached Behavior",
+                 typeof(Models.InternalAttachedBehavior),
+                 new Action<Type,MetadataType>(static (clrType,mdType) =>
+                 {
+                     Assert.Equal(clrType.AssemblyQualifiedName, mdType.AssemblyQualifiedName);
+                 })),
+            };
+            yield return new object[]
+            {
+                 new TestScenario("Local Internal Class",
+                 typeof(Models.InternalClass),
+                 new Action<Type,MetadataType>(static (clrType,mdType) =>
+                 {
+                     Assert.Equal(clrType.AssemblyQualifiedName, mdType.AssemblyQualifiedName);
+                     Assert.Equal(ExpectedPublicOrInternalProperties,mdType.Properties.Select(p=>p.Name));
+                 })),
+            };
+            yield return new object[]
+            {
+                 new TestScenario("Local Public Class with internal properties",
+                 typeof(Models.PublicWithInternalPropertiesClass),
+                 new Action<Type,MetadataType>(static (clrType,mdType) =>
+                 {
+                     Assert.Equal(clrType.AssemblyQualifiedName, mdType.AssemblyQualifiedName);
+                     Assert.Equal(ExpectedPublicOrInternalProperties,mdType.Properties.Select(p=>p.Name));
+                 })),
+            };
+
+            // Assembly Ass1 with InternalsVisibleTo
+            yield return new object[]
+            {
+                 new TestScenario("InternalsVisibleTo Internal Attached Behavior",
+                  typeof(A1::CompletionEngineTests.Models.InternalAttachedBehavior),
+                 new Action<Type,MetadataType>(static (clrType,mdType) =>
+                 {
+                     Assert.Equal(clrType.AssemblyQualifiedName, mdType.AssemblyQualifiedName);
+                 })),
+            };
+            yield return new object[]
+            {
+                 new TestScenario("InternalsVisibleTo Internal Class",
+                  typeof(A1::CompletionEngineTests.Models.InternalClass),
+                 new Action<Type,MetadataType>(static (clrType,mdType) =>
+                 {
+                     Assert.Equal(clrType.AssemblyQualifiedName, mdType.AssemblyQualifiedName);
+                     Assert.Equal(ExpectedPublicOrInternalProperties,mdType.Properties.Select(p=>p.Name));
+                 })),
+            };
+            yield return new object[]
+            {
+                 new TestScenario("InternalsVisibleTo Public Class with internal properties",
+                   typeof(A1::CompletionEngineTests.Models.PublicWithInternalPropertiesClass),
+                 new Action<Type,MetadataType>(static (clrType,mdType) =>
+                 {
+                     Assert.Equal(clrType.AssemblyQualifiedName, mdType.AssemblyQualifiedName);
+                     Assert.Equal(ExpectedPublicOrInternalProperties,mdType.Properties.Select(p=>p.Name));
+                 })),
+            };
+
+            // Assembly Ass2 without InternalsVisibleTo
+            yield return new object[]
+            {
+                 new TestScenario("Not InternalsVisibleTo Internal Attached Behavior",
+                 Type.GetType("CompletionEngineTests.Models.InternalAttachedBehavior, Ass2, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                 new Action<Type,MetadataType>(static (clrType,mdType) =>
+                 {
+                     Assert.Null(mdType);
+                 })),
+            };
+            yield return new object[]
+            {
+                 new TestScenario("Not InternalsVisibleTo Internal Class",
+                 Type.GetType("CompletionEngineTests.Models.InternalAttachedBehavior, Ass2, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                 new Action<Type,MetadataType>(static (clrType,mdType) =>
+                 {
+                     Assert.Null(mdType);
+                 })),
+            };
+            yield return new object[]
+            {
+                 new TestScenario("InternalsVisibleTo Public Class with internal properties",
+                   Type.GetType("CompletionEngineTests.Models.PublicWithInternalPropertiesClass, Ass2, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                 new Action<Type,MetadataType>(static (clrType,mdType) =>
+                 {
+                     Assert.Equal(clrType.AssemblyQualifiedName, mdType.AssemblyQualifiedName);
+                     Assert.Equal(ExpectedPublicProperties,mdType.Properties.Select(p=>p.Name));
+                 })),
+            };
+        }
+
+        public record TestScenario(string Description, Type ClrType, Action<Type, MetadataType> CheckAction)
+        {
+            public override string ToString()
+            {
+                return Description;
+            }
+        }
+
+        private static readonly string[] ExpectedPublicOrInternalProperties = new[]
+        {
+            nameof(Models.InternalClass.PublicProperty),
+            nameof(Models.InternalClass.InternalProperty),
+            nameof(Models.InternalClass.MixedInternalProperty),
+        };
+
+        private static readonly string[] ExpectedPublicProperties = new[]
+{
+            nameof(Models.InternalClass.PublicProperty),
+        };
 
         private static Metadata Metadata = new MetadataReader(new DnlibMetadataProvider())
             .GetForTargetAssembly(typeof(XamlCompletionTestBase).Assembly.GetModules()[0].FullyQualifiedName);
