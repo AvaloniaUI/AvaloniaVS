@@ -87,7 +87,7 @@ namespace Avalonia.Ide.CompletionEngine
                         var nameParts = provider.TargetAssemblyName.Split(',');
                         var min = Math.Min(attParts.Length, nameParts.Length);
                         var i = 0;
-                        for (; i < min && attParts[i] == nameParts[i]; i++)
+                        for (; i < min &&  string.Equals(attParts[i] , nameParts[i], StringComparison.OrdinalIgnoreCase); i++)
                         {
 
                         }
@@ -557,9 +557,9 @@ namespace Avalonia.Ide.CompletionEngine
 
             string[] allAvaloniaProps = allProps.Keys.ToArray();
 
-            if (!types.TryGetValue(key => key.StartsWith("Avalonia.Markup.Xaml.MarkupExtensions.BindingExtension"), out MetadataType bindingExtType))
+            if (!types.TryGetValue(key => key.StartsWith("Avalonia.Markup.Xaml.MarkupExtensions.BindingExtension", StringComparison.OrdinalIgnoreCase), out MetadataType bindingExtType))
             {
-                if (types.TryGetValue(key => key.StartsWith("Avalonia.Data.Binding,"), out MetadataType origBindingType))
+                if (types.TryGetValue(key => key.StartsWith("Avalonia.Data.Binding,", StringComparison.OrdinalIgnoreCase), out MetadataType origBindingType))
                 {
                     //avalonia 0.10 has implicit binding extension
                     bindingExtType = origBindingType.CloneAs("BindingExtension",
@@ -571,7 +571,7 @@ namespace Avalonia.Ide.CompletionEngine
                 }
             }
 
-            types.TryGetValue(key => key.StartsWith("Avalonia.Controls.Control,"), out MetadataType controlType);
+            types.TryGetValue(key => key.StartsWith("Avalonia.Controls.Control,", StringComparison.OrdinalIgnoreCase), out MetadataType controlType);
             types.TryGetValue(typeof(Type).FullName, out MetadataType typeType);
 
             var dataContextType = new MetadataType()
@@ -592,7 +592,7 @@ namespace Avalonia.Ide.CompletionEngine
                 bindingType.Properties.Add(new MetadataProperty("", dataContextType, bindingType, false, false, true, true));
             }
 
-            if (types.TryGetValue(key => key.StartsWith("Avalonia.Data.TemplateBinding,"), out MetadataType templBinding))
+            if (types.TryGetValue(key => key.StartsWith("Avalonia.Data.TemplateBinding,", StringComparison.OrdinalIgnoreCase), out MetadataType templBinding))
             {
                 var tbext = new MetadataType()
                 {
@@ -608,7 +608,7 @@ namespace Avalonia.Ide.CompletionEngine
                 metadata.AddType(Utils.AvaloniaNamespace, tbext);
             }
 
-            if (types.TryGetValue(key => key.StartsWith("Portable.Xaml.Markup.TypeExtension,"), out MetadataType typeExtension))
+            if (types.TryGetValue(key => key.StartsWith("Portable.Xaml.Markup.TypeExtension,", StringComparison.OrdinalIgnoreCase), out MetadataType typeExtension))
             {
                 typeExtension.SupportCtorArgument = MetadataTypeCtorArgument.Type;
             }
@@ -627,14 +627,14 @@ namespace Avalonia.Ide.CompletionEngine
 "FontSizeSmall","FontSizeNormal","FontSizeLarge"
                 };
 
-            if (types.TryGetValue(key => key.StartsWith("Avalonia.Markup.Xaml.MarkupExtensions.DynamicResourceExtension,"), out MetadataType dynRes))
+            if (types.TryGetValue(key => key.StartsWith("Avalonia.Markup.Xaml.MarkupExtensions.DynamicResourceExtension,", StringComparison.OrdinalIgnoreCase), out MetadataType dynRes))
             {
                 dynRes.SupportCtorArgument = MetadataTypeCtorArgument.HintValues;
                 dynRes.HasHintValues = true;
                 dynRes.HintValues = commonResKeys;
             }
 
-            if (types.TryGetValue(key => key.StartsWith("Avalonia.Markup.Xaml.MarkupExtensions.StaticResourceExtension,"), out MetadataType stRes))
+            if (types.TryGetValue(key => key.StartsWith("Avalonia.Markup.Xaml.MarkupExtensions.StaticResourceExtension,", StringComparison.OrdinalIgnoreCase), out MetadataType stRes))
             {
                 stRes.SupportCtorArgument = MetadataTypeCtorArgument.HintValues;
                 stRes.HasHintValues = true;
@@ -643,13 +643,13 @@ namespace Avalonia.Ide.CompletionEngine
 
             //brushes
             if (types.TryGetValue("Avalonia.Media.IBrush", out MetadataType brushType) &&
-                types.TryGetValue(key => key.StartsWith("Avalonia.Media.Brushes,"), out MetadataType brushes))
+                types.TryGetValue(key => key.StartsWith("Avalonia.Media.Brushes,", StringComparison.OrdinalIgnoreCase), out MetadataType brushes))
             {
                 brushType.HasHintValues = true;
                 brushType.HintValues = brushes.Properties.Where(p => p.IsStatic && p.HasGetter).Select(p => p.Name).ToArray();
             }
 
-            if (types.TryGetValue(key => key.StartsWith("Avalonia.Styling.Selector,"), out MetadataType styleSelector))
+            if (types.TryGetValue(key => key.StartsWith("Avalonia.Styling.Selector,", StringComparison.OrdinalIgnoreCase), out MetadataType styleSelector))
             {
                 styleSelector.HasHintValues = true;
                 styleSelector.IsCompositeValue = true;
@@ -671,28 +671,28 @@ namespace Avalonia.Ide.CompletionEngine
 
             bool isbitmaptype(string resource) => bitmaptypes.Any(ext => rhasext(resource, ext));
 
-            if (types.TryGetValue(key => key.StartsWith("Avalonia.Media.Imaging.IBitmap"), out MetadataType ibitmapType))
+            if (types.TryGetValue(key => key.StartsWith("Avalonia.Media.Imaging.IBitmap", StringComparison.OrdinalIgnoreCase), out MetadataType ibitmapType))
             {
                 ibitmapType.HasHintValues = true;
                 ibitmapType.HintValues = allresourceUrls.Where(r => isbitmaptype(r)).ToArray();
                 ibitmapType.XamlContextHintValuesFunc = (a, t, p) => filterLocalRes(ibitmapType, a);
             }
 
-            if (types.TryGetValue(key => key.StartsWith("Avalonia.Media.IImage"), out MetadataType iImageType))
+            if (types.TryGetValue(key => key.StartsWith("Avalonia.Media.IImage", StringComparison.OrdinalIgnoreCase), out MetadataType iImageType))
             {
                 iImageType.HasHintValues = true;
                 iImageType.HintValues = allresourceUrls.Where(r => isbitmaptype(r)).ToArray();
                 iImageType.XamlContextHintValuesFunc = (a, t, p) => filterLocalRes(ibitmapType, a);
             }
 
-            if (types.TryGetValue(key => key.StartsWith("Avalonia.Controls.WindowIcon,"), out MetadataType winIcon))
+            if (types.TryGetValue(key => key.StartsWith("Avalonia.Controls.WindowIcon,", StringComparison.OrdinalIgnoreCase), out MetadataType winIcon))
             {
                 winIcon.HasHintValues = true;
                 winIcon.HintValues = allresourceUrls.Where(r => rhasext(r, ".ico")).ToArray();
                 winIcon.XamlContextHintValuesFunc = (a, t, p) => filterLocalRes(winIcon, a);
             }
 
-            if (types.TryGetValue(key => key.StartsWith("Avalonia.Markup.Xaml.Styling.StyleInclude"), out MetadataType styleIncludeType))
+            if (types.TryGetValue(key => key.StartsWith("Avalonia.Markup.Xaml.Styling.StyleInclude", StringComparison.OrdinalIgnoreCase), out MetadataType styleIncludeType))
             {
                 var source = styleIncludeType.Properties.FirstOrDefault(p => p.Name == "Source");
 
@@ -700,7 +700,7 @@ namespace Avalonia.Ide.CompletionEngine
                     source.Type = styleResType;
             }
 
-            if (types.TryGetValue(key => key.StartsWith("Avalonia.Markup.Xaml.Styling.StyleIncludeExtension,"), out MetadataType styleIncludeExtType))
+            if (types.TryGetValue(key => key.StartsWith("Avalonia.Markup.Xaml.Styling.StyleIncludeExtension,", StringComparison.OrdinalIgnoreCase), out MetadataType styleIncludeExtType))
             {
                 var source = styleIncludeExtType.Properties.FirstOrDefault(p => p.Name == "Source");
 
