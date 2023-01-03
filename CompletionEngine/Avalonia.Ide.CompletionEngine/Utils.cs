@@ -102,5 +102,17 @@ namespace Avalonia.Ide.CompletionEngine
             value = default;
             return false;
         }
+
+        public static T FirstOrDefault<T>(this IEnumerable<T> source, Func<T, T, bool> predicate, T arg)
+        {
+            foreach (var item in source)
+            {
+                if (predicate(item, arg))
+                {
+                    return item;
+                }
+            }
+            return default;
+        }
     }
 }

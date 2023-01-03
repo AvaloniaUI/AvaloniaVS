@@ -9,6 +9,26 @@ namespace Avalonia.Ide.CompletionEngine
 {
     public static class MetadataConverter
     {
+        private static readonly string[] _avaloniaBaseType = new[]
+        {
+            "Avalonia.Markup.Xaml.MarkupExtensions.BindingExtension,",
+            "Avalonia.Data.Binding,",
+            "Avalonia.Controls.Control,",
+            "Avalonia.Data.TemplateBinding,",
+            "Portable.Xaml.Markup.TypeExtension,",
+            "Avalonia.Markup.Xaml.MarkupExtensions.DynamicResourceExtension,",
+            "Avalonia.Markup.Xaml.MarkupExtensions.StaticResourceExtension,",
+            "Avalonia.Media.Brushes",
+            "Avalonia.Styling.Selector,",
+            "Avalonia.Media.Imaging.IBitmap",
+            "Avalonia.Media.IImage",
+            "Avalonia.Controls.WindowIcon,",
+            "Avalonia.Markup.Xaml.Styling.StyleIncludeExtension,",
+            "Avalonia.Markup.Xaml.Styling.StyleInclude,",
+            "Avalonia.Markup.Xaml.Styling.StyleIncludeExtension,",
+        };
+
+
         internal static bool IsMarkupExtension(ITypeInformation type)
         {
             var def = type;
@@ -87,7 +107,7 @@ namespace Avalonia.Ide.CompletionEngine
                         var nameParts = provider.TargetAssemblyName.Split(',');
                         var min = Math.Min(attParts.Length, nameParts.Length);
                         var i = 0;
-                        for (; i < min &&  string.Equals(attParts[i] , nameParts[i], StringComparison.OrdinalIgnoreCase); i++)
+                        for (; i < min && string.Equals(attParts[i], nameParts[i], StringComparison.OrdinalIgnoreCase); i++)
                         {
 
                         }
@@ -116,7 +136,8 @@ namespace Avalonia.Ide.CompletionEngine
                         aliases[type.Namespace] = nsAliases.Union(new string[] { usingNamespace }).ToArray();
                     }
 
-                    foreach (var alias in nsAliases) metadata.AddType(alias, mt);
+                    foreach (var alias in nsAliases)
+                        metadata.AddType(alias, mt);
                 }
 
                 ProcessAvaloniaResources(asm, asmTypes, avaresValues);
@@ -205,7 +226,7 @@ namespace Avalonia.Ide.CompletionEngine
                                         types.GetValueOrDefault(typeDef.FullName, typeDef.AssemblyQualifiedName),
                                         true));
                                 }
-                                else if(type.IsStatic)
+                                else if (type.IsStatic)
                                 {
                                     type.Properties.Add(new MetadataProperty(fieldDef.Name, null, type, false, true, true, false));
                                 }
@@ -479,7 +500,7 @@ namespace Avalonia.Ide.CompletionEngine
             metadata.AddType("", new MetadataType() { Name = "xmlns", IsXamlDirective = true });
         }
 
-        private static void PostProcessTypes(Dictionary<string, MetadataType> types, Metadata metadata, 
+        private static void PostProcessTypes(Dictionary<string, MetadataType> types, Metadata metadata,
             IEnumerable<string> resourceUrls, List<AvaresInfo> avaResValues, HashSet<string> pseudoclasses)
         {
             bool rhasext(string resource, string ext) => resource.StartsWith("resm:") ? resource.Contains(ext + "?assembly=") : resource.EndsWith(ext);
@@ -555,11 +576,30 @@ namespace Avalonia.Ide.CompletionEngine
                 }
             }
 
+            // Remmap avalonia base type
+            Dictionary<string, MetadataType> avaloniaBaseType = new Dictionary<string, MetadataType>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var kv in types)
+            {
+                if (_avaloniaBaseType.FirstOrDefault((a, b) => b.StartsWith(a, StringComparison.OrdinalIgnoreCase), kv.Key) is string at)
+                {
+                    var len = at.Length - 1;
+                    if (at[len] == ',')
+                    {
+                        avaloniaBaseType.Add(at.Substring(0, at.Length - 1), kv.Value);
+                    }
+                    else
+                    {
+                        avaloniaBaseType.Add(at, kv.Value);
+                    }
+                }
+            }
+
             string[] allAvaloniaProps = allProps.Keys.ToArray();
 
-            if (!types.TryGetValue(key => key.StartsWith("Avalonia.Markup.Xaml.MarkupExtensions.BindingExtension", StringComparison.OrdinalIgnoreCase), out MetadataType bindingExtType))
+            if (!avaloniaBaseType.TryGetValue("Avalonia.Markup.Xaml.MarkupExtensions.BindingExtension", out MetadataType bindingExtType))
             {
-                if (types.TryGetValue(key => key.StartsWith("Avalonia.Data.Binding,", StringComparison.OrdinalIgnoreCase), out MetadataType origBindingType))
+                if (avaloniaBaseType.TryGetValue("Avalonia.Data.Binding", out MetadataType origBindingType))
                 {
                     //avalonia 0.10 has implicit binding extension
                     bindingExtType = origBindingType.CloneAs("BindingExtension",
@@ -571,7 +611,7 @@ namespace Avalonia.Ide.CompletionEngine
                 }
             }
 
-            types.TryGetValue(key => key.StartsWith("Avalonia.Controls.Control,", StringComparison.OrdinalIgnoreCase), out MetadataType controlType);
+            avaloniaBaseType.TryGetValue("Avalonia.Controls.Control", out MetadataType controlType);
             types.TryGetValue(typeof(Type).FullName, out MetadataType typeType);
 
             var dataContextType = new MetadataType()
@@ -587,12 +627,13 @@ namespace Avalonia.Ide.CompletionEngine
             {
                 bindingType.SupportCtorArgument = MetadataTypeCtorArgument.None;
                 var pathProp = bindingType.Properties.FirstOrDefault(p => p.Name == "Path");
-                if (pathProp != null) pathProp.Type = dataContextType;
+                if (pathProp != null)
+                    pathProp.Type = dataContextType;
 
                 bindingType.Properties.Add(new MetadataProperty("", dataContextType, bindingType, false, false, true, true));
             }
 
-            if (types.TryGetValue(key => key.StartsWith("Avalonia.Data.TemplateBinding,", StringComparison.OrdinalIgnoreCase), out MetadataType templBinding))
+            if (avaloniaBaseType.TryGetValue("Avalonia.Data.TemplateBinding", out MetadataType templBinding))
             {
                 var tbext = new MetadataType()
                 {
@@ -608,7 +649,7 @@ namespace Avalonia.Ide.CompletionEngine
                 metadata.AddType(Utils.AvaloniaNamespace, tbext);
             }
 
-            if (types.TryGetValue(key => key.StartsWith("Portable.Xaml.Markup.TypeExtension,", StringComparison.OrdinalIgnoreCase), out MetadataType typeExtension))
+            if (avaloniaBaseType.TryGetValue("Portable.Xaml.Markup.TypeExtension", out MetadataType typeExtension))
             {
                 typeExtension.SupportCtorArgument = MetadataTypeCtorArgument.Type;
             }
@@ -627,14 +668,14 @@ namespace Avalonia.Ide.CompletionEngine
 "FontSizeSmall","FontSizeNormal","FontSizeLarge"
                 };
 
-            if (types.TryGetValue(key => key.StartsWith("Avalonia.Markup.Xaml.MarkupExtensions.DynamicResourceExtension,", StringComparison.OrdinalIgnoreCase), out MetadataType dynRes))
+            if (avaloniaBaseType.TryGetValue("Avalonia.Markup.Xaml.MarkupExtensions.DynamicResourceExtension", out MetadataType dynRes))
             {
                 dynRes.SupportCtorArgument = MetadataTypeCtorArgument.HintValues;
                 dynRes.HasHintValues = true;
                 dynRes.HintValues = commonResKeys;
             }
 
-            if (types.TryGetValue(key => key.StartsWith("Avalonia.Markup.Xaml.MarkupExtensions.StaticResourceExtension,", StringComparison.OrdinalIgnoreCase), out MetadataType stRes))
+            if (avaloniaBaseType.TryGetValue("Avalonia.Markup.Xaml.MarkupExtensions.StaticResourceExtension", out MetadataType stRes))
             {
                 stRes.SupportCtorArgument = MetadataTypeCtorArgument.HintValues;
                 stRes.HasHintValues = true;
@@ -643,13 +684,13 @@ namespace Avalonia.Ide.CompletionEngine
 
             //brushes
             if (types.TryGetValue("Avalonia.Media.IBrush", out MetadataType brushType) &&
-                types.TryGetValue(key => key.StartsWith("Avalonia.Media.Brushes,", StringComparison.OrdinalIgnoreCase), out MetadataType brushes))
+                avaloniaBaseType.TryGetValue("Avalonia.Media.Brushes", out MetadataType brushes))
             {
                 brushType.HasHintValues = true;
                 brushType.HintValues = brushes.Properties.Where(p => p.IsStatic && p.HasGetter).Select(p => p.Name).ToArray();
             }
 
-            if (types.TryGetValue(key => key.StartsWith("Avalonia.Styling.Selector,", StringComparison.OrdinalIgnoreCase), out MetadataType styleSelector))
+            if (avaloniaBaseType.TryGetValue("Avalonia.Styling.Selector", out MetadataType styleSelector))
             {
                 styleSelector.HasHintValues = true;
                 styleSelector.IsCompositeValue = true;
@@ -657,7 +698,7 @@ namespace Avalonia.Ide.CompletionEngine
                 List<string> hints = new List<string>();
 
                 //some reserved words
-                hints.AddRange(new[] { "/template/", ":is()", ">", "#", ".", "^", ":not()"});
+                hints.AddRange(new[] { "/template/", ":is()", ">", "#", ".", "^", ":not()" });
 
                 //some pseudo classes
                 hints.AddRange(pseudoclasses);
@@ -671,28 +712,28 @@ namespace Avalonia.Ide.CompletionEngine
 
             bool isbitmaptype(string resource) => bitmaptypes.Any(ext => rhasext(resource, ext));
 
-            if (types.TryGetValue(key => key.StartsWith("Avalonia.Media.Imaging.IBitmap", StringComparison.OrdinalIgnoreCase), out MetadataType ibitmapType))
+            if (avaloniaBaseType.TryGetValue("Avalonia.Media.Imaging.IBitmap", out MetadataType ibitmapType))
             {
                 ibitmapType.HasHintValues = true;
                 ibitmapType.HintValues = allresourceUrls.Where(r => isbitmaptype(r)).ToArray();
                 ibitmapType.XamlContextHintValuesFunc = (a, t, p) => filterLocalRes(ibitmapType, a);
             }
 
-            if (types.TryGetValue(key => key.StartsWith("Avalonia.Media.IImage", StringComparison.OrdinalIgnoreCase), out MetadataType iImageType))
+            if (avaloniaBaseType.TryGetValue("Avalonia.Media.IImage", out MetadataType iImageType))
             {
                 iImageType.HasHintValues = true;
                 iImageType.HintValues = allresourceUrls.Where(r => isbitmaptype(r)).ToArray();
                 iImageType.XamlContextHintValuesFunc = (a, t, p) => filterLocalRes(ibitmapType, a);
             }
 
-            if (types.TryGetValue(key => key.StartsWith("Avalonia.Controls.WindowIcon,", StringComparison.OrdinalIgnoreCase), out MetadataType winIcon))
+            if (avaloniaBaseType.TryGetValue("Avalonia.Controls.WindowIcon", out MetadataType winIcon))
             {
                 winIcon.HasHintValues = true;
                 winIcon.HintValues = allresourceUrls.Where(r => rhasext(r, ".ico")).ToArray();
                 winIcon.XamlContextHintValuesFunc = (a, t, p) => filterLocalRes(winIcon, a);
             }
 
-            if (types.TryGetValue(key => key.StartsWith("Avalonia.Markup.Xaml.Styling.StyleInclude", StringComparison.OrdinalIgnoreCase), out MetadataType styleIncludeType))
+            if (avaloniaBaseType.TryGetValue("Avalonia.Markup.Xaml.Styling.StyleInclude", out MetadataType styleIncludeType))
             {
                 var source = styleIncludeType.Properties.FirstOrDefault(p => p.Name == "Source");
 
@@ -700,7 +741,7 @@ namespace Avalonia.Ide.CompletionEngine
                     source.Type = styleResType;
             }
 
-            if (types.TryGetValue(key => key.StartsWith("Avalonia.Markup.Xaml.Styling.StyleIncludeExtension,", StringComparison.OrdinalIgnoreCase), out MetadataType styleIncludeExtType))
+            if (types.TryGetValue("Avalonia.Markup.Xaml.Styling.StyleIncludeExtension", out MetadataType styleIncludeExtType))
             {
                 var source = styleIncludeExtType.Properties.FirstOrDefault(p => p.Name == "Source");
 
