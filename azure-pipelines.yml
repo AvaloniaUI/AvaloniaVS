@@ -18,19 +18,29 @@ steps:
     version: 7.0.100
 
 - task: DotNetCoreCLI@2
+  displayName: Restore Packages
   inputs:
     command: 'restore'
 
 - task: DotNetCoreCLI@2
+  displayName: Run Tests
   inputs:
     command: 'test'
-    projects: '.\tests\**\*.csproj'
+    projects: '**/CompletionEngineTests.csproj'
+    testRunTitle: 'AvaloniaVS Completion Engine Tests'
+    arguments: --logger trx
 
 - task: VSBuild@1
   inputs:
     solution: '$(solution)'
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
+
+- task: PublishTestResults@2
+  inputs:
+      testResultsFormat: 'VSTest'
+      testResultsFiles: '$(Build.SourcesDirectory)/**/*.trx'
+  condition: not(canceled())
 
 - task: CopyFiles@2
   inputs:
