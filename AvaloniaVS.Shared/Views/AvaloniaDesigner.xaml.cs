@@ -14,6 +14,7 @@ using Avalonia.Ide.CompletionEngine.AssemblyMetadata;
 using Avalonia.Ide.CompletionEngine.DnlibMetadataProvider;
 using AvaloniaVS.Models;
 using AvaloniaVS.Services;
+using AvaloniaVS.Shared.Views;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
@@ -277,7 +278,19 @@ namespace AvaloniaVS.Views
 
         private void InitializeEditor()
         {
-            editorHost.Child = _editor.HostControl;
+            // The HostControl for the IWpfTextViewHost comes parented to two borders,
+            // find the root and use that for insertion into our designer pane.
+            // The old code unparented the WPF control from the inner border, which is fine,
+            // but this feels safer incase anything changes in the future
+            var content = _editor.HostControl as FrameworkElement;
+            var parent = VisualTreeHelper.GetParent(content);
+            while (parent != null)
+            {
+                content = parent as FrameworkElement;
+                parent = VisualTreeHelper.GetParent(content);
+            }
+
+            editorHost.Child = content;
 
             _editor.TextView.TextBuffer.Properties.RemoveProperty(typeof(PreviewerProcess));
             _editor.TextView.TextBuffer.Properties.AddProperty(typeof(PreviewerProcess), Process);
