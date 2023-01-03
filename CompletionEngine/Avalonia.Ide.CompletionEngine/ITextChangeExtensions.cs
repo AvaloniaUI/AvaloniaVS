@@ -29,7 +29,7 @@ namespace Avalonia.Ide.CompletionEngine
             if (!string.IsNullOrEmpty(textChange.NewText))
             {
                 var start = textChange.NewPosition - textChangeOffset;
-                input = input.Remove(start, Math.Min(input.Length - start,textChange.NewText.Length));
+                input = input.Remove(start, Math.Min(input.Length - start, textChange.NewText.Length));
             }
             if (!string.IsNullOrEmpty(textChange.OldText))
             {

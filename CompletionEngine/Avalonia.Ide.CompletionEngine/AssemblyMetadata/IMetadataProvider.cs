@@ -11,6 +11,7 @@ namespace Avalonia.Ide.CompletionEngine.AssemblyMetadata
 
     public interface IMetadataReaderSession : IDisposable
     {
+        string TargetAssemblyName { get; }
         IEnumerable<IAssemblyInformation> Assemblies { get; }
     }
 }

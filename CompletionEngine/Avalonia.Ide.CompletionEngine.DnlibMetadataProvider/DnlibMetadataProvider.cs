@@ -8,18 +8,20 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider
 {
     public class DnlibMetadataProvider : IMetadataProvider
     {
-        
+
         public IMetadataReaderSession GetMetadata(IEnumerable<string> paths)
         {
             return new DnlibMetadataProviderSession(paths.ToArray());
         }
     }
 
-    class DnlibMetadataProviderSession :IMetadataReaderSession
-    { 
+    class DnlibMetadataProviderSession : IMetadataReaderSession
+    {
+        public string TargetAssemblyName { get; private set; }
         public IEnumerable<IAssemblyInformation> Assemblies { get; }
         public DnlibMetadataProviderSession(string[] directoryPath)
         {
+            TargetAssemblyName = System.Reflection.AssemblyName.GetAssemblyName(directoryPath[0]).ToString();
             Assemblies = LoadAssemblies(directoryPath).Select(a => new AssemblyWrapper(a)).ToList();
         }
 
