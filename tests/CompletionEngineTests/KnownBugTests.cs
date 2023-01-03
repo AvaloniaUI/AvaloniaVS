@@ -72,12 +72,7 @@ namespace CompletionEngineTests
         [Fact]
         public void RowDefinitionsDirtyShouldNotBeShown()
         {
-            var comp = GetCompletionsFor("<UserControl><Grid Row");
-            Assert.NotNull(comp);
-
-            Assert.Single(comp.Completions);
-
-            Assert.Equal("RowDefinitions", comp.Completions[0].Description);
+            AssertSingleCompletion("<UserControl><Grid ", "Row", "RowDefinitions=\"\"");
         }
     }
 }
