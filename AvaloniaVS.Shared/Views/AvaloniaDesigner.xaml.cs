@@ -387,29 +387,24 @@ namespace AvaloniaVS.Views
                 return;
             }
 
-            if (View != AvaloniaDesignerView.Source)
+            // Change: keep the preview process alive even if we're in 
+            // Source only mode - it prevents the error icon from showing because
+            // of process exited and keeps the Error tagger active
+            if (IsPaused)
             {
-                if (IsPaused)
-                {
-                    pausedMessage.Visibility = Visibility.Visible;
-                    Process.Stop();
-                }
-                else if (!Process.IsRunning && IsLoaded)
-                {
-                    pausedMessage.Visibility = Visibility.Collapsed;
-
-                    if (SelectedTarget == null)
-                    {
-                        await LoadTargetsAsync();
-                    }
-
-                    await StartProcessAsync();
-                }
-            }
-            else if (!IsPaused && IsLoaded)
-            {
-                RebuildMetadata(null, null);
+                pausedMessage.Visibility = Visibility.Visible;
                 Process.Stop();
+            }
+            else if (!Process.IsRunning && IsLoaded)
+            {
+                pausedMessage.Visibility = Visibility.Collapsed;
+
+                if (SelectedTarget == null)
+                {
+                    await LoadTargetsAsync();
+                }
+
+                await StartProcessAsync();
             }
         }
 
@@ -797,7 +792,6 @@ namespace AvaloniaVS.Views
             if (d is AvaloniaDesigner designer)
             {
                 designer.UpdateLayoutForView();
-                designer.StartStopProcessAsync().FireAndForget();
             }
         }
 
