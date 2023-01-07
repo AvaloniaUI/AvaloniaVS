@@ -668,13 +668,18 @@ namespace AvaloniaVS.Views
                 if (SplitOrientation == Orientation.Horizontal)
                 {
                     HorizontalGrid();
+                    var content = SwapPanesButton.Content as UIElement;
+                    content.RenderTransform = new RotateTransform(90);                    
                 }
                 else
                 {
                     VerticalGrid();
+                    var content = SwapPanesButton.Content as UIElement;
+                    content.RenderTransform = null;
                 }
 
                 splitter.Visibility = Visibility.Visible;
+                SwapPanesButton.Visibility = Visibility.Visible;
             }
             else
             {
@@ -682,6 +687,45 @@ namespace AvaloniaVS.Views
                 previewRow.Height = View == AvaloniaDesignerView.Design ? OneStar : ZeroStar;
                 codeRow.Height = View == AvaloniaDesignerView.Source ? OneStar : ZeroStar;
                 splitter.Visibility = Visibility.Collapsed;
+                SwapPanesButton.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void SwapPreviewAndXamlPanes(object sender, RoutedEventArgs args)
+        {
+            switch (SplitOrientation)
+            {
+                case Orientation.Horizontal:
+                    var editorRow = Grid.GetRow(editorHost);
+                    
+                    if (editorRow == 0)
+                    {
+                        Grid.SetRow(editorHost, 2);
+                        Grid.SetRow(previewer, 0);
+                    }
+                    else
+                    {
+                        Grid.SetRow(editorHost, 0);
+                        Grid.SetRow(previewer, 2);
+                    }
+
+                    break;
+
+                case Orientation.Vertical:
+                    var editorCol = Grid.GetColumn(editorHost);
+
+                    if (editorCol == 0)
+                    {
+                        Grid.SetColumn(editorHost, 2);
+                        Grid.SetColumn(previewer, 0);
+                    }
+                    else
+                    {
+                        Grid.SetColumn(editorHost, 0);
+                        Grid.SetColumn(previewer, 2);
+                    }
+
+                    break;
             }
         }
 
