@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using Avalonia.Ide.CompletionEngine.AssemblyMetadata;
 
 namespace Avalonia.Ide.CompletionEngine
 {
@@ -40,6 +38,7 @@ namespace Avalonia.Ide.CompletionEngine
         public bool IsCompositeValue { get; set; }
         public bool IsGeneric { get; set; }
         public bool IsXamlDirective { get; set; }
+        public string AssemblyQualifiedName { get; set; }
 
         public MetadataType CloneAs(string name, string fullName)
         {
