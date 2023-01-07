@@ -106,6 +106,19 @@
                     <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.SplitScreenVertically}"/>
                 </ListBoxItem>
             </ListBox>
+
+            <Button VerticalAlignment="Center"
+                    DockPanel.Dock="Right"
+                    local:VsTheme.UseVsTheme="True"
+                    MinWidth="0" MinHeight="0"
+                    Padding="2" Margin="0 0 10 0"
+                    ToolTip="Swap Preview and Xaml panes"
+                    Click="SwapPreviewAndXamlPanes"
+                    x:Name="SwapPanesButton">
+                <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.SwitchSourceOrTarget}" 
+                                    RenderTransformOrigin="0.5,0.5" />
+            </Button>
+
             <Control/>
         </DockPanel>
 
@@ -116,7 +129,9 @@
                 <RowDefinition x:Name="codeRow"/>
             </Grid.RowDefinitions>
 
-            <views:GridLines Grid.ColumnSpan="3" Margin="0,0,0,5" />
+            <views:GridLines Grid.ColumnSpan="3"
+                             Grid.RowSpan="3"
+                             Margin="0,0,0,5" />
 
             <local:AvaloniaPreviewer x:Name="previewer" Grid.Column="2" />
 
@@ -125,7 +140,6 @@
                           Grid.Column="1"
                           VerticalAlignment="Stretch"
                           Height="5"
-                          HorizontalAlignment="Stretch"
                           Background="{DynamicResource VsBrush.PanelSeparator}"/>
 
             <Decorator Grid.Row="2" Grid.Column="0" Name="editorHost"/>
