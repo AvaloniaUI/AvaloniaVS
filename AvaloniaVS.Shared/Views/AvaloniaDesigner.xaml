@@ -139,6 +139,7 @@
                           Grid.Row="1"
                           Grid.Column="1"
                           VerticalAlignment="Stretch"
+                          HorizontalAlignment="Stretch"
                           Height="5"
                           Background="{DynamicResource VsBrush.PanelSeparator}"/>
 
