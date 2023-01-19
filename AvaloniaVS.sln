@@ -41,9 +41,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{3CF4E8CC
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompletionEngineTests", "tests\CompletionEngineTests\CompletionEngineTests.csproj", "{70475448-B721-48BD-A96D-56C8A0B88BA0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ass1", "tests\Ass1\Ass1.csproj", "{26CB0499-10FE-4CC1-9F20-4738BF527494}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestAssembly1", "tests\Ass1\TestAssembly1.csproj", "{26CB0499-10FE-4CC1-9F20-4738BF527494}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ass2", "tests\Ass2\Ass2.csproj", "{0D792D9B-66F7-46DB-AC87-AA3068151E6C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestAssembly2", "tests\Ass2\TestAssembly2.csproj", "{0D792D9B-66F7-46DB-AC87-AA3068151E6C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

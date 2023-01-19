@@ -114,7 +114,7 @@ namespace CompletionEngineTests
                  })),
             };
 
-            // Assembly Ass1 with InternalsVisibleTo
+            // TestAssembly1 with InternalsVisibleTo
             yield return new object[]
             {
                  new TestScenario("InternalsVisibleTo Internal Attached Behavior",
@@ -145,11 +145,11 @@ namespace CompletionEngineTests
                  })),
             };
 
-            // Assembly Ass2 without InternalsVisibleTo
+            // TestAssembly2 without InternalsVisibleTo
             yield return new object[]
             {
                  new TestScenario("Not InternalsVisibleTo Internal Attached Behavior",
-                 Type.GetType("CompletionEngineTests.Models.InternalAttachedBehavior, Ass2, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                 Type.GetType("CompletionEngineTests.Models.InternalAttachedBehavior, TestAssembly2, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"),
                  new Action<Type,MetadataType>(static (clrType,mdType) =>
                  {
                      Assert.Null(mdType);
@@ -158,7 +158,7 @@ namespace CompletionEngineTests
             yield return new object[]
             {
                  new TestScenario("Not InternalsVisibleTo Internal Class",
-                 Type.GetType("CompletionEngineTests.Models.InternalAttachedBehavior, Ass2, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                 Type.GetType("CompletionEngineTests.Models.InternalAttachedBehavior, TestAssembly2, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"),
                  new Action<Type,MetadataType>(static (clrType,mdType) =>
                  {
                      Assert.Null(mdType);
@@ -167,7 +167,7 @@ namespace CompletionEngineTests
             yield return new object[]
             {
                  new TestScenario("InternalsVisibleTo Public Class with internal properties",
-                   Type.GetType("CompletionEngineTests.Models.PublicWithInternalPropertiesClass, Ass2, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                   Type.GetType("CompletionEngineTests.Models.PublicWithInternalPropertiesClass, TestAssembly2, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"),
                  new Action<Type,MetadataType>(static (clrType,mdType) =>
                  {
                      Assert.Equal(clrType.AssemblyQualifiedName, mdType.AssemblyQualifiedName);
