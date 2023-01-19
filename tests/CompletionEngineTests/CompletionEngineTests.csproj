@@ -22,8 +22,8 @@
     <ItemGroup>
       <ProjectReference Include="..\..\CompletionEngine\Avalonia.Ide.CompletionEngine.DnlibMetadataProvider\Avalonia.Ide.CompletionEngine.DnlibMetadataProvider.csproj" />
       <ProjectReference Include="..\..\CompletionEngine\Avalonia.Ide.CompletionEngine\Avalonia.Ide.CompletionEngine.csproj" />
-      <ProjectReference Include="..\Ass1\TestAssembly1.csproj" Aliases="A1" />
-      <ProjectReference Include="..\Ass2\TestAssembly2.csproj" Aliases="A2" />
+      <ProjectReference Include="..\TestAssembly1\TestAssembly1.csproj" Aliases="A1" />
+      <ProjectReference Include="..\TestAssembly2\TestAssembly2.csproj" Aliases="A2" />
     </ItemGroup>
 
 </Project>
