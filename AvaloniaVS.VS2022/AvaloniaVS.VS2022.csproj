@@ -137,6 +137,13 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
     </ProjectReference>
+    <ProjectReference Include="..\templates\FsAvaloniaTemplatedControlTemplate\FsAvaloniaTemplatedControlTemplate.csproj">
+      <Project>{94AFBDF7-D3C5-4952-9070-5A517970B964}</Project>
+      <Name>FsAvaloniaTemplatedControlTemplate</Name>
+      <VSIXSubPath>ItemTemplates</VSIXSubPath>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+    </ProjectReference>
     <ProjectReference Include="..\templates\FsAvaloniaUserControlTemplate\FsAvaloniaUserControlTemplate.csproj">
       <Project>{807da0c2-1ddc-4693-8b6d-901692ec0180}</Project>
       <Name>FsAvaloniaUserControlTemplate</Name>
