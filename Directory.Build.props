@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <AvaloniaTemplatesPackageName>Avalonia.Templates</AvaloniaTemplatesPackageName>
+    <AvaloniaTemplatesPackageVersion>0.10.18.5</AvaloniaTemplatesPackageVersion>
+  </PropertyGroup>
+</Project>
