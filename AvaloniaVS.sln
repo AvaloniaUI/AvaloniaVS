@@ -29,6 +29,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		azure-pipelines.yml = azure-pipelines.yml
+		Directory.Build.props = Directory.Build.props
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Avalonia.Ide.CompletionEngine", "CompletionEngine\Avalonia.Ide.CompletionEngine\Avalonia.Ide.CompletionEngine.csproj", "{CD7DB042-4282-4DFB-9910-958036DD621D}"
@@ -46,6 +47,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestAssembly2", "tests\TestAssembly2\TestAssembly2.csproj", "{0D792D9B-66F7-46DB-AC87-AA3068151E6C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FsAvaloniaTemplatedControlTemplate", "templates\FsAvaloniaTemplatedControlTemplate\FsAvaloniaTemplatedControlTemplate.csproj", "{94AFBDF7-D3C5-4952-9070-5A517970B964}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProjectTemplatesDownloader", "templates\ProjectTemplatesDownloader\ProjectTemplatesDownloader.csproj", "{14C474FC-E529-4148-ADEB-E9F77E744452}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -175,6 +178,14 @@ Global
 		{94AFBDF7-D3C5-4952-9070-5A517970B964}.Release|Any CPU.Build.0 = Release|Any CPU
 		{94AFBDF7-D3C5-4952-9070-5A517970B964}.Release|x86.ActiveCfg = Release|x86
 		{94AFBDF7-D3C5-4952-9070-5A517970B964}.Release|x86.Build.0 = Release|x86
+		{14C474FC-E529-4148-ADEB-E9F77E744452}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{14C474FC-E529-4148-ADEB-E9F77E744452}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{14C474FC-E529-4148-ADEB-E9F77E744452}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{14C474FC-E529-4148-ADEB-E9F77E744452}.Debug|x86.Build.0 = Debug|Any CPU
+		{14C474FC-E529-4148-ADEB-E9F77E744452}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{14C474FC-E529-4148-ADEB-E9F77E744452}.Release|Any CPU.Build.0 = Release|Any CPU
+		{14C474FC-E529-4148-ADEB-E9F77E744452}.Release|x86.ActiveCfg = Release|Any CPU
+		{14C474FC-E529-4148-ADEB-E9F77E744452}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -193,6 +204,7 @@ Global
 		{26CB0499-10FE-4CC1-9F20-4738BF527494} = {3CF4E8CC-E706-41DC-8A22-8E37EDA7E599}
 		{0D792D9B-66F7-46DB-AC87-AA3068151E6C} = {3CF4E8CC-E706-41DC-8A22-8E37EDA7E599}
 		{94AFBDF7-D3C5-4952-9070-5A517970B964} = {FC634911-168A-4FDD-8758-11FAD5B8696B}
+		{14C474FC-E529-4148-ADEB-E9F77E744452} = {FC634911-168A-4FDD-8758-11FAD5B8696B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0CE7163D-D505-4965-B2B9-9E9068C77A62}

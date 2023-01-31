@@ -85,7 +85,23 @@
       <Version>0.15.0</Version>
     </PackageReference>
   </ItemGroup>
+  
+  <Target Name="PreCreateVsixContainer" BeforeTargets="GetVsixSourceItems">
+    <ItemGroup>
+      <_TemplatePackage Include="$(NuGetPackageRoot)\$(AvaloniaTemplatesPackageName.ToLowerInvariant())\$(AvaloniaTemplatesPackageVersion)\$(AvaloniaTemplatesPackageName.ToLowerInvariant()).$(AvaloniaTemplatesPackageVersion).nupkg" />
+    </ItemGroup>
+    <Error Text="No template files found." Condition="@(_TemplatePackage-&gt;Count()) == 0" />
+    <Message Text="Template nuget packages found: @(_TemplatePackage)" Importance="low" />
+    <!-- don't modify the following, the pkgdef file uses the path below -->
+    <ItemGroup>
+      <VSIXSourceItem Include="@(_TemplatePackage)">
+        <VSIXSubPath>ProjectTemplates\</VSIXSubPath>
+      </VSIXSourceItem>
+    </ItemGroup>
+  </Target>
+  
   <ItemGroup>
+    <ProjectReference Include="..\templates\ProjectTemplatesDownloader\ProjectTemplatesDownloader.csproj" ReferenceOutputAssembly="false" PrivateAssets="all"  />
     <ProjectReference Include="..\CompletionEngine\Avalonia.Ide.CompletionEngine.DnlibMetadataProvider\Avalonia.Ide.CompletionEngine.DnlibMetadataProvider.csproj">
       <Project>{5f0f9262-3527-46af-acf6-986b7f7b4c90}</Project>
       <Name>Avalonia.Ide.CompletionEngine.DnlibMetadataProvider</Name>
@@ -163,6 +179,12 @@
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
     <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Templates.pkgdef">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="..\AvaloniaVS.Shared\AvaloniaVS.Shared.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
