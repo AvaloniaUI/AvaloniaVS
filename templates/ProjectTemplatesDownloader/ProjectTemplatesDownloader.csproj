@@ -3,7 +3,7 @@
   <!--This project is needed to download Avalonia CLI templates, we can't download them from main projects because PackageDownload requires SDK-style project
   and our main projects can't be migrated to SDK-style.-->
   <PropertyGroup>
-    <TargetFramework>net45</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
   
   <ItemGroup>
