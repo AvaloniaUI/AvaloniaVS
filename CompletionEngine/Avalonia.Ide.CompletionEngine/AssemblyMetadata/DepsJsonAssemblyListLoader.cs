@@ -22,7 +22,7 @@ public static class DepsJsonAssemblyListLoader
                 {
                     var libraryPath = dllprop.Name;
                     var dllName = libraryPath.Split('/').Last();
-                    yield return new Library(package, dllName, libraryPath);
+                    yield return new Library(package, libraryPath, dllName);
                 }
             }
         }
