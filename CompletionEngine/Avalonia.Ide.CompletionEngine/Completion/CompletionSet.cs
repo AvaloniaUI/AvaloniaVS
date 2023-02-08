@@ -6,6 +6,6 @@ namespace Avalonia.Ide.CompletionEngine
     {
         public int StartPosition { get; set; }
 
-        public List<Completion> Completions { get; set; }
+        public List<Completion> Completions { get; set; } = new();
     }
 }

@@ -4,7 +4,7 @@ namespace Avalonia.Ide.CompletionEngine
 {
     public class MarkupExtensionParser
     {
-        struct ParserState
+        private struct ParserState
         {
             public ParserStateType State { get; set; }
             public int ElementNameStart;
@@ -39,18 +39,18 @@ namespace Avalonia.Ide.CompletionEngine
                 if (State == ParserStateType.StartElement)
                     return _state.ElementNameStart;
                 if (State == ParserStateType.StartAttribute)
-                    return _state.AttributeNameStart.Value;
+                    return _state.AttributeNameStart ?? 0;
                 if (State == ParserStateType.BeforeAttributeValue)
-                    return _state.AttributeValueStart.Value;
+                    return _state.AttributeValueStart ?? 0;
                 if (State == ParserStateType.AttributeValue)
-                    return _state.AttributeValueStart.Value;
+                    return _state.AttributeValueStart ?? 0;
                 return 0;
             }
         }
 
         public ParserStateType State => _state.State;
 
-        public string ElementName
+        public string? ElementName
         {
             get
             {
@@ -67,7 +67,7 @@ namespace Avalonia.Ide.CompletionEngine
             }
         }
 
-        public string AttributeName
+        public string? AttributeName
         {
             get
             {
@@ -82,7 +82,7 @@ namespace Avalonia.Ide.CompletionEngine
             }
         }
 
-        public string AttributeValue
+        public string? AttributeValue
         {
             get
             {
@@ -94,8 +94,8 @@ namespace Avalonia.Ide.CompletionEngine
 
         public int AttributesCount { get; private set; }
 
-        ParserState _state;
-        Stack<ParserState> _stack = new Stack<ParserState>();
+        private ParserState _state;
+        private readonly Stack<ParserState> _stack = new();
 
         private readonly string _data;
 

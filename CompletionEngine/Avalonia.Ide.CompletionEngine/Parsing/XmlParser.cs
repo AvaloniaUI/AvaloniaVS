@@ -32,15 +32,15 @@ namespace Avalonia.Ide.CompletionEngine
         private Stack<int> _containingTagStart;
         private bool _isClosingTag;
 
-        public string TagName => State >= ParserState.StartElement
+        public string? TagName => State >= ParserState.StartElement
             ? _data.Span.Slice(_elementNameStart, (_elementNameEnd ?? _data.Length - 1) - _elementNameStart + 1).ToString()
             : null;
 
-        public string AttributeName => State >= ParserState.StartAttribute
+        public string? AttributeName => State >= ParserState.StartAttribute
             ? _data.Span.Slice(_attributeNameStart, (_attributeNameEnd ?? _data.Length - 1) - _attributeNameStart + 1).ToString()
             : null;
 
-        public string AttributeValue =>
+        public string? AttributeValue =>
             State == ParserState.AttributeValue ? _data.Span.Slice(_attributeValueStart).ToString() : null;
 
         public int? CurrentValueStart =>
@@ -75,7 +75,7 @@ namespace Avalonia.Ide.CompletionEngine
         private const string CdataStart = "![CDATA[";
         private const string CdataEnd = "]]>";
 
-        bool CheckPrev(int caret, string checkFor)
+        private bool CheckPrev(int caret, string checkFor)
         {
             var startAt = caret - checkFor.Length + 1;
             if (startAt < 0)
@@ -189,7 +189,7 @@ namespace Avalonia.Ide.CompletionEngine
             return true;
         }
 
-        public string GetParentTagName(int level)
+        public string? GetParentTagName(int level)
         {
             if (NestingLevel - level - 1 < 0)
                 return null;
@@ -201,7 +201,7 @@ namespace Avalonia.Ide.CompletionEngine
 
         }
 
-        public string FindParentAttributeValue(string attributeExpr, int startLevel = 0, int maxLevels = int.MaxValue)
+        public string? FindParentAttributeValue(string attributeExpr, int startLevel = 0, int maxLevels = int.MaxValue)
         {
             if (NestingLevel - startLevel - 1 < 0)
                 return null;
@@ -225,7 +225,7 @@ namespace Avalonia.Ide.CompletionEngine
             return null;
         }
 
-        public string ParseCurrentTagName()
+        public string? ParseCurrentTagName()
         {
             if (State < ParserState.StartElement)
             {
@@ -257,6 +257,10 @@ namespace Avalonia.Ide.CompletionEngine
                 }
 
                 endTag = i + 1;
+            }
+            if (endTag is null)
+            {
+                return null;
             }
             return span.Slice(_elementNameStart, endTag.Value - _elementNameStart).ToString();
         }

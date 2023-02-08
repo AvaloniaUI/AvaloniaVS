@@ -70,7 +70,7 @@ namespace Avalonia.Ide.CompletionEngine
 
                 new CloseXmlTagManipulation(_state, _text, _position).TryCloseTag(textChange, maniplations);
             }
-            else if (_state.State == XmlParser.ParserState.None && textChange.OldText == string.Empty && textChange.NewText == ">")
+            else if (_state.State == XmlParser.ParserState.None && string.IsNullOrEmpty(textChange.OldText) && textChange.NewText == ">")
             {
                 var pp = textChange.NewPosition - 2;
                 // if xmltag already closed ingnore '>'
@@ -83,18 +83,18 @@ namespace Avalonia.Ide.CompletionEngine
             return maniplations.OrderByDescending(n => n.Start).ToList();
         }
 
-        private char[] XmlNameSpecialCharacters = new[] { '-', '_', '.' };
+        private readonly char[] _xmlNameSpecialCharacters = new[] { '-', '_', '.' };
 
         private void SynchronizeStartAndEndTag(ITextChange textChange, List<TextManipulation> maniplations)
         {
-            if (!textChange.NewText.All(n => char.IsLetterOrDigit(n) || XmlNameSpecialCharacters.Contains(n)))
+            if (!textChange.NewText.All(n => char.IsLetterOrDigit(n) || _xmlNameSpecialCharacters.Contains(n)))
             {
                 return;
             }
 
             var startTag = _state.ParseCurrentTagName();
             var maybeTagStart = _state.CurrentValueStart;
-            if (maybeTagStart == null)
+            if (maybeTagStart == null || startTag is null)
             {
                 return;
             }
@@ -113,7 +113,7 @@ namespace Avalonia.Ide.CompletionEngine
             if (searchEndTag.SeekClosingTag())
             {
                 var endTag = searchEndTag.ParseCurrentTagName();
-                if (endTag[0] != '/')
+                if (endTag is null || endTag[0] != '/')
                 {
                     return;
                 }

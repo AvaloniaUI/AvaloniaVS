@@ -22,7 +22,7 @@ namespace Avalonia.Ide.CompletionEngine.AssemblyMetadata
 
     public interface IAttributeConstructorArgumentInformation
     {
-        object Value { get; }
+        object? Value { get; }
     }
 
     public interface ITypeInformation
@@ -32,7 +32,7 @@ namespace Avalonia.Ide.CompletionEngine.AssemblyMetadata
         string Namespace { get; }
         string AssemblyQualifiedName { get; }
 
-        ITypeInformation GetBaseType();
+        ITypeInformation? GetBaseType();
         IEnumerable<IMethodInformation> Methods { get; }
         IEnumerable<IPropertyInformation> Properties { get; }
         IEnumerable<IEventInformation> Events { get; }
@@ -55,7 +55,7 @@ namespace Avalonia.Ide.CompletionEngine.AssemblyMetadata
         bool IsStatic { get; }
         bool IsPublic { get; }
         string Name { get; }
-        IList<IParameterInformation> Parameters { get;}
+        IList<IParameterInformation> Parameters { get; }
         string ReturnTypeFullName { get; }
         string QualifiedReturnTypeFullName { get; }
     }
@@ -94,7 +94,7 @@ namespace Avalonia.Ide.CompletionEngine.AssemblyMetadata
         string Name { get; }
         string TypeFullName { get; }
         string QualifiedTypeFullName { get; }
-        bool IsPublic {get; }
+        bool IsPublic { get; }
         bool IsInternal { get; }
     }
 }

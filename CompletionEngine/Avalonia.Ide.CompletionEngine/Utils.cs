@@ -1,20 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.IO;
 using System.Xml;
 
 namespace Avalonia.Ide.CompletionEngine
 {
-    static class Utils
+    internal static class Utils
     {
-        private static readonly XmlReaderSettings XmlSettings = new XmlReaderSettings()
+        private static readonly XmlReaderSettings s_xmlSettings = new()
         {
             DtdProcessing = DtdProcessing.Ignore,
         };
 
         public static bool CheckAvaloniaRoot(string content)
         {
-            return CheckAvaloniaRoot(XmlReader.Create(new StringReader(content), XmlSettings));
+            return CheckAvaloniaRoot(XmlReader.Create(new StringReader(content), s_xmlSettings));
         }
 
         public static bool CheckAvaloniaRoot(XmlReader reader)
@@ -32,7 +34,7 @@ namespace Avalonia.Ide.CompletionEngine
                     if (reader.Name == "xmlns")
                     {
                         reader.ReadAttributeValue();
-                        return reader.Value.ToLower() == AvaloniaNamespace;
+                        return reader.Value.ToLower(CultureInfo.InvariantCulture) == AvaloniaNamespace;
                     }
 
                 } while (reader.MoveToNextAttribute());
@@ -48,33 +50,30 @@ namespace Avalonia.Ide.CompletionEngine
         public const string Xaml2006Namespace = "http://schemas.microsoft.com/winfx/2006/xaml";
 
         public static TValue GetOrCreate<TKey, TValue>(this Dictionary<TKey, TValue> dic, TKey key,
-            Func<TKey, TValue> getter)
+            Func<TKey, TValue> getter) where TKey : notnull
         {
-            TValue rv;
-            if (!dic.TryGetValue(key, out rv))
+            if (!dic.TryGetValue(key, out var rv))
                 dic[key] = rv = getter(key);
             return rv;
         }
 
-        public static TValue GetOrCreate<TKey, TValue>(this Dictionary<TKey, TValue> dic, TKey key) where TValue : new()
+        public static TValue GetOrCreate<TKey, TValue>(this Dictionary<TKey, TValue> dic, TKey key) where TValue : new() where TKey : notnull
         {
-            TValue rv;
-            if (!dic.TryGetValue(key, out rv))
+            if (!dic.TryGetValue(key, out var rv))
                 dic[key] = rv = new TValue();
             return rv;
         }
 
-        public static TValue GetValueOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dic, TKey key)
+        public static TValue? GetValueOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dic, TKey key) where TKey : notnull
         {
-            TValue rv;
-            if (!dic.TryGetValue(key, out rv))
-                return default(TValue);
+            if (!dic.TryGetValue(key, out var rv))
+                return default;
             return rv;
         }
 
-        public static TValue GetValueOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dic, params TKey[] keys)
+        public static TValue? GetValueOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dic, params TKey[] keys) where TKey : notnull
         {
-            TValue rv = default;
+            TValue? rv = default;
             var found = false;
             for (int i = 0; i < keys.Length; i++)
             {
@@ -86,10 +85,14 @@ namespace Avalonia.Ide.CompletionEngine
             }
             return found
                 ? rv
-                : default(TValue);
+                : default;
         }
 
-        public static bool TryGetValue<TKey, TValue>(this IDictionary<TKey, TValue> dic, Func<TKey, bool> keyMatch, out TValue value)
+        public static bool TryGetValue<TKey, TValue>(this IDictionary<TKey, TValue> dic, Func<TKey, bool> keyMatch,
+#if NET6_0_OR_GREATER
+            [MaybeNullWhen(false)]
+#endif
+            out TValue? value)
         {
             foreach (var kv in dic)
             {
@@ -103,7 +106,7 @@ namespace Avalonia.Ide.CompletionEngine
             return false;
         }
 
-        public static T FirstOrDefault<T>(this IEnumerable<T> source, Func<T, T, bool> predicate, T arg)
+        public static T? FirstOrDefault<T>(this IEnumerable<T> source, Func<T, T, bool> predicate, T arg)
         {
             foreach (var item in source)
             {

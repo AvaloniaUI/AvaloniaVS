@@ -3,63 +3,45 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using Newtonsoft.Json.Linq;
+using System.Text.Json;
 
 namespace Avalonia.Ide.CompletionEngine.AssemblyMetadata
 {
     public static class DepsJsonAssemblyListLoader
     {
-        class Library
-        {
-            public string PackageName { get; set; }
-            public string LibraryPath { get; set; }
-            public string DllName { get; set; }
-        }
+        private record Library(string PackageName, string LibraryPath, string DllName);
 
-        static IEnumerable<Library> TransformDeps(JObject lstr)
+        private static IEnumerable<Library> TransformDeps(JsonElement lstr)
         {
-            foreach (var prop in lstr.Properties())
+            foreach (var prop in lstr.EnumerateObject())
             {
                 var package = prop.Name;
-                var runtime = ((JObject) prop.Value["runtime"]);
-                if(runtime == null)
-                    continue;
-                foreach (var dllprop in runtime.Properties())
+                if (prop.Value.TryGetProperty("runtime", out var runtime))
                 {
-                    var libraryPath = dllprop.Name;
-                    var dllName = libraryPath.Split('/').Last();
-                    yield return new Library
+                    foreach (var dllprop in runtime.EnumerateObject())
                     {
-                        PackageName = package,
-                        DllName = dllName,
-                        LibraryPath = libraryPath
-                    };
+                        var libraryPath = dllprop.Name;
+                        var dllName = libraryPath.Split('/').Last();
+                        yield return new Library(package, dllName, libraryPath);
+                    }
                 }
-
             }
         }
 
-        static string[] GetNugetPackagesDirs()
+        private static IEnumerable<string> GetNugetPackagesDirs()
         {
-            var home = Environment.GetEnvironmentVariable(
-#if DESKTOP
-                Environment.OSVersion.Platform == PlatformID.Win32NT
-#else
-                RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-#endif
-                    ? "USERPROFILE"
-                    : "HOME");
+            var home = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "USERPROFILE" : "HOME";
+
+            if (home is not null)
+            {
+                yield return Path.Combine(home, ".nuget/packages");
+            }
 
             var redirectedPath = Environment.GetEnvironmentVariable("NUGET_PACKAGES");
 
-            if (redirectedPath != null)
+            if (redirectedPath is not null)
             {
-                return new[] { Path.Combine(home, ".nuget/packages"), redirectedPath };
-            }
-            else
-            {
-                return new[] { Path.Combine(home, ".nuget/packages") };
+                yield return redirectedPath;
             }
         }
 
@@ -67,9 +49,19 @@ namespace Avalonia.Ide.CompletionEngine.AssemblyMetadata
         {
             var dir = Path.GetDirectoryName(path);
             var nugetDirs = GetNugetPackagesDirs();
-            var deps = JObject.Parse(File.ReadAllText(path));
-            var target = deps["runtimeTarget"]["name"].ToString();
-            foreach (var l in TransformDeps((JObject) deps["targets"][target]))
+            var deps = JsonDocument.Parse(File.ReadAllText(path));
+            if (deps is null || dir is null)
+            {
+                yield break;
+            }
+
+            var target = deps.RootElement.GetProperty("runtimeTarget").GetProperty("name").GetString();
+            if (target is null)
+            {
+                yield break;
+            }
+
+            foreach (var l in TransformDeps(deps.RootElement.GetProperty("targets").GetProperty(target)))
             {
                 var localPath = Path.Combine(dir, l.DllName);
                 if (File.Exists(localPath))
@@ -79,7 +71,7 @@ namespace Avalonia.Ide.CompletionEngine.AssemblyMetadata
                 }
                 foreach (var nugetPath in nugetDirs)
                 {
-                    foreach (var tolower in new[]{false, true})
+                    foreach (var tolower in new[] { false, true })
                     {
                         var packagePath = Path.Combine(nugetPath,
                             tolower ? l.PackageName.ToLowerInvariant() : l.PackageName, l.LibraryPath);
@@ -90,11 +82,7 @@ namespace Avalonia.Ide.CompletionEngine.AssemblyMetadata
                         }
                     }
                 }
-
             }
-
-
         }
-
     }
 }

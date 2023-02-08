@@ -71,7 +71,7 @@ namespace Avalonia.Ide.CompletionEngine
                 return null;
             }
 
-            pos = pos + 2;
+            pos += 2;
             for (var i = 0; i < currentTag.Length; i++)
             {
                 if (text[pos] != currentTag[i])

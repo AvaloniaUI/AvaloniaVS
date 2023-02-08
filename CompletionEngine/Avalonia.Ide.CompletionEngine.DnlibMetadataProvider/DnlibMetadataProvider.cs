@@ -15,7 +15,7 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider
         }
     }
 
-    class DnlibMetadataProviderSession : IMetadataReaderSession
+    internal class DnlibMetadataProviderSession : IMetadataReaderSession
     {
         public string TargetAssemblyName { get; private set; }
         public IEnumerable<IAssemblyInformation> Assemblies { get; }
@@ -25,7 +25,7 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider
             Assemblies = LoadAssemblies(directoryPath).Select(a => new AssemblyWrapper(a)).ToList();
         }
 
-        static List<AssemblyDef> LoadAssemblies(string[] lst)
+        private static List<AssemblyDef> LoadAssemblies(string[] lst)
         {
             AssemblyResolver asmResolver = new AssemblyResolver();
             ModuleContext modCtx = new ModuleContext(asmResolver);

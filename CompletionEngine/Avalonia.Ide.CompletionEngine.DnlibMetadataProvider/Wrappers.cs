@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using Avalonia.Ide.CompletionEngine.AssemblyMetadata;
 using dnlib.DotNet;
 
 namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider
 {
-    class AssemblyWrapper : IAssemblyInformation
+    internal class AssemblyWrapper : IAssemblyInformation
     {
         private readonly AssemblyDef _asm;
 
@@ -23,7 +22,7 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider
             => _asm.GetFullNameWithPublicKeyToken();
 
         public IEnumerable<ITypeInformation> Types
-            => _asm.Modules.SelectMany(m => m.Types).Select(TypeWrapper.FromDef);
+            => _asm.Modules.SelectMany(m => m.Types).Select(TypeWrapper.FromDef).Where(t => t is not null)!;
 
         public IEnumerable<ICustomAttributeInformation> CustomAttributes
             => _asm.CustomAttributes.Select(a => new CustomAttributeWrapper(a));
@@ -40,13 +39,13 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider
         public override string ToString() => Name;
     }
 
-    class TypeWrapper : ITypeInformation
+    internal class TypeWrapper : ITypeInformation
     {
         private readonly TypeDef _type;
 
-        public static TypeWrapper FromDef(TypeDef def) => def == null ? null : new TypeWrapper(def);
+        public static TypeWrapper? FromDef(TypeDef def) => def == null ? null : new TypeWrapper(def);
 
-        TypeWrapper(TypeDef type)
+        private TypeWrapper(TypeDef type)
         {
             if (type == null)
                 throw new ArgumentNullException();
@@ -59,7 +58,7 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider
         public string Name => _type.Name;
         public string AssemblyQualifiedName { get; }
         public string Namespace => _type.Namespace;
-        public ITypeInformation GetBaseType() => FromDef(_type.GetBaseType().ResolveTypeDef());
+        public ITypeInformation? GetBaseType() => FromDef(_type.GetBaseType().ResolveTypeDef());
 
         public IEnumerable<IEventInformation> Events => _type.Events.Select(e => new EventWrapper(e));
 
@@ -103,8 +102,8 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider
                 {
                     if (x.HasConstructorArguments)
                     {
-                        return (x.ConstructorArguments[0].Value as IEnumerable<CAArgument>)
-                                .Select(y => y.Value.ToString());
+                        return (x.ConstructorArguments[0].Value as IEnumerable<CAArgument>)?
+                                .Select(y => y.Value.ToString()) ?? Enumerable.Empty<string>();
                     }
 
                     return Enumerable.Empty<string>();
@@ -112,7 +111,8 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider
 
                 foreach (var ret in selector)
                     foreach (var ret2 in ret)
-                        yield return ret2;
+                        if (ret2 is not null)
+                            yield return ret2;
 
             }
         }
@@ -121,9 +121,9 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider
             _type.HasNestedTypes ? _type.NestedTypes.Select(t => new TypeWrapper(t)) : Array.Empty<TypeWrapper>();
     }
 
-    class CustomAttributeWrapper : ICustomAttributeInformation
+    internal class CustomAttributeWrapper : ICustomAttributeInformation
     {
-        private Lazy<IList<IAttributeConstructorArgumentInformation>> _args;
+        private readonly Lazy<IList<IAttributeConstructorArgumentInformation>> _args;
         public CustomAttributeWrapper(CustomAttribute attr)
         {
             TypeFullName = attr.TypeFullName;
@@ -137,7 +137,7 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider
         public IList<IAttributeConstructorArgumentInformation> ConstructorArguments => _args.Value;
     }
 
-    class ConstructorArgumentWrapper : IAttributeConstructorArgumentInformation
+    internal class ConstructorArgumentWrapper : IAttributeConstructorArgumentInformation
     {
         public ConstructorArgumentWrapper(CAArgument ca)
         {
@@ -147,7 +147,7 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider
         public object Value { get; }
     }
 
-    class PropertyWrapper : IPropertyInformation
+    internal class PropertyWrapper : IPropertyInformation
     {
         private readonly PropertyDef _prop;
         private readonly Func<PropertyDef, string, bool> _isVisbleTo;
@@ -161,8 +161,8 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider
             IsStatic = setMethod?.IsStatic ?? getMethod?.IsStatic ?? false;
             IsPublic = prop.IsPublic();
 
-            HasPublicSetter = setMethod.IsPublic();
-            HasPublicGetter = getMethod.IsPublic();
+            HasPublicSetter = setMethod?.IsPublic() ?? false;
+            HasPublicGetter = getMethod?.IsPublic() ?? false;
 
             TypeSig? type = default;
             if (getMethod is not null)
@@ -175,7 +175,7 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider
             }
             else
             {
-                //TODO Trow??
+                throw new InvalidOperationException("Property without a type was found.");
             }
 
             TypeFullName = type.FullName;
@@ -241,7 +241,7 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider
         public override string ToString() => Name;
     }
 
-    class FieldWrapper : IFieldInformation
+    internal class FieldWrapper : IFieldInformation
     {
         public FieldWrapper(FieldDef f)
         {
@@ -277,7 +277,7 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider
         public string QualifiedTypeFullName { get; }
     }
 
-    class EventWrapper : IEventInformation
+    internal class EventWrapper : IEventInformation
     {
         public EventWrapper(EventDef @event)
         {
@@ -296,7 +296,7 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider
         public bool IsInternal { get; }
     }
 
-    class MethodWrapper : IMethodInformation
+    internal class MethodWrapper : IMethodInformation
     {
         private readonly MethodDef _method;
         private readonly Lazy<IList<IParameterInformation>> _parameters;
@@ -307,9 +307,15 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider
             _parameters = new Lazy<IList<IParameterInformation>>(() =>
                 _method.Parameters.Skip(_method.IsStatic ? 0 : 1).Select(p => (IParameterInformation)new ParameterWrapper(p)).ToList() as
                     IList<IParameterInformation>);
-            if (!(_method.ReturnType is null))
+            if (_method.ReturnType is not null)
             {
                 QualifiedReturnTypeFullName = _method.ReturnType.AssemblyQualifiedName;
+                ReturnTypeFullName = _method.ReturnType.FullName;
+            }
+            else
+            {
+                QualifiedReturnTypeFullName = typeof(void).AssemblyQualifiedName!;
+                ReturnTypeFullName = typeof(void).FullName!;
             }
         }
 
@@ -317,13 +323,13 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider
         public bool IsPublic => _method.IsPublic;
         public string Name => _method.Name;
         public IList<IParameterInformation> Parameters => _parameters.Value;
-        public string ReturnTypeFullName => _method.ReturnType?.FullName;
+        public string ReturnTypeFullName { get; }
         public string QualifiedReturnTypeFullName { get; }
 
         public override string ToString() => Name;
     }
 
-    class ParameterWrapper : IParameterInformation
+    internal class ParameterWrapper : IParameterInformation
     {
         private readonly Parameter _param;
 
