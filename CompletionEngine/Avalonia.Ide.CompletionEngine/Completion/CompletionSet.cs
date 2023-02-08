@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
 
-namespace Avalonia.Ide.CompletionEngine
-{
-    public class CompletionSet
-    {
-        public int StartPosition { get; set; }
+namespace Avalonia.Ide.CompletionEngine;
 
-        public List<Completion> Completions { get; set; } = new();
-    }
+public class CompletionSet
+{
+    public int StartPosition { get; set; }
+
+    public List<Completion> Completions { get; set; } = new();
 }

@@ -3,38 +3,37 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace Avalonia.Ide.CompletionEngine.AssemblyMetadata
+namespace Avalonia.Ide.CompletionEngine.AssemblyMetadata;
+
+public class MetadataReader
 {
-    public class MetadataReader
+    private readonly IMetadataProvider _provider;
+
+    public MetadataReader(IMetadataProvider provider)
     {
-        private readonly IMetadataProvider _provider;
+        _provider = provider;
+    }
 
-        public MetadataReader(IMetadataProvider provider)
+    private static IEnumerable<string> GetAssemblies(string path)
+    {
+        if (Path.GetDirectoryName(path) is not { } directory)
         {
-            _provider = provider;
+            return Array.Empty<string>();
         }
 
-        private static IEnumerable<string> GetAssemblies(string path)
-        {
-            if (Path.GetDirectoryName(path) is not { } directory)
-            {
-                return Array.Empty<string>();
-            }
+        var depsPath = Path.Combine(directory,
+            Path.GetFileNameWithoutExtension(path) + ".deps.json");
+        if (File.Exists(depsPath))
+            return DepsJsonAssemblyListLoader.ParseFile(depsPath);
+        return Directory.GetFiles(directory).Where(f => f.EndsWith(".dll") || f.EndsWith(".exe"));
+    }
 
-            var depsPath = Path.Combine(directory,
-                Path.GetFileNameWithoutExtension(path) + ".deps.json");
-            if (File.Exists(depsPath))
-                return DepsJsonAssemblyListLoader.ParseFile(depsPath);
-            return Directory.GetFiles(directory).Where(f => f.EndsWith(".dll") || f.EndsWith(".exe"));
-        }
+    public Metadata? GetForTargetAssembly(string path)
+    {
+        if (!File.Exists(path))
+            return null;
 
-        public Metadata? GetForTargetAssembly(string path)
-        {
-            if (!File.Exists(path))
-                return null;
-
-            using var session = _provider.GetMetadata(MetadataReader.GetAssemblies(path));
-            return MetadataConverter.ConvertMetadata(session);
-        }
+        using var session = _provider.GetMetadata(MetadataReader.GetAssemblies(path));
+        return MetadataConverter.ConvertMetadata(session);
     }
 }
