@@ -34,7 +34,8 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>FsAvaloniaWindowTemplate</RootNamespace>
     <AssemblyName>FsAvaloniaWindowTemplate</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <RuntimeIdentifier>win</RuntimeIdentifier>
     <FileAlignment>512</FileAlignment>
     <GeneratePkgDefFile>false</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>

@@ -1,8 +1,7 @@
-﻿namespace Avalonia.Ide.CompletionEngine
+﻿namespace Avalonia.Ide.CompletionEngine;
+
+public enum ManipulationType
 {
-    public enum ManipulationType
-    {
-        Insert,
-        Delete
-    }
+    Insert,
+    Delete
 }
