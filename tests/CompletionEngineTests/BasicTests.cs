@@ -133,5 +133,16 @@ namespace CompletionEngineTests
         {
             AssertSingleCompletion("<UserControl ", "x:Data", "x:DataType=\"\"");
         }
+
+        [Fact]
+        public void Completion_Should_Be_Sorted()
+        {
+            var compl = GetCompletionsFor("<DataTemplate");
+
+            Assert.Equal(3, compl.Completions.Count);
+            Assert.Equal("DataTemplate", compl.Completions[0].InsertText);
+            Assert.Equal("DataTemplateExtensions", compl.Completions[1].InsertText);
+            Assert.Equal("DataTemplates", compl.Completions[2].InsertText);
+        }
     }
 }

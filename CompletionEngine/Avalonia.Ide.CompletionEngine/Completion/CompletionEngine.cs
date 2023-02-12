@@ -390,7 +390,7 @@ public class CompletionEngine
         }
 
         if (completions.Count != 0)
-            return new CompletionSet() { Completions = completions, StartPosition = curStart };
+            return new CompletionSet() { Completions = completions.OrderBy(i => i.Kind).ThenBy(i => i.InsertText).ToList(), StartPosition = curStart };
 
         return null;
     }
