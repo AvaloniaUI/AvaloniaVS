@@ -8,7 +8,11 @@
     <AssemblyOriginatorKeyFile>$(SolutionDir)Key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="System.Text.Json" Version="7.0.1" />
+    <!-- 
+    Must use oldest System.Text.Json version here as this can't be higher than what VS ships with
+    or intellisense will fail to load - see GH#298
+    -->
+    <PackageReference Include="System.Text.Json" Version="4.6.0" />
     <PackageReference Include="System.Memory" Version="4.5.5" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
   </ItemGroup>
 
