@@ -390,9 +390,26 @@ public class CompletionEngine
         }
 
         if (completions.Count != 0)
-            return new CompletionSet() { Completions = completions.OrderBy(i => i.Kind).ThenBy(i => i.InsertText).ToList(), StartPosition = curStart };
+            return new CompletionSet() { Completions = SortCompletions(completions), StartPosition = curStart };
 
         return null;
+    }
+
+    private List<Completion> SortCompletions(List<Completion> completions)
+    {
+        // Group the completions based on Kind, and sort the completions for each group
+        var completionGroups = completions
+            .GroupBy(i => i.Kind)
+            .ToDictionary(i => i.Key,
+                i => i.OrderBy(j => j.DisplayText.Length)
+                    .ThenBy(j => j.DisplayText)
+                    .ToList());
+
+        // Resort the groups based on the first completion of each group, and flatten the result to a list
+        return completionGroups.OrderBy(i => i.Value.First().DisplayText.Length)
+            .ThenBy(i => i.Value.First().DisplayText)
+            .SelectMany(i => i.Value)
+            .ToList();
     }
 
     private void ProcessStyleSetter(string setterPropertyName, XmlParser state, List<Completion> completions, string? currentAssemblyName)

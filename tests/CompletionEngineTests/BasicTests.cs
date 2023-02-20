@@ -135,14 +135,25 @@ namespace CompletionEngineTests
         }
 
         [Fact]
-        public void Completion_Should_Be_Sorted()
+        public void Completions_Should_Be_Sorted()
         {
             var compl = GetCompletionsFor("<DataTemplate");
 
             Assert.Equal(3, compl.Completions.Count);
-            Assert.Equal("DataTemplate", compl.Completions[0].InsertText);
-            Assert.Equal("DataTemplateExtensions", compl.Completions[1].InsertText);
-            Assert.Equal("DataTemplates", compl.Completions[2].InsertText);
+            Assert.Equal("DataTemplate", compl.Completions[0].DisplayText);
+            Assert.Equal("DataTemplates", compl.Completions[1].DisplayText);
+            Assert.Equal("DataTemplateExtensions", compl.Completions[2].DisplayText);
+        }
+
+        [Fact]
+        public void Completions_With_Multiple_Kinds_Should_Be_Sorted()
+        {
+            var compl = GetCompletionsFor("<Style Se");
+
+            Assert.Equal(3, compl.Completions.Count);
+            Assert.Equal("Selector", compl.Completions[0].DisplayText);
+            Assert.Equal("SelectableTextBlock", compl.Completions[1].DisplayText);
+            Assert.Equal("SelectingItemsControl", compl.Completions[2].DisplayText);
         }
     }
 }
