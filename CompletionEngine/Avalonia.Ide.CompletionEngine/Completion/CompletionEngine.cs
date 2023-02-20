@@ -399,15 +399,14 @@ public class CompletionEngine
     {
         // Group the completions based on Kind, and sort the completions for each group
         var completionGroups = completions
-            .GroupBy(i => i.Kind)
-            .ToDictionary(i => i.Key,
-                i => i.OrderBy(j => j.DisplayText.Length)
+            .GroupBy(i => i.Kind, (_, compl) =>
+                compl.OrderBy(j => j.DisplayText.Length)
                     .ThenBy(j => j.DisplayText));
 
         // Resort the groups based on the first completion of each group, and flatten the result to a list
-        return completionGroups.OrderBy(i => i.Value.First().DisplayText.Length)
-            .ThenBy(i => i.Value.First().DisplayText)
-            .SelectMany(i => i.Value)
+        return completionGroups.OrderBy(i => i.First().DisplayText.Length)
+            .ThenBy(i => i.First().DisplayText)
+            .SelectMany(i => i)
             .ToList();
     }
 
