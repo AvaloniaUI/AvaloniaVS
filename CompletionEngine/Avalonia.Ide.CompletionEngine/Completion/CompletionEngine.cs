@@ -402,8 +402,7 @@ public class CompletionEngine
             .GroupBy(i => i.Kind)
             .ToDictionary(i => i.Key,
                 i => i.OrderBy(j => j.DisplayText.Length)
-                    .ThenBy(j => j.DisplayText)
-                    .ToList());
+                    .ThenBy(j => j.DisplayText));
 
         // Resort the groups based on the first completion of each group, and flatten the result to a list
         return completionGroups.OrderBy(i => i.Value.First().DisplayText.Length)
