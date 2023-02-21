@@ -6,9 +6,17 @@ namespace Avalonia.Ide.CompletionEngine;
 
 public class Metadata
 {
-    public Dictionary<string, Dictionary<string, MetadataType>> Namespaces { get; } = new Dictionary<string, Dictionary<string, MetadataType>>();
+    readonly Dictionary<string, Dictionary<string, MetadataType>> _namespaces = new();
+    readonly Dictionary<string, string> _inverseNamespace = new();
 
-    public void AddType(string ns, MetadataType type) => Namespaces.GetOrCreate(ns)[type.Name] = type;
+    public IReadOnlyDictionary<string, Dictionary<string, MetadataType>> Namespaces => _namespaces;
+    public IReadOnlyDictionary<string, string> InverseNamespace => _inverseNamespace;
+
+    public void AddType(string ns, MetadataType type)
+    {
+        _namespaces.GetOrCreate(ns)[type.Name] = type;
+        _inverseNamespace[type.FullName] = ns;
+    }
 }
 
 [DebuggerDisplay("{Name}")]
@@ -19,6 +27,9 @@ public record MetadataType(string Name)
     public bool IsStatic { get; set; }
     public bool HasHintValues { get; set; }
     public string[]? HintValues { get; set; }
+
+    public string[] PseudoClasses { get; set; } = Array.Empty<string>();
+    public bool HasPseudoClasses { get; set; }
 
     //assembly, type, property
     public Func<string?, MetadataType, MetadataProperty?, bool>? IsValidForXamlContextFunc { get; set; }
@@ -37,6 +48,10 @@ public record MetadataType(string Name)
     public bool IsGeneric { get; set; }
     public bool IsXamlDirective { get; set; }
     public string? AssemblyQualifiedName { get; set; }
+    public bool IsNullable { get; init; }
+    public MetadataType? UnderlyingType { get; init; }
+    public IEnumerable<(MetadataType Type,string Name)> TemplateParts { get; internal set; } = 
+        Array.Empty<(MetadataType Type, string Name)>();
 }
 
 public enum MetadataTypeCtorArgument

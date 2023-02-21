@@ -31,14 +31,31 @@ public enum CompletionKind
     /// <summary>
     /// xmlns list in visual studio (uses enum icon instead of namespace icon)
     /// </summary>
-    VS_XMLNS = 0x800
+    VS_XMLNS = 0x800,
+
+    Selector = 0x1000,
+    Name = 0x2000,
 }
 
-public record Completion(string DisplayText, string InsertText, string Description, CompletionKind Kind, int? RecommendedCursorOffset = null)
+public record Completion(string DisplayText,
+    string InsertText,
+    string Description,
+    CompletionKind Kind,
+    int? RecommendedCursorOffset = null,
+    string? Suffix = null,
+    int? RepleceCursorOffset = null
+    )
 {
     public override string ToString() => DisplayText;
 
-    public Completion(string insertText, CompletionKind kind) : this(insertText, insertText, insertText, kind)
+    public Completion(string insertText, CompletionKind kind, string? suffix = default) :
+        this(insertText, insertText, insertText, kind, Suffix: suffix)
+    {
+
+    }
+
+    public Completion(string displayText, string insertText, CompletionKind kind, string? suffix = default) :
+        this(displayText, insertText, displayText, kind)
     {
 
     }

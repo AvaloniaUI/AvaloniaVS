@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Avalonia.Ide.CompletionEngine.AssemblyMetadata;
 
@@ -27,7 +28,12 @@ public static class MetadataConverter
         "Avalonia.Markup.Xaml.Styling.StyleInclude,",
         "Avalonia.Markup.Xaml.Styling.StyleIncludeExtension,",
     };
-
+    private readonly static Regex extractType = new Regex(
+      "System.Nullable`1<(?<Type>.*)>|System.Nullable`1\\[\\[(?<Typ" +
+      "e>.*)]].*",
+    RegexOptions.CultureInvariant
+    | RegexOptions.Compiled
+    );
 
     internal static bool IsMarkupExtension(ITypeInformation type)
     {
@@ -87,13 +93,14 @@ public static class MetadataConverter
         var resourceUrls = new List<string>();
         var avaresValues = new List<AvaresInfo>();
         var pseudoclasses = new HashSet<string>();
+        var typepseudoclasses = new HashSet<string>();
 
         var ignoredResExt = new[] { ".resources", ".rd.xml", "!AvaloniaResources" };
 
         bool skipRes(string res) => ignoredResExt.Any(r => res.EndsWith(r, StringComparison.OrdinalIgnoreCase));
 
         PreProcessTypes(types, metadata);
-
+        var targetAssembly = provider.Assemblies.First();
         foreach (var asm in provider.Assemblies)
         {
             var aliases = new Dictionary<string, string[]>();
@@ -105,23 +112,53 @@ public static class MetadataConverter
 
             if (asm.AssemblyName == provider.TargetAssemblyName || asm.InternalsVisibleTo.Any(att =>
                 {
-                    var attParts = att.Split(',');
-                    var nameParts = provider.TargetAssemblyName.Split(',');
-                    var min = Math.Min(attParts.Length, nameParts.Length);
-                    var i = 0;
-                    for (; i < min && string.Equals(attParts[i], nameParts[i], StringComparison.OrdinalIgnoreCase); i++)
+                    var endNameIndex = att.IndexOf(',');
+                    var assemblyName = att;
+                    var targetPublicKey = targetAssembly.PublicKey;
+                    if (endNameIndex > 0)
                     {
-
+                        assemblyName = att.Substring(0, endNameIndex);
                     }
-                    return i == min;
+                    if (assemblyName == targetAssembly.Name)
+                    {
+                        if (endNameIndex == -1)
+                        {
+                            return true;
+                        }
+                        var publicKeyIndex = att.IndexOf("PublicKey", endNameIndex, StringComparison.OrdinalIgnoreCase);
+                        if (publicKeyIndex > 0)
+                        {
+                            publicKeyIndex += 9;
+                            if (publicKeyIndex > att.Length)
+                            {
+                                return false;
+                            }
+                            while (publicKeyIndex < att.Length && att[publicKeyIndex] is ' ' or '=')
+                            {
+                                publicKeyIndex++;
+                            }
+                            if (targetPublicKey.Length == att.Length - publicKeyIndex)
+                            {
+                                for (int i = publicKeyIndex; i < att.Length; i++)
+                                {
+                                    if (att[i] != targetPublicKey[i - publicKeyIndex])
+                                    {
+                                        return false;
+                                    }
+                                }
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
                 }))
             {
                 typeFilter = type => type.Name != "<Module>" && !type.IsInterface && !type.IsAbstract;
             }
 
-            var asmTypes = asm.Types.ToArray();
+            var asmTypes = asm.Types.Where(typeFilter).ToArray();
 
-            foreach (var type in asmTypes.Where(typeFilter))
+            foreach (var type in asmTypes)
             {
                 var mt = types[type.AssemblyQualifiedName] = ConvertTypeInfomation(type);
                 typeDefs[mt] = type;
@@ -146,7 +183,8 @@ public static class MetadataConverter
             resourceUrls.AddRange(asm.ManifestResourceNames.Where(r => !skipRes(r)).Select(r => $"resm:{r}?assembly={asm.Name}"));
         }
 
-        foreach (var type in types.Values)
+        var at = types.Values.ToArray();
+        foreach (var type in at)
         {
             typeDefs.TryGetValue(type, out var typeDef);
 
@@ -164,21 +202,29 @@ public static class MetadataConverter
             }
 
             int level = 0;
+            typepseudoclasses.Clear();
+
+            type.TemplateParts = (typeDef?.TemplateParts ??
+                Array.Empty<(ITypeInformation, string)>())
+                .Select(item => (Type: ConvertTypeInfomation(item.Type), item.Name));
+
             while (typeDef != null)
             {
-                var typePseudoclasses = typeDef.Pseudoclasses;
-
-                foreach (var pc in typePseudoclasses)
+                foreach (var pc in typeDef.Pseudoclasses)
                 {
+                    typepseudoclasses.Add(pc);
                     pseudoclasses.Add(pc);
                 }
 
                 var currentType = types.GetValueOrDefault(typeDef.AssemblyQualifiedName);
                 foreach (var prop in typeDef.Properties)
                 {
-                    if (!prop.IsVisbleTo(provider.TargetAssemblyName))
+                    if (!prop.IsVisbleTo(targetAssembly))
                         continue;
-                    var p = new MetadataProperty(prop.Name, types.GetValueOrDefault(prop.TypeFullName, prop.QualifiedTypeFullName),
+
+                    var propertyType = GetType(types, prop.TypeFullName, prop.QualifiedTypeFullName);
+
+                    var p = new MetadataProperty(prop.Name, propertyType,
                         currentType, false, prop.IsStatic, prop.HasPublicGetter,
                         prop.HasPublicSetter);
 
@@ -187,28 +233,14 @@ public static class MetadataConverter
 
                 foreach (var eventDef in typeDef.Events)
                 {
-                    var e = new MetadataEvent(eventDef.Name, types.GetValueOrDefault(eventDef.TypeFullName, eventDef.QualifiedTypeFullName),
+                    var e = new MetadataEvent(eventDef.Name, GetType(types, eventDef.TypeFullName, eventDef.QualifiedTypeFullName),
                         types.GetValueOrDefault(typeDef.FullName, typeDef.AssemblyQualifiedName), false);
 
                     type.Events.Add(e);
                 }
 
-                //check for attached properties only on top level
                 if (level == 0)
                 {
-                    foreach (var methodDef in typeDef.Methods)
-                    {
-                        if (methodDef.Name.StartsWith("Set", StringComparison.OrdinalIgnoreCase) && methodDef.IsStatic && methodDef.IsPublic
-                            && methodDef.Parameters.Count == 2)
-                        {
-                            var name = methodDef.Name.Substring(3);
-                            type.Properties.Add(new MetadataProperty(name,
-                                types.GetValueOrDefault(methodDef.Parameters[1].TypeFullName, methodDef.Parameters[1].QualifiedTypeFullName),
-                                types.GetValueOrDefault(typeDef.FullName, typeDef.AssemblyQualifiedName),
-                                true, false, true, true));
-                        }
-                    }
-
                     foreach (var fieldDef in typeDef.Fields)
                     {
                         if (fieldDef.IsStatic && fieldDef.IsPublic)
@@ -225,6 +257,44 @@ public static class MetadataConverter
                                     types.GetValueOrDefault(fieldDef.ReturnTypeFullName, fieldDef.QualifiedTypeFullName),
                                     types.GetValueOrDefault(typeDef.FullName, typeDef.AssemblyQualifiedName),
                                     true));
+                            }
+                            else if (fieldDef.Name.EndsWith("Property", StringComparison.OrdinalIgnoreCase)
+                                && fieldDef.ReturnTypeFullName.StartsWith("Avalonia.AttachedProperty`1")
+                                )
+                            {
+                                var name = fieldDef.Name.Substring(0, fieldDef.Name.Length - "Property".Length);
+
+                                IMethodInformation? setMethod = null;
+                                IMethodInformation? getMethod = null;
+
+                                foreach (var methodDef in typeDef.Methods)
+                                {
+                                    if (methodDef.Name.StartsWith("Set", StringComparison.OrdinalIgnoreCase) && methodDef.IsStatic && methodDef.IsPublic
+                                        && methodDef.Parameters.Count == 2)
+                                    {
+                                        setMethod = methodDef;
+                                    }
+                                    if (methodDef.IsStatic
+                                        && methodDef.Name.StartsWith("Get", StringComparison.OrdinalIgnoreCase)
+                                        && methodDef.IsPublic
+                                        && methodDef.Parameters.Count == 1
+                                        && !string.IsNullOrEmpty(methodDef.ReturnTypeFullName)
+                                        )
+                                    {
+                                        getMethod = methodDef;
+                                    }
+                                }
+
+                                if (getMethod is not null)
+                                {
+                                    type.Properties.Add(new MetadataProperty(name,
+                                        Type: types.GetValueOrDefault(getMethod.ReturnTypeFullName, getMethod.QualifiedReturnTypeFullName),
+                                        DeclaringType: types.GetValueOrDefault(typeDef.FullName, typeDef.AssemblyQualifiedName),
+                                        IsAttached: true,
+                                        IsStatic: false,
+                                        HasGetter: true,
+                                        HasSetter: setMethod is not null));
+                                }
                             }
                             else if (type.IsStatic)
                             {
@@ -247,6 +317,11 @@ public static class MetadataConverter
             type.HasAttachedEvents = type.Events.Any(e => e.IsAttached);
             type.HasStaticGetProperties = type.Properties.Any(p => p.IsStatic && p.HasGetter);
             type.HasSetProperties = type.Properties.Any(p => !p.IsStatic && p.HasSetter);
+            if (typepseudoclasses.Count > 0)
+            {
+                type.HasPseudoClasses = true;
+                type.PseudoClasses = typepseudoclasses.ToArray();
+            }
 
             if (ctors?.Any() == true)
             {
@@ -272,6 +347,35 @@ public static class MetadataConverter
         }
 
         PostProcessTypes(types, metadata, resourceUrls, avaresValues, pseudoclasses);
+
+        MetadataType? GetType(Dictionary<string, MetadataType> types, params string[] keys)
+        {
+            MetadataType? type = default;
+            foreach (var key in keys)
+            {
+                if (types.TryGetValue(key, out type))
+                {
+                    break;
+                }
+                else if (key.StartsWith("System.Nullable`1", StringComparison.OrdinalIgnoreCase))
+                {
+                    var typeName = extractType.Match(key);
+                    if (typeName.Success && types.TryGetValue(typeName.Groups[1].Value, out type))
+                    {
+                        type = new MetadataType(key)
+                        {
+                            AssemblyQualifiedName = type.AssemblyQualifiedName,
+                            FullName = $"System.Nullable`1<{type.FullName}>",
+                            IsNullable = true,
+                            UnderlyingType = type
+                        };
+                        types.Add(key, type);
+                        break;
+                    }
+                }
+            }
+            return type;
+        }
 
         return metadata;
     }
@@ -436,6 +540,12 @@ public static class MetadataConverter
                 HasHintValues = true,
                 HintValues = new[] { "True", "False" }
             }),
+            new MetadataType("System.Nullable`1<System.Boolean>")
+            {
+                HasHintValues = true,
+                IsNullable = true,
+                UnderlyingType = boolType,
+            },
             new MetadataType(typeof(System.Uri).FullName!),
             (typeType = new MetadataType(typeof(System.Type).FullName!)),
             new MetadataType("Avalonia.Media.IBrush"),
@@ -699,6 +809,7 @@ public static class MetadataConverter
             brushType.HintValues = brushes.Properties.Where(p => p.IsStatic && p.HasGetter).Select(p => p.Name).ToArray();
         }
 
+        //TODO: Remove
         if (avaloniaBaseType.TryGetValue("Avalonia.Styling.Selector", out MetadataType? styleSelector))
         {
             styleSelector.HasHintValues = true;

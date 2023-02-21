@@ -19,4 +19,9 @@
   <Import Project="../../Props/NullableEnable.props" />
   <Import Project="../../Props/TrimmingEnable.props" />
   <Import Project="../../Props/NetAnalyzers.props" />
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="CompletionEngineTests"/>
+  </ItemGroup>
+ 
 </Project>

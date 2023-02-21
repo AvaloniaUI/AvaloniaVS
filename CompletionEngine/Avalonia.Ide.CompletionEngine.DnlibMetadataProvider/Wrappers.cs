@@ -36,6 +36,9 @@ internal class AssemblyWrapper : IAssemblyInformation
     public Stream GetManifestResourceStream(string name)
         => _asm.ManifestModule.Resources.FindEmbeddedResource(name).CreateReader().AsStream();
 
+    public string PublicKey
+        => _asm.PublicKey.ToString();
+
     public override string ToString() => Name;
 }
 
@@ -81,6 +84,7 @@ internal class TypeWrapper : ITypeInformation
     public bool IsGeneric => _type.HasGenericParameters;
     public bool IsAbstract => _type.IsAbstract && !_type.IsSealed;
     public bool IsInternal => _type.IsNotPublic && !_type.IsNestedPrivate;
+
     public IEnumerable<string> EnumValues
     {
         get
@@ -119,6 +123,22 @@ internal class TypeWrapper : ITypeInformation
     public override string ToString() => Name;
     public IEnumerable<ITypeInformation> NestedTypes =>
         _type.HasNestedTypes ? _type.NestedTypes.Select(t => new TypeWrapper(t)) : Array.Empty<TypeWrapper>();
+
+    public IEnumerable<(ITypeInformation Type, string Name)> TemplateParts
+    {
+        get
+        {
+            var attributes = _type.CustomAttributes
+                .Where(a => a.TypeFullName.EndsWith("TemplatePartAttribute", StringComparison.OrdinalIgnoreCase)
+                    && a.HasConstructorArguments);
+            foreach (var attr in attributes)
+            {
+                var name = attr.ConstructorArguments[0].Value.ToString()!;
+                ITypeInformation type = TypeWrapper.FromDef(((ClassSig)attr.ConstructorArguments[1].Value).TypeDef)!;
+                yield return (type, name);
+            }
+        }
+    }
 }
 
 internal class CustomAttributeWrapper : ICustomAttributeInformation
@@ -150,11 +170,12 @@ internal class ConstructorArgumentWrapper : IAttributeConstructorArgumentInforma
 internal class PropertyWrapper : IPropertyInformation
 {
     private readonly PropertyDef _prop;
-    private readonly Func<PropertyDef, string, bool> _isVisbleTo;
+    private readonly Func<PropertyDef, IAssemblyInformation, bool> _isVisbleTo;
 
     public PropertyWrapper(PropertyDef prop)
     {
         Name = prop.Name;
+
         var setMethod = prop.SetMethod;
         var getMethod = prop.GetMethod;
 
@@ -169,7 +190,7 @@ internal class PropertyWrapper : IPropertyInformation
         {
             type = getMethod.ReturnType;
         }
-        else if(setMethod is not null)
+        else if (setMethod is not null)
         {
             type = setMethod.Parameters[setMethod.IsStatic ? 0 : 1].Type;
         }
@@ -180,7 +201,7 @@ internal class PropertyWrapper : IPropertyInformation
 
         TypeFullName = type.FullName;
         QualifiedTypeFullName = type.AssemblyQualifiedName;
-        
+
         _prop = prop;
         if (HasPublicGetter || HasPublicSetter)
         {
@@ -188,36 +209,52 @@ internal class PropertyWrapper : IPropertyInformation
         }
         else
         {
-            _isVisbleTo = static (property, targetAssemblyName) =>
+            _isVisbleTo = static (property, targetAssembly) =>
             {
                 if (property.DeclaringType.DefinitionAssembly is AssemblyDef assembly)
                 {
-                    if (string.Equals(targetAssemblyName, assembly.GetFullNameWithPublicKeyToken(), StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(targetAssembly.AssemblyName, assembly.GetFullNameWithPublicKeyToken(), StringComparison.OrdinalIgnoreCase))
                     {
                         return true;
                     }
-                    var nameParts = targetAssemblyName.Split(',');
 
                     var enumerator = assembly.GetVisibleTo()?.GetEnumerator();
+                    var targetPublicKey = targetAssembly.PublicKey;
+                    var targetName = targetAssembly.Name;
                     while (enumerator?.MoveNext() == true)
                     {
-                        if (string.Equals(targetAssemblyName, enumerator.Current, StringComparison.OrdinalIgnoreCase))
+                        var current = enumerator.Current;
+                        if (current.StartsWith(targetName, StringComparison.OrdinalIgnoreCase))
                         {
-                            return true;
-                        }
-                        else
-                        {
-                            var attParts = enumerator.Current.Split(',');
-                            var min = Math.Min(attParts.Length, nameParts.Length);
-                            var i = 0;
-                            for (; i < min && attParts[i] == nameParts[i]; i++)
+                            if (!string.IsNullOrEmpty(targetPublicKey))
                             {
+                                var startIndex = current.IndexOf("PublicKey", StringComparison.OrdinalIgnoreCase);
+                                if (startIndex > -1)
+                                {
+                                    startIndex += 9;
+                                    if (startIndex > current.Length)
+                                    {
+                                        return false;
+                                    }
+                                    while (startIndex < current.Length && current[startIndex] is ' ' or '=')
+                                    {
+                                        startIndex++;
+                                    }
 
+                                    if (targetPublicKey.Length != current.Length - startIndex)
+                                    {
+                                        return false;
+                                    }
+                                    for (int i = startIndex; i < current.Length; i++)
+                                    {
+                                        if (current[i] != targetPublicKey[i - startIndex])
+                                        {
+                                            return false;
+                                        }
+                                    }
+                                }
                             }
-                            if (i == min)
-                            {
-                                return true;
-                            }
+                            return true;
                         }
                     }
                 }
@@ -235,8 +272,8 @@ internal class PropertyWrapper : IPropertyInformation
     public string QualifiedTypeFullName { get; }
     public string Name { get; }
 
-    public bool IsVisbleTo(string assemblyName) =>
-        _isVisbleTo(_prop, assemblyName);
+    public bool IsVisbleTo(IAssemblyInformation assembly) =>
+        _isVisbleTo(_prop, assembly);
 
     public override string ToString() => Name;
 }

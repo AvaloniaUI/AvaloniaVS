@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Avalonia.Ide.CompletionEngine;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -81,9 +84,7 @@ namespace AvaloniaVS.IntelliSense
                         return VSConstants.S_OK;
                     }
                 }
-
                 var result = _nextCommandHandler.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
-
                 if (HandleSessionStart(c))
                 {
                     return VSConstants.S_OK;
@@ -102,12 +103,14 @@ namespace AvaloniaVS.IntelliSense
 
         private bool HandleSessionStart(char c)
         {
+            System.Diagnostics.Debug.WriteLine($"HandleSessionStart({((int)c):0x}{(char.IsWhiteSpace(c) ? ' ' : c)})", "Session");
+
             // If the pressed key is a key that can start a completion session.
             if (CompletionEngine.ShouldTriggerCompletionListOn(c) || c == '\a')
             {
                 if (_session == null || _session.IsDismissed)
                 {
-                    if (TriggerCompletion() && c != '<' && c != '.' && c != ' ')
+                    if (TriggerCompletion() && c != '<' && c != '.' && c != ' ' && c != '[' && c != '(' && c != '|' && c != '#' && c != '/')
                     {
                         _session?.Filter();
                     }
@@ -127,12 +130,12 @@ namespace AvaloniaVS.IntelliSense
                     return true;
                 }
             }
-
             return false;
         }
 
         private bool HandleSessionUpdate(char c)
         {
+            System.Diagnostics.Debug.WriteLine($"HandleSessionUpdate({((int)c):0x}{(char.IsWhiteSpace(c) ? ' ' : c)})", "Session");
             // Update the filter if there is a deletion.
             if (c == '\b')
             {
@@ -154,12 +157,13 @@ namespace AvaloniaVS.IntelliSense
             var start = line.Start;
             var end = Math.Min(line.End, _textView.Caret.Position.BufferPosition);
 
+            System.Diagnostics.Debug.WriteLine($"HandleSessionCompletion(({(char.IsWhiteSpace(c) ? ' ' : c)}))", "Session");
             // Adding a xmlns is special-cased here because we don't want '.' triggering
             // a completion, which can complete on the wrong value
             // So we only trigger on ' ' or '\t', and swallow that so it doesn't get 
             // inserted into the text buffer
             if (_session != null && !_session.IsDismissed)
-            {                
+            {
                 var text = line.Snapshot.GetText(start, end - start);
 
                 if (text.Contains("xmlns"))
@@ -190,14 +194,34 @@ namespace AvaloniaVS.IntelliSense
 
             // Also adding '#' for Selectors
 
-            if (char.IsWhiteSpace(c) || c == '\'' || c == '"' || c == '=' || c == '>' || c == '.' || c == '#')
+            if (char.IsWhiteSpace(c)
+                || c == '\'' || c == '"' || c == '=' || c == '>' || c == '.'
+                || c == '#' || c == ')' || c == ']')
             {
                 if (_session != null && !_session.IsDismissed &&
                     _session.SelectedCompletionSet.SelectionStatus.IsSelected)
                 {
                     var selected = _session.SelectedCompletionSet.SelectionStatus.Completion as XamlCompletion;
 
+                    var bufferPos = _textView.Caret.Position.BufferPosition;
+                    if (selected.RepleceCursorOffset is int rof)
+                    {
+                        var newCursorPos = bufferPos.Add(rof);
+                        SnapshotSpan ss = newCursorPos < bufferPos
+                            ? new(newCursorPos, -rof)
+                            : new(bufferPos, rof);
+                        System.Threading.Tasks.Task.Factory.StartNew(stateArg =>
+                        {
+                            var span = (SnapshotSpan)stateArg;
+                            _textView.TextBuffer.Replace(span, string.Empty);
+                        }, ss
+                        , CancellationToken.None
+                        , System.Threading.Tasks.TaskCreationOptions.None
+                        , System.Threading.Tasks.TaskScheduler.FromCurrentSynchronizationContext());
+                    }
+
                     _session.Commit();
+
                     if (selected?.CursorOffset > 0)
                     {
                         // Offset the cursor if necessary e.g. to place it within the quotation
@@ -207,6 +231,7 @@ namespace AvaloniaVS.IntelliSense
                         _textView.Caret.MoveTo(newCursorPos);
                     }
 
+
                     // Ideally, we should only parse the current line of text, where the parser State would return
                     // 'None' if you're spreading control attributes out across multiple lines
                     // BUT, Selectors can span multiple lines (aggregates separated by ',') and this theory
@@ -215,23 +240,24 @@ namespace AvaloniaVS.IntelliSense
                     var state = parser.State;
 
                     bool skip = c != '>';
-                    if (state == XmlParser.ParserState.StartElement && 
+                    if (state == XmlParser.ParserState.StartElement &&
                         (c == '.' || c == ' '))
                     {
                         // Don't swallow the '.' or ' ' if this is an Xml element, like
-                        // Window.Resources. However do swallow tab                        
+                        // Window.Resources. However do swallow tab
                         skip = false;
                     }
 
-                    if (state == XmlParser.ParserState.AttributeValue || 
+                    if (state == XmlParser.ParserState.AttributeValue ||
                         state == XmlParser.ParserState.AfterAttributeValue)
                     {
+                        var isSelector = parser.AttributeName?.Equals("Selector") == true;
                         if (char.IsWhiteSpace(c))
                         {
                             // For most xml attributes, swallow the space upon completion
                             // For selector, allow it to go into the buffer
                             // Also if in a markupextention
-                            skip = !(parser.AttributeName?.Equals("Selector") == true);
+                            skip = !(isSelector && c != '\n' && c != '\t');
 
                             // If we're in a markup extension, only swallow the space if the
                             // completion isn't on the Markup extension
@@ -286,11 +312,14 @@ namespace AvaloniaVS.IntelliSense
                             skip = false;
                         }
 
+                        var lastInsertionChar = (selected.InsertionText?.Length ?? 0) > 0
+                            ? selected.InsertionText[selected.InsertionText.Length - 1]
+                            : default;
+
                         // Cases like {Binding Path= result in {Binding Path==
                         // as the completion includes the '=', if the entered char
                         // is the same as the last char here, swallow the entered char
-                        if (!skip && (selected.InsertionText?.Length > 0 && 
-                            selected.InsertionText[selected.InsertionText.Length - 1] == c))
+                        if (!skip && lastInsertionChar == c)
                         {
                             skip = true;
 
@@ -298,6 +327,12 @@ namespace AvaloniaVS.IntelliSense
                             // a new completion session when entered, but only if we're
                             // skipping the char entered
                             if (c == '=')
+                                TriggerCompletion();
+                        }
+                        else if (isSelector && lastInsertionChar is '=' or '.')
+                        {
+                            // Trigger Selector property Value Completation
+                            if (c is not '=' or '.')
                                 TriggerCompletion();
                         }
                     }
@@ -319,10 +354,21 @@ namespace AvaloniaVS.IntelliSense
                 var parser = XmlParser.Parse(_textView.TextSnapshot.GetText().AsMemory(), 0, end);
                 var state = parser.State;
 
-                if (state == XmlParser.ParserState.AttributeValue && 
+                if (state == XmlParser.ParserState.AttributeValue &&
                     parser.AttributeName?.Equals("Selector") == true)
                 {
                     // Force new session to start to suggest pseudoclasses
+                    _session.Dismiss();
+                    return false;
+                }
+            }
+            else if (c == '(' && _session?.IsDismissed == false)
+            {
+                var parser = XmlParser.Parse(_textView.TextSnapshot.GetText().AsMemory(), 0, end);
+                var state = parser.State;
+                if ((state == XmlParser.ParserState.AttributeValue || state == XmlParser.ParserState.AfterAttributeValue)
+                    && parser.AttributeName?.Equals("Selector") == true)
+                {
                     _session.Dismiss();
                     return false;
                 }
@@ -357,17 +403,28 @@ namespace AvaloniaVS.IntelliSense
             return false;
         }
 
-        private bool TriggerCompletion()
+        private bool TriggerCompletion([CallerMemberName] string memberName = "",
+            [CallerFilePath] string fileName = "",
+            [CallerLineNumber] int lineNumber = 0)
         {
+
+            System.Diagnostics.Debug.WriteLine($"TriggerCompletion Call by {memberName} at {lineNumber}", "Session");
+            System.Diagnostics.Debug.WriteLine($"TriggerCompletion Start", "Session");
+
             // The caret must be in a non-projection location.
             var caretPoint = _textView.Caret.Position.Point.GetPoint(
                 x => (!x.ContentType.IsOfType("projection")),
                 PositionAffinity.Predecessor);
 
+            System.Diagnostics.Debug.WriteLine($"TriggerCompletion caretPoint{caretPoint}", "Session");
+
             if (!caretPoint.HasValue)
             {
                 return false;
             }
+
+
+            System.Diagnostics.Debug.WriteLine($"TriggerCompletion Char = {caretPoint.Value.GetChar()}", "Session");
 
             // When adding an xmlns definition, we were getting 2 intellisense popups because (I think)
             // the VS XML intellisense handler was popping one up and then we are creating our own session
@@ -398,6 +455,8 @@ namespace AvaloniaVS.IntelliSense
                         break;
                 }
             }
+
+            System.Diagnostics.Debug.WriteLine($"TriggerCompletion start session {caretPoint.Value.Position}", "Session");
 
             _session = existingSession ?? _completionBroker.CreateCompletionSession(
                 _textView,

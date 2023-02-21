@@ -1,9 +1,12 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml;
+using System.Xml.Linq;
 
 namespace Avalonia.Ide.CompletionEngine;
 
@@ -17,6 +20,9 @@ public class CompletionEngine
 
         private Dictionary<string, MetadataType>? _types;
         private string? _currentAssemblyName;
+        private static Regex? _findElementByNameRegex;
+        internal static Regex FindElementByNameRegex => _findElementByNameRegex ??=
+             new($"\\s(?:(x\\:)?Name)=\"(?<AttribValue>[\\w\\:\\s\\|\\.]+)\"", RegexOptions.Compiled);
 
         public void SetMetadata(Metadata metadata, string xml, string? currentAssemblyName = null)
         {
@@ -49,7 +55,6 @@ public class CompletionEngine
             var types = new Dictionary<string, MetadataType>();
             foreach (var alias in Aliases.Concat(new[] { new KeyValuePair<string, string>("", "") }))
             {
-
                 var aliasValue = alias.Value ?? "";
 
                 if (!string.IsNullOrEmpty(_currentAssemblyName) && aliasValue.StartsWith("clr-namespace:") && !aliasValue.Contains(";assembly="))
@@ -119,15 +124,24 @@ public class CompletionEngine
             return MetadataHelper.FilterPropertyNames(t, propName, attached, hasSetter, staticGetter);
         }
 
-        public static IEnumerable<string> FilterPropertyNames(MetadataType? t, string? propName,
+        public static IEnumerable<string> FilterPropertyNames(MetadataType? t,
+            string? propName,
             bool? attached,
             bool hasSetter,
             bool staticGetter = false)
         {
+            return FilterProperty(t, propName, attached, hasSetter, staticGetter).Select(p => p.Name);
+        }
 
+        public static IEnumerable<MetadataProperty> FilterProperty(MetadataType? t, string? propName,
+            bool? attached,
+            bool hasSetter,
+            bool staticGetter = false
+            )
+        {
             propName ??= "";
             if (t == null)
-                return Array.Empty<string>();
+                return Array.Empty<MetadataProperty>();
 
             var e = t.Properties.Where(p => p.Name.StartsWith(propName, StringComparison.OrdinalIgnoreCase) && (hasSetter ? p.HasSetter : p.HasGetter));
 
@@ -138,8 +152,9 @@ public class CompletionEngine
             else
                 e = e.Where(p => !p.IsStatic);
 
-            return e.Select(p => p.Name);
+            return e;
         }
+
 
         public IEnumerable<string> FilterEventNames(string typeName, string? propName,
             bool attached)
@@ -257,7 +272,7 @@ public class CompletionEngine
 
                     return new Completion(kvp.Key, CompletionKind.Class);
                 }));
-            }                
+            }
         }
         else if (state.State == XmlParser.ParserState.InsideElement ||
                  state.State == XmlParser.ParserState.StartAttribute)
@@ -297,7 +312,7 @@ public class CompletionEngine
                 // this up to be dealt with in the future
                 if (state.TagName.Equals("On"))
                 {
-                    completions.Add(new Completion("Options", "Options=\"\"", "Options", 
+                    completions.Add(new Completion("Options", "Options=\"\"", "Options",
                         CompletionKind.Property, 9 /*recommendedCursorOffset*/));
                 }
 
@@ -345,25 +360,34 @@ public class CompletionEngine
                 if (prop?.Type?.HasHintValues == true && state.CurrentValueStart.HasValue)
                 {
                     var search = textToCursor.Substring(state.CurrentValueStart.Value);
+                    var hintCompletions = true;
                     if (prop.Type.IsCompositeValue)
                     {
-                        var last = search.Split(' ', ',').Last();
-                        curStart = curStart + search.Length - last?.Length ?? 0;
-                        search = last;
-
                         // Special case for pseudoclasses within the current edit
-                        if (state.AttributeName!.Equals("Selector") && search!.Contains(':'))
+                        if (state.AttributeName!.Equals("Selector"))
                         {
-                            search = ":";
+                            hintCompletions = false;
+                            if (ProcesssSelector(search.AsSpan(), state, completions, currentAssemblyName, fullText) is int delta)
+                            {
+                                curStart = curStart + delta;
+                            }
+                        }
+                        else
+                        {
+                            var last = search.Split(' ', ',').Last();
+                            search = last;
+                            curStart = curStart + search.Length - last?.Length ?? 0;
                         }
                     }
-
-                    completions.AddRange(GetHintCompletions(prop.Type, search, currentAssemblyName));
+                    if (hintCompletions)
+                    {
+                        completions.AddRange(GetHintCompletions(prop.Type, search, currentAssemblyName));
+                    }
                 }
                 else if (prop?.Type?.Name == typeof(Type).FullName)
                 {
                     var cKind = CompletionKind.Class;
-                    if (state?.AttributeName?.Equals("TargetType") == true || 
+                    if (state?.AttributeName?.Equals("TargetType") == true ||
                         state?.AttributeName?.Equals("Selector") == true)
                     {
                         cKind |= CompletionKind.TargetTypeClass;
@@ -641,9 +665,8 @@ public class CompletionEngine
             {
                 if (fullText is not null)
                 {
-                    var nameMatch = Regex.Matches(fullText, $"\\s(?:(x\\:)?Name)=\"(?<AttribValue>[\\w\\:\\s\\|\\.]+)\"");
-
-                    if (nameMatch.Count > 0)
+                    var nameMatch = MetadataHelper.FindElementByNameRegex.Matches(fullText);
+                    if (nameMatch is { Count: > 0 })
                     {
                         var result = new List<Completion>();
                         foreach (Match m in nameMatch)
@@ -791,7 +814,7 @@ public class CompletionEngine
                     if (prop?.Type?.HasHintValues == true)
                     {
                         completions.AddRange(GetHintCompletions(prop.Type, null, currentAssemblyName));
-                    }                    
+                    }
                 }
 
                 return forcedStart ?? ext.CurrentValueStart;
@@ -885,9 +908,367 @@ public class CompletionEngine
         return char.IsLetterOrDigit(typedChar) || typedChar == '/' || typedChar == '<'
             || typedChar == ' ' || typedChar == '.' || typedChar == ':' || typedChar == '$'
             || typedChar == '#' || typedChar == '-' || typedChar == '^' || typedChar == '{'
-            || typedChar == '=';
+            || typedChar == '=' || typedChar == '[' || typedChar == '|' || typedChar == '(';
     }
 
     public static CompletionKind GetCompletionKindForHintValues(MetadataType type)
         => type.IsEnum ? CompletionKind.Enum : CompletionKind.StaticProperty;
+
+
+    public int? ProcesssSelector(ReadOnlySpan<char> text, XmlParser state, List<Completion> completions, string? currentAssemblyName, string? fullText)
+    {
+        int? parsered = default;
+        var parser = SelectorParser.Parse(text);
+        var previusStatment = parser.PreviusStatment;
+        Debug.WriteLine($"Current {parser.Statment}", "Selector Parser");
+        Debug.WriteLine($"Previus {previusStatment}", "Selector Parser");
+        Debug.WriteLine($"LastParseredPosition {parser.LastParseredPosition}", "Selector Parser");
+        Debug.WriteLine($"Text lengt {text.Length}", "Selector Parser");
+        switch (parser.Statment)
+        {
+            case SelectorStatment.Colon:
+            case SelectorStatment.FunctionArgs:
+                {
+                    var fn = parser.FunctionName;
+                    var tn = parser.TypeName;
+                    var isEmptyTn = string.IsNullOrEmpty(tn);
+                    if (previusStatment <= SelectorStatment.Middle && isEmptyTn)
+                    {
+                        completions.Add(new Completion(":is()", ":is(", CompletionKind.Selector | CompletionKind.Enum));
+                    }
+                    else if (string.IsNullOrEmpty(fn))
+                    {
+                        completions.Add(new Completion(":not()", ":not(", CompletionKind.Selector | CompletionKind.Enum));
+                        completions.Add(new Completion(":nth-child()", ":nth-child(", CompletionKind.Selector | CompletionKind.Enum));
+                        completions.Add(new Completion(":nth-last-child()", ":nth-last-child(", CompletionKind.Selector | CompletionKind.Enum));
+                    }
+                    if (isEmptyTn)
+                    {
+                        var pseudoClasses = _helper.FilterTypes(default)
+                            .Select(kvp => kvp.Value)
+                            .Where(m => m.HasPseudoClasses)
+                            .SelectMany(m => m.PseudoClasses)
+                            .Distinct(StringComparer.OrdinalIgnoreCase);
+                        completions.AddRange(pseudoClasses.Select(v => new Completion(v, CompletionKind.Selector | CompletionKind.Enum)));
+                    }
+                    else
+                    {
+                        var typeFullName = GetFullName(parser);
+                        if (_helper.LookupType(typeFullName) is MetadataType { HasPseudoClasses: true } type)
+                        {
+                            completions.AddRange(type.PseudoClasses.Select(v => new Completion(v, CompletionKind.Selector | CompletionKind.Enum)));
+                        }
+                    }
+                    if (fn == "is")
+                    {
+                        var types = _helper.FilterTypes(default)
+                               .Where(t => t.Value.IsAvaloniaObjectType)
+                               .Select(t => t.Value);
+                        if (types?.Any() == true)
+                        {
+                            parsered = text.Length - (parser.LastParseredPosition + 1);
+                            completions.AddRange(types.Select(v =>
+                            {
+                                var name = GetXmlnsFullName(v);
+                                return new Completion(name, name + ".", CompletionKind.Class | CompletionKind.TargetTypeClass);
+                            }));
+                        }
+                    }
+                    if (completions.Count > 0)
+                    {
+                        parsered = parser.LastParseredPosition ?? 0;
+                    }
+                }
+                break;
+            case SelectorStatment.Name:
+                {
+                    if (parser.IsTemplate)
+                    {
+                        var ton = parser.TemplateOwner;
+                        if (!string.IsNullOrEmpty(ton))
+                        {
+                            if (_helper.FilterTypes(ton)
+                                .Where(kvp => kvp.Value.TemplateParts.Any())
+                                .Select(kvp => kvp.Value)
+                                .FirstOrDefault() is MetadataType ownerType)
+                            {
+                                var parts = ownerType.TemplateParts;
+                                var fullName = GetFullName(parser);
+                                var partType = string.IsNullOrEmpty(fullName)
+                                    ? default(MetadataType?)
+                                    : _helper.FilterTypes(fullName)
+                                        .Select(kvp => kvp.Value)
+                                        .FirstOrDefault();
+                                if (partType is not null)
+                                {
+                                    parts = parts
+                                        .Where(p => p.Type.AssemblyQualifiedName == partType.AssemblyQualifiedName);
+                                }
+                                if (parts.Any())
+                                {
+                                    parsered = parser.LastParseredPosition ?? 0;
+                                    var x = (parser.LastParseredPosition ?? 0) - parser.LastSegmentStartPosition - 1;
+                                    /*
+                                    if (!string.IsNullOrEmpty(parser.Namespace))
+                                    {
+                                        x += parser.Namespace.Length + 1;
+                                    }
+                                    if (!string.IsNullOrEmpty(parser.TypeName))
+                                    {
+                                        x += parser.TypeName.Length + 1;
+                                    }
+                                    */
+                                    if (string.IsNullOrEmpty(fullName) == false)
+                                    {
+                                        x += fullName.Length + 1;
+                                    }
+                                    completions.AddRange(parts!.Select(p => new Completion(p.Name, CompletionKind.Name | CompletionKind.Class, p.Type?.Name)
+                                    {
+                                        RecommendedCursorOffset = (p.Name.Length + (p.Type?.Name.Length > 0 ? p.Type.Name.Length + 3 : 0)),
+                                        RepleceCursorOffset = -x,
+                                    }));
+                                    ;
+
+                                }
+                            }
+                        }
+                    }
+                    else if (fullText is not null)
+                    {
+                        var nameMatch = MetadataHelper
+                            .FindElementByNameRegex
+                            .Matches(fullText);
+                        if (nameMatch is { Count: > 0 })
+                        {
+                            var filterName = nameMatch.OfType<Match>();
+                            var elementName = parser.ElementName;
+                            if (!string.IsNullOrEmpty(elementName))
+                            {
+                                filterName = filterName
+                                    .Where(m => m.Groups["AttribValue"].Value.StartsWith(elementName, StringComparison.OrdinalIgnoreCase));
+                            }
+                            foreach (Match m in filterName)
+                            {
+                                if (m.Success)
+                                {
+                                    parsered = (parser.LastParseredPosition ?? 0);
+                                    var name = m.Groups["AttribValue"].Value;
+                                    completions.Add(new Completion(name, CompletionKind.Name | CompletionKind.Class));
+                                }
+                            }
+                        }
+
+                    }
+                }
+                break;
+            case SelectorStatment.CanHaveType:
+            case SelectorStatment.TypeName:
+                {
+                    var tn = parser.TypeName;
+                    if (GetFullName(parser) is string typeFullName)
+                    {
+                        var len = typeFullName.Length;
+                        if (len > 0)
+                        {
+                            if (typeFullName[len - 1] == ':')
+                            {
+                                var ns = typeFullName.Substring(0, len - 1);
+
+                                if (_helper.Aliases?.TryGetValue(ns!, out var ans) == true
+                                    && _helper.Metadata?.Namespaces.TryGetValue(ans, out var types) == true)
+                                {
+                                    IEnumerable<MetadataType> ft = types.Values;
+                                    ft = ft
+                                        .Where(t => t.IsGeneric == false)
+                                        .Where(t => t.IsMarkupExtension == false)
+                                        .Where(t => t.IsAvaloniaObjectType || t.HasAttachedProperties);
+                                    completions.AddRange(ft.Select(v => new Completion(v.Name, $"{ns}|{v.Name}", CompletionKind.Class | CompletionKind.TargetTypeClass)));
+                                    parsered = (parser.LastParseredPosition ?? 0) - (tn?.Length ?? 0);
+                                }
+                            }
+                            else if (_helper.FilterTypes(typeFullName).Select(kvp => kvp.Value) is { } types)
+                            {
+                                types = types
+                                        .Where(t => t.IsGeneric == false)
+                                        .Where(t => t.IsMarkupExtension == false)
+                                        .Where(t => t.IsAvaloniaObjectType || t.HasAttachedProperties);
+                                completions.AddRange(types.Select(v =>
+                                {
+                                    var name = GetXmlnsFullName(v);
+                                    return new Completion(name, CompletionKind.Class | CompletionKind.TargetTypeClass);
+                                }));
+                                parsered = (parser.LastParseredPosition ?? 0) - (tn?.Length ?? 0);
+                            }
+                        }
+                    }
+                }
+                break;
+            case SelectorStatment.Property:
+                {
+                    var typeFullName = GetFullName(parser);
+                    if (_helper.LookupType(typeFullName) is MetadataType type)
+                    {
+                        var propertyName = parser.PropertyName;
+                        var selectorElementProperties = MetadataHelper.FilterProperty(type,
+                            propName: propertyName,
+                            attached: default,
+                            hasSetter: false
+                            );
+                        if (selectorElementProperties?.Any() == true)
+                        {
+                            parsered = (parser.LastParseredPosition ?? 0) - (propertyName?.Length ?? 0);
+                            completions.AddRange(selectorElementProperties.Select(v => new Completion(v.Name, v.Name + "=", v.IsAttached ? CompletionKind.AttachedProperty : CompletionKind.Property)));
+                        }
+                    }
+                }
+                break;
+            case SelectorStatment.AttachedProperty:
+                {
+                    var typeFullName = GetFullName(parser);
+                    if (_helper.LookupType(typeFullName) is { HasAttachedProperties: true } type)
+                    {
+                        var propertyName = parser.PropertyName;
+                        var selectorElementProperties = MetadataHelper.FilterProperty(type,
+                            propName: propertyName,
+                            attached: true,
+                            hasSetter: false
+                            );
+                        if (selectorElementProperties?.Any() == true)
+                        {
+                            var lenPropertyName = propertyName?.Length ?? 0;
+                            var lenType = lenPropertyName == 0 || typeFullName is null
+                                ? 0
+                                : typeFullName.Length + 1;
+                            parsered = (parser.LastParseredPosition ?? 0) - lenType - lenType + 1;
+                            completions.AddRange(selectorElementProperties.Select(v => new Completion(v.Name, v.Name + ")", v.IsAttached ? CompletionKind.AttachedProperty : CompletionKind.Property)));
+                        }
+                    }
+                    else
+                    {
+                        var types = _helper.FilterTypes(default)
+                             .Where(t => t.Value.HasAttachedProperties)
+                             .Select(t => t.Value);
+                        if (types?.Any() == true)
+                        {
+                            parsered = (parser.LastParseredPosition ?? 0) + 1;
+                            completions.AddRange(types.Select(v =>
+                            {
+                                var name = GetXmlnsFullName(v);
+                                return new Completion(name, name + ".", CompletionKind.Class);
+                            }));
+                        }
+                    }
+                }
+                break;
+            case SelectorStatment.Template:
+                {
+                    completions.Add(new("/template/", "/template/", CompletionKind.Selector | CompletionKind.Enum));
+                    parsered = parser.LastParseredPosition;
+                }
+                break;
+            case SelectorStatment.Traversal:
+            case SelectorStatment.Start:
+                {
+                    if (!parser.IsError)
+                    {
+                        parsered = (parser.LastParseredPosition ?? 0);
+                        // TODO: Crowling Selector operator from Attribute of the Selector
+                        completions.Add(new Completion("^", CompletionKind.Selector | CompletionKind.Enum));
+                        completions.Add(new Completion(":", CompletionKind.Selector | CompletionKind.Enum));
+                        completions.Add(new Completion(">", CompletionKind.Selector | CompletionKind.Enum));
+                        completions.Add(new Completion(".", CompletionKind.Selector | CompletionKind.Enum));
+                        completions.Add(new Completion("#", CompletionKind.Selector | CompletionKind.Enum));
+                        completions.Add(new Completion(":is()", ":is(", CompletionKind.Selector | CompletionKind.Enum));
+                        completions.Add(new Completion(":not()", ":not(", CompletionKind.Selector | CompletionKind.Enum));
+                        completions.Add(new Completion(":nth-child()", ":nth-child(", CompletionKind.Selector | CompletionKind.Enum));
+                        completions.Add(new Completion(":nth-last-child()", ":nth-last-child(", CompletionKind.Selector | CompletionKind.Enum));
+                        completions.Add(new Completion("/template/", "/template/", CompletionKind.Selector | CompletionKind.Enum));
+                        var types = _helper.FilterTypes(default)
+                            .Where(t => t.Value.IsAvaloniaObjectType || t.Value.HasAttachedProperties)
+                            .Select(t => new Completion(t.Value.Name.Replace(":", "|"), CompletionKind.Class | CompletionKind.TargetTypeClass));
+                        completions.AddRange(types);
+                    }
+                }
+                break;
+            case SelectorStatment.Value:
+                {
+                    var typeFullName = GetFullName(parser);
+                    if (_helper.LookupType(typeFullName) is MetadataType type)
+                    {
+                        var propertyName = parser.PropertyName;
+                        var prop = MetadataHelper.FilterProperty(type,
+                           propName: propertyName,
+                           attached: default,
+                           hasSetter: false
+                           ).FirstOrDefault();
+                        var propType = prop?.Type;
+                        if (propType?.IsNullable == true)
+                        {
+                            propType = propType.UnderlyingType;
+                        }
+                        if (propType is { HasHintValues: true } pt)
+                        {
+                            var kind = pt.IsEnum
+                                ? CompletionKind.Enum
+                                : CompletionKind.StaticProperty;
+                            IEnumerable<string> values = pt.HintValues!;
+                            var value = parser.Value;
+                            if (!string.IsNullOrEmpty(value))
+                            {
+                                values = values
+                                    .Where(v => v.StartsWith(value, StringComparison.OrdinalIgnoreCase));
+                            }
+                            completions.AddRange(values.Select(v => new Completion(v, kind)));
+                            parsered = parser.LastParseredPosition - (parser.Value?.Length ?? 0);
+                        }
+                    }
+                }
+                break;
+            case SelectorStatment.Function:
+            case SelectorStatment.Class:
+            case SelectorStatment.Middle:
+            case SelectorStatment.End:
+            default:
+                break;
+        }
+        Debug.WriteLine($"Return posistion {parsered}", "Selector Parser");
+        return parsered;
+
+        string GetFullName(SelectorParser parser)
+        {
+            var ns = parser.Namespace;
+            var typename = parser.TypeName
+                ?? GetTypeFromControlTheme();
+            var typeFullName = string.IsNullOrEmpty(ns)
+                ? typename
+                : $"{ns}:{typename}";
+            return typeFullName ?? string.Empty;
+        }
+
+        string GetXmlnsFullName(MetadataType type, char namespaceSeparator = '|')
+        {
+            if (_helper.Metadata?.InverseNamespace.TryGetValue(type.FullName, out var ns) == true
+                && !string.IsNullOrEmpty(ns))
+            {
+                var alias = _helper.Aliases?.FirstOrDefault(a => Equals(a.Value, ns));
+                if (alias is not null && !string.IsNullOrEmpty(alias.Value.Key))
+                {
+                    return $"{alias.Value.Key}{namespaceSeparator}{type.Name}";
+                }
+            }
+            return type.Name!;
+        }
+
+        string? GetTypeFromControlTheme()
+        {
+            if (state.GetParentTagName(1)?.Equals("ControlTheme") == true)
+            {
+                if (state.FindParentAttributeValue("TargetType", 1, maxLevels: 0) is string implicitSelectorTypeName)
+                {
+                    return implicitSelectorTypeName;
+                }
+            }
+            return default;
+        }
+    }
 }
