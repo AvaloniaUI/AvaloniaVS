@@ -1,30 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Windows.Media;
 using Avalonia.Ide.CompletionEngine;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 
 namespace AvaloniaVS.IntelliSense
 {
     /// <summary>
     /// An Avalonia XAML intellisense completion suggestion.
     /// </summary>
-    internal class XamlCompletion : Microsoft.VisualStudio.Language.Intellisense.Completion
+    internal class XamlCompletion : Microsoft.VisualStudio.Language.Intellisense.Completion4
     {
-        private static ImageSource[] s_images;
+        private static ImageMoniker[] s_images;
 
-        public XamlCompletion(Completion completion, IVsImageService2 imageService)
+        public XamlCompletion(Completion completion)
             : base(
                 completion.DisplayText,
                 completion.InsertText,
                 completion.Description,
-                GetImage(completion.Kind, imageService),
+                GetImage(completion.Kind),
                 completion.Kind.ToString())
         {
             if (completion.RecommendedCursorOffset.HasValue)
@@ -39,62 +35,40 @@ namespace AvaloniaVS.IntelliSense
         public CompletionKind Kind { get; }
 
         public static IEnumerable<XamlCompletion> Create(
-            IEnumerable<Completion> source,
-            IVsImageService2 imageService)
+            IEnumerable<Completion> source)
         {
-            return source.Select(x => new XamlCompletion(x, imageService));
+            return source.Select(x => new XamlCompletion(x));
         }
 
-        private static ImageSource GetImage(CompletionKind kind, IVsImageService2 imageService)
+        private static ImageMoniker GetImage(CompletionKind kind)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
             if (s_images == null)
             {
-                LoadImages(imageService);
+                LoadImages();
             }
 
             return s_images[(int)kind];
         }
 
-        private static void LoadImages(IVsImageService2 imageService)
+        private static void LoadImages()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
             var capacity = Enum.GetValues(typeof(CompletionKind)).Cast<int>().Max() + 1;
-            var attributes = new ImageAttributes
-            {
-                StructSize = Marshal.SizeOf(typeof(ImageAttributes)),
-                ImageType = (uint)_UIImageType.IT_Bitmap,
-                Format = (uint)_UIDataFormat.DF_WPF,
-                LogicalWidth = 16,
-                LogicalHeight = 16,
-                Flags = (uint)_ImageAttributesFlags.IAF_RequiredFlags,
-            };
+            
+            s_images = new ImageMoniker[capacity];
+            s_images[(int)CompletionKind.Property] = KnownMonikers.Property;
+            s_images[(int)CompletionKind.Event] = KnownMonikers.Event;
+            s_images[(int)CompletionKind.Class] = KnownMonikers.METATag;
+            s_images[(int)CompletionKind.Enum] = KnownMonikers.EnumerationItemPublic;
+            s_images[(int)CompletionKind.Namespace] = KnownMonikers.Namespace;
 
-            s_images = new ImageSource[capacity];
-            s_images[(int)CompletionKind.Property] = LoadImage(imageService, KnownMonikers.Property, ref attributes);
-            s_images[(int)CompletionKind.Event] = LoadImage(imageService, KnownMonikers.Event, ref attributes);
-            s_images[(int)CompletionKind.Class] = LoadImage(imageService, KnownMonikers.MarkupTag, ref attributes);
-            s_images[(int)CompletionKind.Enum] = LoadImage(imageService, KnownMonikers.EnumerationItemPublic, ref attributes);
-            s_images[(int)CompletionKind.Namespace] = LoadImage(imageService, KnownMonikers.Namespace, ref attributes);
-
-            s_images[(int)CompletionKind.AttachedEvent] = s_images[(int)CompletionKind.Event];
-            s_images[(int)CompletionKind.AttachedProperty] = s_images[(int)CompletionKind.Property];
-            s_images[(int)CompletionKind.StaticProperty] = s_images[(int)CompletionKind.Property];
-            s_images[(int)CompletionKind.MarkupExtension] = s_images[(int)CompletionKind.Namespace];
-        }
-
-        private static ImageSource LoadImage(
-            IVsImageService2 imageService,
-            ImageMoniker moniker,
-            ref ImageAttributes attributes)
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            var image = imageService.GetImage(moniker, attributes);
-            ErrorHandler.ThrowOnFailure(image.get_Data(out var data));
-            return (ImageSource)data;
+            s_images[(int)CompletionKind.AttachedEvent] = KnownMonikers.Event;
+            s_images[(int)CompletionKind.AttachedProperty] = KnownMonikers.Property;
+            s_images[(int)CompletionKind.StaticProperty] = KnownMonikers.EnumerationItemPublic;
+            s_images[(int)CompletionKind.MarkupExtension] = KnownMonikers.Namespace;
         }
     }
 }

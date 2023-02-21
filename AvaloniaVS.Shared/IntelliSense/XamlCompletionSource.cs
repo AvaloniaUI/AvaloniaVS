@@ -14,13 +14,11 @@ namespace AvaloniaVS.IntelliSense
     internal class XamlCompletionSource : ICompletionSource
     {
         private readonly ITextBuffer _buffer;
-        private readonly IVsImageService2 _imageService;
         private readonly CompletionEngine _engine;
 
-        public XamlCompletionSource(ITextBuffer textBuffer, IVsImageService2 imageService)
+        public XamlCompletionSource(ITextBuffer textBuffer)
         {
             _buffer = textBuffer;
-            _imageService = imageService;
             _engine = new CompletionEngine();
         }
 
@@ -61,7 +59,7 @@ namespace AvaloniaVS.IntelliSense
                         "Avalonia",
                         "Avalonia",
                         applicableTo,
-                        XamlCompletion.Create(completions.Completions, _imageService),
+                        XamlCompletion.Create(completions.Completions),
                         null));
 
                     // This selects the first item in the completion popup - otherwise you have to physically
