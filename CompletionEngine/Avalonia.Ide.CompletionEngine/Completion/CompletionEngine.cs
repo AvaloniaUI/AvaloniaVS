@@ -724,7 +724,8 @@ public class CompletionEngine
     {
         return char.IsLetterOrDigit(typedChar) || typedChar == '/' || typedChar == '<'
             || typedChar == ' ' || typedChar == '.' || typedChar == ':' || typedChar == '$'
-            || typedChar == '#' || typedChar == '-' || typedChar == '^';
+            || typedChar == '#' || typedChar == '-' || typedChar == '^' || typedChar == '{'
+            || typedChar == '=';
     }
 
     public static CompletionKind GetCompletionKindForHintValues(MetadataType type)

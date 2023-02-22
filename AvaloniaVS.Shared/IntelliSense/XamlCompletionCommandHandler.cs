@@ -218,7 +218,35 @@ namespace AvaloniaVS.IntelliSense
                         {
                             // For most xml attributes, swallow the space upon completion
                             // For selector, allow it to go into the buffer
+                            // Also if in a markupextention
                             skip = !(parser.AttributeName?.Equals("Selector") == true);
+
+                            // If we're in a markup extension, only swallow the space if the
+                            // completion isn't on the Markup extension
+                            // i.e., where | is the cursor
+                            // {DynamicResource -> {DynamicResource |
+                            // but {Binding Path= -> {Binding Path=|
+                            // similarly, more embedded things like RelativeSource work the same way
+                            // {Binding path, RelativeSource={RelativeSource -> ...={RelativeSource |
+                            if (parser.AttributeValue?.StartsWith("{") == true)
+                            {
+                                // To determine, we'll walk back the text from the cursor position
+                                // until we hit either something that isn't a character
+                                // If that's a {, we apply the space, otherwise we dont
+                                // Only using the line text (up to cursor) since xaml can't wrap
+                                // Also ignore ':' for namespaces or directives
+                                var text = line.Snapshot.GetText(start, end - start);
+                                for (int i = text.Length - 1; i >= 0; i--)
+                                {
+                                    var lineChar = text[i];
+                                    if (char.IsLetter(lineChar) || char.IsNumber(lineChar) || lineChar == ':')
+                                        continue;
+
+                                    // any other character than [A-z,0-9,:] is a different part
+                                    skip = lineChar != '{';
+                                    break;
+                                }                                
+                            }
                         }
                         else if (c == '\'' || c == '"')
                         {
@@ -237,6 +265,14 @@ namespace AvaloniaVS.IntelliSense
                         {
                             skip = false;
                         }                        
+
+                        // Cases like {Binding Path= result in {Binding Path==
+                        // as the completion includes the '=', if the entered char
+                        // is the same as the last char here, swallow the entered char
+                        if (!skip && selected.InsertionText.EndsWith(c.ToString()))
+                        {
+                            skip = true;
+                    }
                     }
                     else if (state != XmlParser.ParserState.StartElement)
                     {
@@ -255,6 +291,19 @@ namespace AvaloniaVS.IntelliSense
                     parser.AttributeName?.Equals("Selector") == true)
                 {
                     // Force new session to start to suggest pseudoclasses
+                    _session.Dismiss();
+                    return false;
+                }
+            }
+            else if (c == '{' && (_session != null && !_session.IsDismissed))
+            {
+                var parser = XmlParser.Parse(_textView.TextSnapshot.GetText().AsMemory(), 0, end);
+                var state = parser.State;
+
+                if (state == XmlParser.ParserState.AttributeValue)
+                {
+                    // For something like Brushes, restart the completion session if we want
+                    // a markup extension
                     _session.Dismiss();
                     return false;
                 }
