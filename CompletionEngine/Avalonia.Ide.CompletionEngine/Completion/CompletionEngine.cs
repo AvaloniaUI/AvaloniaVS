@@ -76,7 +76,8 @@ public class CompletionEngine
             prefix ??= "";
 
             var e = _types
-                .Where(t => t.Value.IsXamlDirective == xamlDirectiveOnly && t.Key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
+                .Where(t => t.Value.IsXamlDirective == xamlDirectiveOnly && t.Key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                .Where(x => !x.Key.Equals("ControlTemplateResult") && !x.Key.Equals("DataTemplateExtensions"));
             if (withAttachedPropertiesOrEventsOnly)
                 e = e.Where(t => t.Value.HasAttachedProperties || t.Value.HasAttachedEvents);
             if (markupExtensionsOnly)
