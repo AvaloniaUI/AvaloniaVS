@@ -101,7 +101,12 @@ public class CompletionEngine
             }
 
             MetadataType? rv = null;
-            _types?.TryGetValue(name, out rv);
+            if (!(_types?.TryGetValue(name, out rv) == true))
+            {
+                // Markup extensions used as XML elements will fail to lookup because
+                // the tag name won't include 'Extension'
+                _types?.TryGetValue($"{name}Extension", out rv);
+            }
             return rv;
         }
 
@@ -242,21 +247,15 @@ public class CompletionEngine
             }
             else
             {
-                // Special case for `StaticResourceExtension`:
-                // <StaticResource ... />
-                // IIRC we don't support this for DynamicResource
-                // Change the name to "StaticResource" (matches UWP)
-                // TODO: Probably a better way to handle this...
-                completions.AddRange(_helper.FilterTypeNames(tagName).Select(x =>
+                completions.AddRange(_helper.FilterTypes(tagName).Select(kvp =>
                 { 
-                    if (x.Equals("StaticResourceExtension"))
+                    if (kvp.Value.IsMarkupExtension)
                     {
-                        return new Completion("StaticResource", CompletionKind.Class);
+                        var xamlName = kvp.Key.Substring(0, kvp.Key.Length - 9 /* length of "extension" */);
+                        return new Completion(xamlName, CompletionKind.Class);
                     }
-                    else
-                    {
-                        return new Completion(x, CompletionKind.Class);
-                    }                    
+
+                    return new Completion(kvp.Key, CompletionKind.Class);
                 }));
             }                
         }
