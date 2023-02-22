@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using AvaloniaVS.Models;
 using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Serilog;
 using CompletionEngine = Avalonia.Ide.CompletionEngine.CompletionEngine;
@@ -37,6 +36,7 @@ namespace AvaloniaVS.IntelliSense
                 {
                     var start = completions.StartPosition;
 
+                    // TODO: this should be handled in the completion engine
                     // pseudoclasses should only be returned in a Selector, so this is an easy filter
                     // We need to offset the start though for pseudoclasses to remove what they're 
                     // attached to: Control:pointerover -> :pointerover

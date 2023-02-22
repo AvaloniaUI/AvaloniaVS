@@ -62,7 +62,7 @@ namespace AvaloniaVS.IntelliSense
 
             if (TryGetChar(ref pguidCmdGroup, nCmdID, pvaIn, out var c))
             {
-                if (HandleSessionCompletion(c, out var newSession))
+                if (HandleSessionCompletion(c))
                 {
                     return VSConstants.S_OK;
                 }
@@ -72,6 +72,7 @@ namespace AvaloniaVS.IntelliSense
                     // If a completion session isn't active, and we type a quote, check
                     // if a quote already exists at the position & just move the cursor
                     // so we don't get a double quote
+                    // If a completion session is active, that's handled there
                     var cursorPos = _textView.Caret.Position.BufferPosition;
                     var nextChar = _textView.TextSnapshot.GetText(cursorPos, 1)[0];
                     if (nextChar == c)
@@ -83,7 +84,7 @@ namespace AvaloniaVS.IntelliSense
 
                 var result = _nextCommandHandler.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
 
-                if (HandleSessionStart(c, newSession))
+                if (HandleSessionStart(c))
                 {
                     return VSConstants.S_OK;
                 }
@@ -99,14 +100,8 @@ namespace AvaloniaVS.IntelliSense
             return _nextCommandHandler.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
         }
 
-        private bool HandleSessionStart(char c, bool forceNewSession)
+        private bool HandleSessionStart(char c)
         {
-            //if (forceNewSession)
-            //{
-            //    TriggerCompletion();
-            //    return true;
-            //}
-
             // If the pressed key is a key that can start a completion session.
             if (CompletionEngine.ShouldTriggerCompletionListOn(c) || c == '\a')
             {
@@ -118,39 +113,6 @@ namespace AvaloniaVS.IntelliSense
                     }
 
                     return true;
-                }
-                else
-                {
-                    // Special case for pseudoclasses - since they don't have spaces between
-                    // them and the element before (Control:pointerover) we need to cancel
-                    // the previous completion session and start a new one starting at the ':'
-                    // Otherwise typing 'Control:' won't show the intellisense popup with the
-                    // pseudoclasses until after you start typing a pseudoclass
-                    if (c == ':')// || c == '.')
-                    {
-                        // But, we don't want to trigger a new session for the ':' char if we're
-                        // not in a Selector. Otherwise, we'll trigger a new session for something
-                        // like 'xmlns:' or 'xmlsn:ui="using:' or '<ui:' (for third party controls)
-                        // which causes the intellisense popup to temporarily disappear and we don't
-                        // want that
-                        if (c == ':')
-                        {
-                            var pos = _textView.Caret.Position;
-                            var state = XmlParser.Parse(_textView.TextSnapshot.GetText().AsMemory(),
-                                0, pos.BufferPosition.Position);
-
-                            if (!(state?.AttributeName?.Equals("Selector") == true))
-                            {
-                                _session?.Filter();
-                                return false;
-                            }
-                        }
-
-                        _session.Dismiss();
-                        return false;
-                    }
-
-                    //_session.Filter();
                 }
             }
 
@@ -173,27 +135,31 @@ namespace AvaloniaVS.IntelliSense
             return false;
         }
 
-        private bool HandleSessionCompletion(char c, out bool shouldTriggerSession)
+        private bool HandleSessionCompletion(char c)
         {
-            shouldTriggerSession = false;
             var line = _textView.GetTextViewLineContainingBufferPosition(
                 _textView.Caret.Position.BufferPosition);
             var start = line.Start;
             var end = Math.Min(line.End, _textView.Caret.Position.BufferPosition);
-            var text = line.Snapshot.GetText(start, end-start);
-            
+
             // Adding a xmlns is special-cased here because we don't want '.' triggering
             // a completion, which can complete on the wrong value
             // So we only trigger on ' ' or '\t', and swallow that so it doesn't get 
             // inserted into the text buffer
             if (_session != null && !_session.IsDismissed)
-            {
+            {                
+                var text = line.Snapshot.GetText(start, end - start);
+
                 if (text.Contains("xmlns"))
                 {
                     if (char.IsWhiteSpace(c))
                     {
                         _session.Commit();
                         return true;
+                    }
+                    else if (c == ':')
+                    {
+                        _session.Dismiss();
                     }
 
                     return false;
@@ -229,10 +195,10 @@ namespace AvaloniaVS.IntelliSense
                         _textView.Caret.MoveTo(newCursorPos);
                     }
 
-                    // For perf, we only parse the text of the current line - if the 'state' comes
-                    // back as None, its an Xml Attribute since xml can't "wrap" lines and if no xml 
-                    // element/tag is found the only possible thing it can be is an attribute -
-                    // at least in terms of intellisense
+                    // Ideally, we should only parse the current line of text, where the parser State would return
+                    // 'None' if you're spreading control attributes out across multiple lines
+                    // BUT, Selectors can span multiple lines (aggregates separated by ',') and this theory
+                    // breaks down & and there's no way to determine XML context from just the current line
                     var parser = XmlParser.Parse(_textView.TextSnapshot.GetText().AsMemory(), 0, end);
                     var state = parser.State;
 
@@ -241,17 +207,18 @@ namespace AvaloniaVS.IntelliSense
                         (c == '.' || c == ' '))
                     {
                         // Don't swallow the '.' or ' ' if this is an Xml element, like
-                        // Window.Resources. However do swallow tab
-                        
+                        // Window.Resources. However do swallow tab                        
                         skip = false;
                     }
 
                     if (state == XmlParser.ParserState.AttributeValue || 
                         state == XmlParser.ParserState.AfterAttributeValue)
                     {
-                        if (char.IsWhiteSpace(c) && c != ' ')
+                        if (char.IsWhiteSpace(c))
                         {
-                            skip = true;
+                            // For most xml attributes, swallow the space upon completion
+                            // For selector, allow it to go into the buffer
+                            skip = !(parser.AttributeName?.Equals("Selector") == true);
                         }
                         else if (c == '\'' || c == '"')
                         {
@@ -275,62 +242,21 @@ namespace AvaloniaVS.IntelliSense
                     {
                         TriggerCompletion();
                     }
-                    
 
-                    shouldTriggerSession = true;
                     return skip;
                 }
             }
             else if (c == ':' && (_session != null && !_session.IsDismissed))
             {
-                _session.Dismiss();
-                return false;
-            }
+                var parser = XmlParser.Parse(_textView.TextSnapshot.GetText().AsMemory(), 0, end);
+                var state = parser.State;
 
-
-
-                       // If the pressed key is a key that can commit a completion session.
-            if (false || char.IsWhiteSpace(c) ||
-                (char.IsPunctuation(c) && c != ':' && c != '/' && c != '-') ||
-                c == '\n' || c == '\r' || c == '=')
-            {
-                // And commit or dismiss the completion session depending its state.
-                if (_session != null && !_session.IsDismissed)
+                if (state == XmlParser.ParserState.AttributeValue && 
+                    parser.AttributeName?.Equals("Selector") == true)
                 {
-                    if (_session.SelectedCompletionSet.SelectionStatus.IsSelected)
-                    {
-                        var selected = _session.SelectedCompletionSet.SelectionStatus.Completion as XamlCompletion;
-
-                        // If the spacebar is used to complete then it should be entered into the
-                        // buffer, all other chars should be swallowed.
-                        // Don't swallow '.' either, otherwise it will require two presses of the '.' key
-                        // for something like 'Window.Resources'
-                        var skip = c != ' ' && c != '.';
-
-                        //_session.Commit();
-
-                        if (selected?.CursorOffset > 0)
-                        {
-                            // Offset the cursor if necessary e.g. to place it within the quotation
-                            // marks of an attribute.
-                            var cursorPos = _textView.Caret.Position.BufferPosition;
-                            var newCursorPos = cursorPos - selected.CursorOffset;
-                            _textView.Caret.MoveTo(newCursorPos);
-                        }
-
-                        // If the inserted text is an XML attribute or attached property then pop up a new completion
-                        // session to show the valid values for the attribute.
-                        if (selected.InsertionText.EndsWith("=\"\"") || selected.InsertionText.EndsWith("."))
-                        {
-                            TriggerCompletion();
-                        }
-
-                        //return skip;
-                    }
-                    else
-                    {
-                        //_session.Dismiss();
-                    }
+                    // Force new session to start to suggest pseudoclasses
+                    _session.Dismiss();
+                    return false;
                 }
             }
 
