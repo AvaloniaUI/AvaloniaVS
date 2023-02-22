@@ -264,7 +264,7 @@ namespace AvaloniaVS.IntelliSense
                         else
                         {
                             skip = false;
-                        }                        
+                        }
 
                         // Cases like {Binding Path= result in {Binding Path==
                         // as the completion includes the '=', if the entered char
@@ -272,7 +272,7 @@ namespace AvaloniaVS.IntelliSense
                         if (!skip && selected.InsertionText.EndsWith(c.ToString()))
                         {
                             skip = true;
-                    }
+                        }
                     }
                     else if (state != XmlParser.ParserState.StartElement)
                     {

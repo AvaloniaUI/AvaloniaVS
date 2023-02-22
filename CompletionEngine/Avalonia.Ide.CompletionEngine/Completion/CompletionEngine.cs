@@ -248,7 +248,7 @@ public class CompletionEngine
             else
             {
                 completions.AddRange(_helper.FilterTypes(tagName).Select(kvp =>
-                { 
+                {
                     if (kvp.Value.IsMarkupExtension)
                     {
                         var xamlName = kvp.Key.Substring(0, kvp.Key.Length - 9 /* length of "extension" */);
@@ -505,7 +505,16 @@ public class CompletionEngine
 
         if (type.HintValues is not null)
         {
-            foreach (var v in type.HintValues.Where(v => v.StartsWith(entered, StringComparison.OrdinalIgnoreCase)))
+            // Don't filter values here by 'StartsWith' (old behavior), provide all the hints,
+            // For VS, Intellisense will filter the results for us, other users of the completion
+            // engine (outside of VS) will need to filter later
+            // Otherwise, in VS, it's impossible to get the full list for something like brushes:
+            // Background="Red" -> Background="B", will only populate with the 'B' brushes and hitting
+            // backspace after that will keep the 'B' brushes only instead of showing the whole list
+            // WPF/UWP loads the full list of brushes and highlights starting at the B and then
+            // filters the list down from there - otherwise its difficult to keep the completion list
+            // and see all choices if making edits
+            foreach (var v in type.HintValues)
             {
                 yield return v;
             }
