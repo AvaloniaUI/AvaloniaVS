@@ -240,7 +240,24 @@ public class CompletionEngine
                     .Select(p => new Completion(p, sameType ? CompletionKind.Property : CompletionKind.AttachedProperty)));
             }
             else
-                completions.AddRange(_helper.FilterTypeNames(tagName).Select(x => new Completion(x, CompletionKind.Class)));
+            {
+                // Special case for `StaticResourceExtension`:
+                // <StaticResource ... />
+                // IIRC we don't support this for DynamicResource
+                // Change the name to "StaticResource" (matches UWP)
+                // TODO: Probably a better way to handle this...
+                completions.AddRange(_helper.FilterTypeNames(tagName).Select(x =>
+                { 
+                    if (x.Equals("StaticResourceExtension"))
+                    {
+                        return new Completion("StaticResource", CompletionKind.Class);
+                    }
+                    else
+                    {
+                        return new Completion(x, CompletionKind.Class);
+                    }                    
+                }));
+            }                
         }
         else if (state.State == XmlParser.ParserState.InsideElement ||
                  state.State == XmlParser.ParserState.StartAttribute)
@@ -385,6 +402,10 @@ public class CompletionEngine
                 else if (state.TagName == "Setter" && (state.AttributeName == "Value" || state.AttributeName == "Property"))
                 {
                     ProcessStyleSetter(state.AttributeName, state, completions, currentAssemblyName);
+
+                    bool isAttached = textToCursor.AsSpan().Slice(curStart, pos - curStart).IndexOf('.') != -1;
+                    if (isAttached)
+                        curStart = pos;
                 }
             }
         }
@@ -435,7 +456,7 @@ public class CompletionEngine
                 var sameType = state.GetParentTagName(1) == typeName;
 
                 completions.AddRange(_helper.FilterPropertyNames(typeName, compName, attached: true, hasSetter: true)
-                                .Select(p => new Completion(p, $"{typeName}.{p}", p, CompletionKind.AttachedProperty)));
+                                .Select(p => new Completion(p, p, p, CompletionKind.AttachedProperty)));
             }
             else
             {

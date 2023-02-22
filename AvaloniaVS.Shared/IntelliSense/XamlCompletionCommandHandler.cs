@@ -62,14 +62,28 @@ namespace AvaloniaVS.IntelliSense
 
             if (TryGetChar(ref pguidCmdGroup, nCmdID, pvaIn, out var c))
             {
-                if (HandleSessionCompletion(c))
+                if (HandleSessionCompletion(c, out var newSession))
                 {
                     return VSConstants.S_OK;
                 }
 
+                if (_session == null && (c == '\'' || c == '"'))
+                {
+                    // If a completion session isn't active, and we type a quote, check
+                    // if a quote already exists at the position & just move the cursor
+                    // so we don't get a double quote
+                    var cursorPos = _textView.Caret.Position.BufferPosition;
+                    var nextChar = _textView.TextSnapshot.GetText(cursorPos, 1)[0];
+                    if (nextChar == c)
+                    {
+                        _textView.Caret.MoveTo(cursorPos + 1);
+                        return VSConstants.S_OK;
+                    }
+                }
+
                 var result = _nextCommandHandler.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
 
-                if (HandleSessionStart(c))
+                if (HandleSessionStart(c, newSession))
                 {
                     return VSConstants.S_OK;
                 }
@@ -78,15 +92,21 @@ namespace AvaloniaVS.IntelliSense
                 {
                     return VSConstants.S_OK;
                 }
-
+                
                 return result;
             }
 
             return _nextCommandHandler.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
         }
 
-        private bool HandleSessionStart(char c)
+        private bool HandleSessionStart(char c, bool forceNewSession)
         {
+            //if (forceNewSession)
+            //{
+            //    TriggerCompletion();
+            //    return true;
+            //}
+
             // If the pressed key is a key that can start a completion session.
             if (CompletionEngine.ShouldTriggerCompletionListOn(c) || c == '\a')
             {
@@ -106,7 +126,7 @@ namespace AvaloniaVS.IntelliSense
                     // the previous completion session and start a new one starting at the ':'
                     // Otherwise typing 'Control:' won't show the intellisense popup with the
                     // pseudoclasses until after you start typing a pseudoclass
-                    if (c == ':' || c == '.')
+                    if (c == ':')// || c == '.')
                     {
                         // But, we don't want to trigger a new session for the ':' char if we're
                         // not in a Selector. Otherwise, we'll trigger a new session for something
@@ -130,7 +150,7 @@ namespace AvaloniaVS.IntelliSense
                         return false;
                     }
 
-                    _session.Filter();
+                    //_session.Filter();
                 }
             }
 
@@ -153,10 +173,124 @@ namespace AvaloniaVS.IntelliSense
             return false;
         }
 
-        private bool HandleSessionCompletion(char c)
+        private bool HandleSessionCompletion(char c, out bool shouldTriggerSession)
         {
-            // If the pressed key is a key that can commit a completion session.
-            if (char.IsWhiteSpace(c) ||
+            shouldTriggerSession = false;
+            var line = _textView.GetTextViewLineContainingBufferPosition(
+                _textView.Caret.Position.BufferPosition);
+            var start = line.Start;
+            var end = Math.Min(line.End, _textView.Caret.Position.BufferPosition);
+            var text = line.Snapshot.GetText(start, end-start);
+            
+            // Adding a xmlns is special-cased here because we don't want '.' triggering
+            // a completion, which can complete on the wrong value
+            // So we only trigger on ' ' or '\t', and swallow that so it doesn't get 
+            // inserted into the text buffer
+            if (_session != null && !_session.IsDismissed)
+            {
+                if (text.Contains("xmlns"))
+                {
+                    if (char.IsWhiteSpace(c))
+                    {
+                        _session.Commit();
+                        return true;
+                    }
+
+                    return false;
+                }
+            }
+
+            // Per UWP designer, the following keys can commit a completion session
+            // in the remainder of the document - but only if a completion option
+            // is selected
+            // ' ' (space, or tab) 
+            // '\'' (single quote)
+            // '"'
+            // '='
+            // '>'
+            // '.'
+
+            // Also adding '#' for Selectors
+
+            if (char.IsWhiteSpace(c) || c == '\'' || c == '"' || c == '=' || c == '>' || c == '.' || c == '#')
+            {
+                if (_session != null && !_session.IsDismissed &&
+                    _session.SelectedCompletionSet.SelectionStatus.IsSelected)
+                {
+                    var selected = _session.SelectedCompletionSet.SelectionStatus.Completion as XamlCompletion;
+
+                    _session.Commit();
+                    if (selected?.CursorOffset > 0)
+                    {
+                        // Offset the cursor if necessary e.g. to place it within the quotation
+                        // marks of an attribute.
+                        var cursorPos = _textView.Caret.Position.BufferPosition;
+                        var newCursorPos = cursorPos - selected.CursorOffset;
+                        _textView.Caret.MoveTo(newCursorPos);
+                    }
+
+                    // For perf, we only parse the text of the current line - if the 'state' comes
+                    // back as None, its an Xml Attribute since xml can't "wrap" lines and if no xml 
+                    // element/tag is found the only possible thing it can be is an attribute -
+                    // at least in terms of intellisense
+                    var parser = XmlParser.Parse(_textView.TextSnapshot.GetText().AsMemory(), 0, end);
+                    var state = parser.State;
+
+                    bool skip = c != '>';
+                    if (state == XmlParser.ParserState.StartElement && 
+                        (c == '.' || c == ' '))
+                    {
+                        // Don't swallow the '.' or ' ' if this is an Xml element, like
+                        // Window.Resources. However do swallow tab
+                        
+                        skip = false;
+                    }
+
+                    if (state == XmlParser.ParserState.AttributeValue || 
+                        state == XmlParser.ParserState.AfterAttributeValue)
+                    {
+                        if (char.IsWhiteSpace(c) && c != ' ')
+                        {
+                            skip = true;
+                        }
+                        else if (c == '\'' || c == '"')
+                        {
+                            // If we're accepting a completion using the quotes, and there's already one
+                            // in the buffer after the completion, don't insert another quote, swallow
+                            // it and just move the cursor
+                            var cursorPos = _textView.Caret.Position.BufferPosition;
+                            var nextChar = _textView.TextSnapshot.GetText(cursorPos, 1)[0];
+                            if (nextChar == c)
+                            {
+                                skip = true;
+                                _textView.Caret.MoveTo(cursorPos + 1);
+                            }
+                        }
+                        else
+                        {
+                            skip = false;
+                        }                        
+                    }
+                    else if (state != XmlParser.ParserState.StartElement)
+                    {
+                        TriggerCompletion();
+                    }
+                    
+
+                    shouldTriggerSession = true;
+                    return skip;
+                }
+            }
+            else if (c == ':' && (_session != null && !_session.IsDismissed))
+            {
+                _session.Dismiss();
+                return false;
+            }
+
+
+
+                       // If the pressed key is a key that can commit a completion session.
+            if (false || char.IsWhiteSpace(c) ||
                 (char.IsPunctuation(c) && c != ':' && c != '/' && c != '-') ||
                 c == '\n' || c == '\r' || c == '=')
             {
@@ -173,7 +307,7 @@ namespace AvaloniaVS.IntelliSense
                         // for something like 'Window.Resources'
                         var skip = c != ' ' && c != '.';
 
-                        _session.Commit();
+                        //_session.Commit();
 
                         if (selected?.CursorOffset > 0)
                         {
@@ -191,11 +325,11 @@ namespace AvaloniaVS.IntelliSense
                             TriggerCompletion();
                         }
 
-                        return skip;
+                        //return skip;
                     }
                     else
                     {
-                        _session.Dismiss();
+                        //_session.Dismiss();
                     }
                 }
             }
