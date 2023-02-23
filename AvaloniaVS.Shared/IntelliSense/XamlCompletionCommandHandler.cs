@@ -251,7 +251,7 @@ namespace AvaloniaVS.IntelliSense
                                 for (int i = text.Length - 1; i >= 0; i--)
                                 {
                                     var lineChar = text[i];
-                                    if (char.IsLetter(lineChar) || char.IsNumber(lineChar) || lineChar == ':')
+                                    if (char.IsLetterOrDigit(lineChar) || lineChar == ':')
                                         continue;
 
                                     // any other character than [A-z,0-9,:] is a different part
