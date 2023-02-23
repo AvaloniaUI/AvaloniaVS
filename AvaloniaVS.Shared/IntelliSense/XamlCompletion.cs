@@ -69,6 +69,7 @@ namespace AvaloniaVS.IntelliSense
             s_images[(int)CompletionKind.AttachedProperty] = KnownMonikers.Property;
             s_images[(int)CompletionKind.StaticProperty] = KnownMonikers.EnumerationItemPublic;
             s_images[(int)CompletionKind.MarkupExtension] = KnownMonikers.Namespace;
+            s_images[(int)CompletionKind.DataProperty] = KnownMonikers.DatabaseProperty;
         }
     }
 }
