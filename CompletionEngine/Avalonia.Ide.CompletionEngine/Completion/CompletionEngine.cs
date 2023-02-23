@@ -422,14 +422,23 @@ public class CompletionEngine
                 {
                     if (state.AttributeName.Equals("Options"))
                     {
-                        // Built in types from:
-                        //https://github.com/AvaloniaUI/Avalonia/blob/master/src/Markup/Avalonia.Markup.Xaml/MarkupExtensions/OnPlatformExtension.cs
-                        completions.Add(new Completion("Windows", CompletionKind.Enum));
-                        completions.Add(new Completion("macOS", CompletionKind.Enum));
-                        completions.Add(new Completion("Linux", CompletionKind.Enum));
-                        completions.Add(new Completion("Android", CompletionKind.Enum));
-                        completions.Add(new Completion("IOS", CompletionKind.Enum));
-                        completions.Add(new Completion("Browser", CompletionKind.Enum));
+                        var parentTag = state.GetParentTagName(1);
+                        if (parentTag.Equals("OnPlatform"))
+                        {
+                            // Built in types from:
+                            //https://github.com/AvaloniaUI/Avalonia/blob/master/src/Markup/Avalonia.Markup.Xaml/MarkupExtensions/OnPlatformExtension.cs
+                            completions.Add(new Completion("Windows", CompletionKind.Enum));
+                            completions.Add(new Completion("macOS", CompletionKind.Enum));
+                            completions.Add(new Completion("Linux", CompletionKind.Enum));
+                            completions.Add(new Completion("Android", CompletionKind.Enum));
+                            completions.Add(new Completion("IOS", CompletionKind.Enum));
+                            completions.Add(new Completion("Browser", CompletionKind.Enum));
+                        }
+                        else if (parentTag.Equals("OnFormFactor"))
+                        {
+                            completions.Add(new Completion("Desktop", CompletionKind.Enum));
+                            completions.Add(new Completion("Mobile", CompletionKind.Enum));
+                        }
                     }
                     else if (state.AttributeName.Equals("Content"))
                     {
@@ -445,21 +454,6 @@ public class CompletionEngine
                         {
                             completions.AddRange(GetHintCompletions(property.Type, null, currentAssemblyName));
                         }
-                    }
-                }
-                else if (state.TagName.EndsWith("OnPlatform"))
-                {
-                    // For content, lets find the completions relevant to the property
-                    var propertyTag = state.GetParentTagName(1);
-                    var dotPos = propertyTag.IndexOf(".");
-                    var typeName = propertyTag.Substring(0, dotPos);
-                    var compName = propertyTag.Substring(dotPos + 1);
-
-                    var property = _helper.LookupProperty(typeName, compName);
-
-                    if (property?.Type?.HasHintValues == true)
-                    {
-                        completions.AddRange(GetHintCompletions(property.Type, null, currentAssemblyName));
                     }
                 }
             }
@@ -698,8 +692,6 @@ public class CompletionEngine
         int? forcedStart = null;
         var ext = MarkupExtensionParser.Parse(data);
 
-        System.Diagnostics.Debug.WriteLine("STATE " + ext.State);
-
         var transformedName = (ext.ElementName ?? "").Trim();
         if (_helper.LookupType(transformedName)?.IsMarkupExtension != true)
             transformedName += "Extension";
@@ -714,7 +706,10 @@ public class CompletionEngine
             if (ext.State == MarkupExtensionParser.ParserStateType.InsideElement)
                 forcedStart = data.Length;
 
-            if (ext.ElementName?.Trim().Equals("OnPlatform") == true)
+            var isOnPlatform = ext.ElementName?.Trim().Equals("OnPlatform");
+            var isOnFormFactor = ext.ElementName?.Trim().Equals("OnFormFactor");
+
+            if ((isOnPlatform == true) || (isOnFormFactor == true))
             {
                 bool isActuallyStartAttribute = false;
                 for (int i = data.Length - 1; i >= 0; i--)
@@ -732,12 +727,20 @@ public class CompletionEngine
 
                 if (isActuallyStartAttribute || ext.State == MarkupExtensionParser.ParserStateType.StartAttribute)
                 {
-                    completions.Add(new Completion("Windows", "Windows=", "Windows", CompletionKind.Enum));
-                    completions.Add(new Completion("macOS", "macOS=", "macOS", CompletionKind.Enum));
-                    completions.Add(new Completion("Linux", "Linux=", "Linux", CompletionKind.Enum));
-                    completions.Add(new Completion("Android", "Android=", "Android", CompletionKind.Enum));
-                    completions.Add(new Completion("iOS", "iOS=", "iOS", CompletionKind.Enum));
-                    completions.Add(new Completion("Browser", "Browser=", "Browser", CompletionKind.Enum));
+                    if (isOnPlatform == true)
+                    {
+                        completions.Add(new Completion("Windows", "Windows=", "Windows", CompletionKind.Enum));
+                        completions.Add(new Completion("macOS", "macOS=", "macOS", CompletionKind.Enum));
+                        completions.Add(new Completion("Linux", "Linux=", "Linux", CompletionKind.Enum));
+                        completions.Add(new Completion("Android", "Android=", "Android", CompletionKind.Enum));
+                        completions.Add(new Completion("iOS", "iOS=", "iOS", CompletionKind.Enum));
+                        completions.Add(new Completion("Browser", "Browser=", "Browser", CompletionKind.Enum));
+                    }
+                    else
+                    {
+                        completions.Add(new Completion("Desktop", "Desktop=", "Desktop", CompletionKind.Enum));
+                        completions.Add(new Completion("Mobile", "Mobile=", "Mobile", CompletionKind.Enum));
+                    }
                 }
                 else
                 {
@@ -812,8 +815,10 @@ public class CompletionEngine
         if (ext.State == MarkupExtensionParser.ParserStateType.AttributeValue
             || ext.State == MarkupExtensionParser.ParserStateType.BeforeAttributeValue)
         {
+            var elementName = ext.ElementName?.Trim();
             MetadataProperty? prop;
-            if (ext.ElementName?.Trim().Equals("OnPlatform") == true)
+            if (elementName?.Equals("OnPlatform") == true ||
+                elementName?.Equals("OnFormFactor") == true)
             {
                 prop = _helper.LookupProperty(state.TagName, state.AttributeName);
             }

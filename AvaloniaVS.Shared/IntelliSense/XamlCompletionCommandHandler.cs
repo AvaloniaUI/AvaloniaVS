@@ -261,7 +261,10 @@ namespace AvaloniaVS.IntelliSense
 
                                 // if in a markup extension, if we skip the entered char, we won't get
                                 // to start a new completion session, so force start it
-                                if (skip)
+                                // The check for '=' in the insertion text ensures we don't always get this
+                                // e.g., {OnPlatform Wind -> {OnPlatform Windows= [New completion session]
+                                // but {OnPlatform Windows=Re -> {OnPlatform Windows=Red [no new session]
+                                if (skip && selected.InsertionText.EndsWith("="))
                                     TriggerCompletion();
                             }
                         }

@@ -45,7 +45,7 @@ public static class MetadataConverter
         {
             return true;
         }
-        else if (type.Name.Equals("OnPlatformExtension"))
+        else if (type.Name.Equals("OnPlatformExtension") || type.Name.Equals("OnFormFactorExtension"))
         {
             // Special case for this, as it the type info can't find the ProvideValue method
             return true;
