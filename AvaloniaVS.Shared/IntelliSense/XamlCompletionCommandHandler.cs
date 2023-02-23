@@ -115,6 +115,18 @@ namespace AvaloniaVS.IntelliSense
                     return true;
                 }
             }
+            else if (c == ',')
+            {
+                if (_session == null || _session.IsDismissed)
+                {
+                    if (TriggerCompletion())
+                    {
+                        _session.Filter();
+                    }
+
+                    return true;
+                }
+            }
 
             return false;
         }
@@ -245,7 +257,12 @@ namespace AvaloniaVS.IntelliSense
                                     // any other character than [A-z,0-9,:] is a different part
                                     skip = lineChar != '{';
                                     break;
-                                }                                
+                                }
+
+                                // if in a markup extension, if we skip the entered char, we won't get
+                                // to start a new completion session, so force start it
+                                if (skip)
+                                    TriggerCompletion();
                             }
                         }
                         else if (c == '\'' || c == '"')
@@ -272,6 +289,12 @@ namespace AvaloniaVS.IntelliSense
                         if (!skip && selected.InsertionText.EndsWith(c.ToString()))
                         {
                             skip = true;
+
+                            // Specifically for markup extensions, make sure '=' triggers
+                            // a new completion session when entered, but only if we're
+                            // skipping the char entered
+                            if (c == '=')
+                                TriggerCompletion();
                         }
                     }
                     else if (state != XmlParser.ParserState.StartElement)
@@ -280,6 +303,11 @@ namespace AvaloniaVS.IntelliSense
                     }
 
                     return skip;
+                }
+                else
+                {
+                    _session?.Dismiss();
+                    return false;
                 }
             }
             else if (c == ':' && (_session != null && !_session.IsDismissed))
@@ -306,6 +334,19 @@ namespace AvaloniaVS.IntelliSense
                     // a markup extension
                     _session.Dismiss();
                     return false;
+                }
+            }
+            else if (c == ',' && (_session != null && !_session.IsDismissed))
+            {
+                // Typing the comma in a markup extension should trigger a new completion session
+                var text = line.Snapshot.GetText(start, end - start);
+                for (int i = text.Length - 1; i >= 0; i--)
+                {
+                    if (text[i] == '{')
+                    {
+                        _session.Dismiss();
+                        return false;
+                    }
                 }
             }
 

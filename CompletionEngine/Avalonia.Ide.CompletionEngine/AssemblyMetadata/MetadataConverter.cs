@@ -45,6 +45,11 @@ public static class MetadataConverter
         {
             return true;
         }
+        else if (type.Name.Equals("OnPlatformExtension"))
+        {
+            // Special case for this, as it the type info can't find the ProvideValue method
+            return true;
+        }
 
         return false;
     }
