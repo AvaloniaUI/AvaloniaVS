@@ -711,6 +711,10 @@ public class CompletionEngine
 
             if ((isOnPlatform == true) || (isOnFormFactor == true))
             {
+                // If we type a comma after a previous attribute: // {Binding Path=MyProp,
+                // the parser shows that as InsideElement, though we really want that to
+                // be StartAttribute for a list of completions relevant to the markup extension
+                // i.e., above we'd get the completion list for {Binding} again
                 bool isActuallyStartAttribute = false;
                 for (int i = data.Length - 1; i >= 0; i--)
                 {
