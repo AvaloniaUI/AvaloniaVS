@@ -152,7 +152,7 @@ public class CompletionEngine
             return t.Events.Where(n => n.IsAttached == attached && n.Name.StartsWith(propName)).Select(n => n.Name);
         }
 
-        public MetadataProperty? LookupProperty(string typeName, string? propName)
+        public MetadataProperty? LookupProperty(string? typeName, string? propName)
             => LookupType(typeName)?.Properties?.FirstOrDefault(p => p.Name == propName);
     }
 
@@ -420,10 +420,10 @@ public class CompletionEngine
                 }
                 else if (state.TagName == "On")
                 {
-                    if (state.AttributeName.Equals("Options"))
+                    if (state?.AttributeName?.Equals("Options") == true)
                     {
                         var parentTag = state.GetParentTagName(1);
-                        if (parentTag.Equals("OnPlatform"))
+                        if (parentTag?.Equals("OnPlatform") == true)
                         {
                             // Built in types from:
                             //https://github.com/AvaloniaUI/Avalonia/blob/master/src/Markup/Avalonia.Markup.Xaml/MarkupExtensions/OnPlatformExtension.cs
@@ -434,16 +434,16 @@ public class CompletionEngine
                             completions.Add(new Completion("IOS", CompletionKind.Enum));
                             completions.Add(new Completion("Browser", CompletionKind.Enum));
                         }
-                        else if (parentTag.Equals("OnFormFactor"))
+                        else if (parentTag?.Equals("OnFormFactor") == true)
                         {
                             completions.Add(new Completion("Desktop", CompletionKind.Enum));
                             completions.Add(new Completion("Mobile", CompletionKind.Enum));
                         }
                     }
-                    else if (state.AttributeName.Equals("Content"))
+                    else if (state?.AttributeName?.Equals("Content") == true)
                     {
                         // For content, lets find the completions relevant to the property
-                        var propertyTag = state.GetParentTagName(2);
+                        var propertyTag = state.GetParentTagName(2)!;
                         var dotPos = propertyTag.IndexOf(".");
                         var typeName = propertyTag.Substring(0, dotPos);
                         var compName = propertyTag.Substring(dotPos + 1);
@@ -748,7 +748,7 @@ public class CompletionEngine
                 }
                 else
                 {
-                    var prop = _helper.LookupProperty(state.TagName, state.AttributeName);
+                    var prop = _helper.LookupProperty(state?.TagName, state?.AttributeName);
                     if (prop?.Type?.HasHintValues == true)
                     {
                         completions.AddRange(GetHintCompletions(prop.Type, null, currentAssemblyName));
