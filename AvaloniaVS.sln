@@ -19,7 +19,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaResourceDictionaryT
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaStylesTemplate", "templates\AvaloniaStylesTemplate\AvaloniaStylesTemplate.csproj", "{9FEF480A-5A56-489D-AD89-53970FD2B2A1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvaloniaVS.VS2019AndEarlier", "AvaloniaVS.VS2019AndEarlier\AvaloniaVS.VS2019AndEarlier.csproj", "{79A4832C-9D3E-42D9-9215-D786565269B5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaVS.VS2019AndEarlier", "AvaloniaVS.VS2019AndEarlier\AvaloniaVS.VS2019AndEarlier.csproj", "{79A4832C-9D3E-42D9-9215-D786565269B5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaVS.VS2022", "AvaloniaVS.VS2022\AvaloniaVS.VS2022.csproj", "{1029EC08-7B2E-4018-B20D-E85CA58DEB59}"
 EndProject
@@ -215,6 +215,6 @@ Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		AvaloniaVS.Shared\AvaloniaVS.Shared.projitems*{1029ec08-7b2e-4018-b20d-e85ca58deb59}*SharedItemsImports = 4
 		AvaloniaVS.Shared\AvaloniaVS.Shared.projitems*{40d9809e-d179-44b2-bf42-61d781fb74f6}*SharedItemsImports = 13
-		AvaloniaVS.Shared\AvaloniaVS.Shared.projitems*{79a4832c-9d3e-42d9-9215-d786565269b5}*SharedItemsImports = 5
+		AvaloniaVS.Shared\AvaloniaVS.Shared.projitems*{79a4832c-9d3e-42d9-9215-d786565269b5}*SharedItemsImports = 4
 	EndGlobalSection
 EndGlobal
