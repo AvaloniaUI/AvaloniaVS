@@ -362,7 +362,15 @@ public class CompletionEngine
                 }
                 else if (prop?.Type?.Name == typeof(Type).FullName)
                 {
-                    completions.AddRange(_helper.FilterTypeNames(state.AttributeValue).Select(x => new Completion(x, x, x, CompletionKind.Class)));
+                    var cKind = CompletionKind.Class;
+                    if (state?.AttributeName?.Equals("TargetType") == true || 
+                        state?.AttributeName?.Equals("Selector") == true)
+                    {
+                        cKind |= CompletionKind.TargetTypeClass;
+                    }
+
+                    completions.AddRange(_helper.FilterTypeNames(state?.AttributeValue)
+                        .Select(x => new Completion(x, x, x, cKind)));
                 }
                 else if ((state.AttributeName == "xmlns" || state.AttributeName?.Contains("xmlns:") == true)
                     && state.AttributeValue is not null)
@@ -376,24 +384,26 @@ public class CompletionEngine
                         return result;
                     }
 
+                    var cKind = CompletionKind.Namespace | CompletionKind.VS_XMLNS;
+
                     if (state.AttributeValue.StartsWith("clr-namespace:"))
                         completions.AddRange(
                                 filterNamespaces(v => v.StartsWith(state.AttributeValue))
-                                .Select(v => new Completion(v.Substring("clr-namespace:".Length), v, v, CompletionKind.Namespace)));
+                                .Select(v => new Completion(v.Substring("clr-namespace:".Length), v, v, cKind)));
                     else
                     {
                         if ("using:".StartsWith(state.AttributeValue))
-                            completions.Add(new Completion("using:", CompletionKind.Namespace));
+                            completions.Add(new Completion("using:", cKind));
 
                         if ("clr-namespace:".StartsWith(state.AttributeValue))
-                            completions.Add(new Completion("clr-namespace:", CompletionKind.Namespace));
+                            completions.Add(new Completion("clr-namespace:", cKind));
 
                         completions.AddRange(
                             filterNamespaces(
                                 v =>
                                     v.StartsWith(state.AttributeValue) &&
                                     !v.StartsWith("clr-namespace"))
-                                .Select(v => new Completion(v, CompletionKind.Namespace)));
+                                .Select(v => new Completion(v, cKind)));
                     }
                 }
                 else if (state.AttributeName?.EndsWith(":Class") == true && state.AttributeValue is not null)
@@ -407,7 +417,7 @@ public class CompletionEngine
                         completions.AddRange(
                                fullClassNames
                                 .Where(v => v.StartsWith(state.AttributeValue))
-                                .Select(v => new Completion(v, CompletionKind.Class)));
+                                .Select(v => new Completion(v, CompletionKind.Class | CompletionKind.TargetTypeClass)));
                     }
                 }
                 else if (state.TagName == "Setter" && (state.AttributeName == "Value" || state.AttributeName == "Property"))

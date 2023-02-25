@@ -32,6 +32,7 @@ namespace AvaloniaVS.IntelliSense
         }
 
         public int CursorOffset { get; }
+
         public CompletionKind Kind { get; }
 
         public static IEnumerable<XamlCompletion> Create(
@@ -49,7 +50,25 @@ namespace AvaloniaVS.IntelliSense
                 LoadImages();
             }
 
+            if (HasFlag(kind, CompletionKind.DataProperty))
+            {
+                return s_images[(int)CompletionKind.DataProperty];
+            }
+            else if (HasFlag(kind, CompletionKind.TargetTypeClass))
+            {
+                return s_images[(int)CompletionKind.TargetTypeClass];
+            }
+            else if (HasFlag(kind, CompletionKind.VS_XMLNS))
+            {
+                return s_images[(int)CompletionKind.Enum];
+            }
+
             return s_images[(int)kind];
+
+            bool HasFlag(CompletionKind test, CompletionKind expected)
+            {
+                return (test & expected) == expected;
+            }
         }
 
         private static void LoadImages()
@@ -70,6 +89,7 @@ namespace AvaloniaVS.IntelliSense
             s_images[(int)CompletionKind.StaticProperty] = KnownMonikers.EnumerationItemPublic;
             s_images[(int)CompletionKind.MarkupExtension] = KnownMonikers.Namespace;
             s_images[(int)CompletionKind.DataProperty] = KnownMonikers.DatabaseProperty;
+            s_images[(int)CompletionKind.TargetTypeClass] = KnownMonikers.ClassPublic;
         }
     }
 }
