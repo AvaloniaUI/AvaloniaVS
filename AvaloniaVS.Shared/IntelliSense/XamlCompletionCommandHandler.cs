@@ -93,7 +93,7 @@ namespace AvaloniaVS.IntelliSense
                 {
                     return VSConstants.S_OK;
                 }
-                
+
                 return result;
             }
 
@@ -289,7 +289,8 @@ namespace AvaloniaVS.IntelliSense
                         // Cases like {Binding Path= result in {Binding Path==
                         // as the completion includes the '=', if the entered char
                         // is the same as the last char here, swallow the entered char
-                        if (!skip && selected.InsertionText.EndsWith(c.ToString()))
+                        if (!skip && (selected.InsertionText?.Length > 0 && 
+                            selected.InsertionText[selected.InsertionText.Length - 1] == c))
                         {
                             skip = true;
 
