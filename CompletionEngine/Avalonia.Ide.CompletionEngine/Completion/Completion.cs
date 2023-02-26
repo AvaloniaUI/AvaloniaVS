@@ -1,5 +1,8 @@
-﻿namespace Avalonia.Ide.CompletionEngine;
+﻿using System;
 
+namespace Avalonia.Ide.CompletionEngine;
+
+[Flags]
 public enum CompletionKind
 {
     None = 0x0,
