@@ -76,7 +76,8 @@ public class CompletionEngine
             prefix ??= "";
 
             var e = _types
-                .Where(t => t.Value.IsXamlDirective == xamlDirectiveOnly && t.Key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
+                .Where(t => t.Value.IsXamlDirective == xamlDirectiveOnly && t.Key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                .Where(x => !x.Key.Equals("ControlTemplateResult") && !x.Key.Equals("DataTemplateExtensions"));
             if (withAttachedPropertiesOrEventsOnly)
                 e = e.Where(t => t.Value.HasAttachedProperties || t.Value.HasAttachedEvents);
             if (markupExtensionsOnly)
@@ -100,7 +101,12 @@ public class CompletionEngine
             }
 
             MetadataType? rv = null;
-            _types?.TryGetValue(name, out rv);
+            if (!(_types?.TryGetValue(name, out rv) == true))
+            {
+                // Markup extensions used as XML elements will fail to lookup because
+                // the tag name won't include 'Extension'
+                _types?.TryGetValue($"{name}Extension", out rv);
+            }
             return rv;
         }
 
@@ -146,7 +152,7 @@ public class CompletionEngine
             return t.Events.Where(n => n.IsAttached == attached && n.Name.StartsWith(propName)).Select(n => n.Name);
         }
 
-        public MetadataProperty? LookupProperty(string typeName, string? propName)
+        public MetadataProperty? LookupProperty(string? typeName, string? propName)
             => LookupType(typeName)?.Properties?.FirstOrDefault(p => p.Name == propName);
     }
 
@@ -240,7 +246,18 @@ public class CompletionEngine
                     .Select(p => new Completion(p, sameType ? CompletionKind.Property : CompletionKind.AttachedProperty)));
             }
             else
-                completions.AddRange(_helper.FilterTypeNames(tagName).Select(x => new Completion(x, CompletionKind.Class)));
+            {
+                completions.AddRange(_helper.FilterTypes(tagName).Select(kvp =>
+                {
+                    if (kvp.Value.IsMarkupExtension)
+                    {
+                        var xamlName = kvp.Key.Substring(0, kvp.Key.Length - 9 /* length of "extension" */);
+                        return new Completion(xamlName, CompletionKind.Class);
+                    }
+
+                    return new Completion(kvp.Key, CompletionKind.Class);
+                }));
+            }                
         }
         else if (state.State == XmlParser.ParserState.InsideElement ||
                  state.State == XmlParser.ParserState.StartAttribute)
@@ -272,6 +289,17 @@ public class CompletionEngine
             {
                 completions.AddRange(_helper.FilterPropertyNames(state.TagName, state.AttributeName, attached: false, hasSetter: true)
                     .Select(x => new Completion(x, x + attributeSuffix, x, CompletionKind.Property, x.Length + attributeOffset)));
+
+                // Special case for "<On " here, 'Options' property is get only list property
+                // which is skipped above - Add it back here
+                // Future TODO: The metadata probably needs to adapt for this, but this opens up
+                // potential issues with readonly properties that we don't want visible, so leaving
+                // this up to be dealt with in the future
+                if (state.TagName.Equals("On"))
+                {
+                    completions.Add(new Completion("Options", "Options=\"\"", "Options", 
+                        CompletionKind.Property, 9 /*recommendedCursorOffset*/));
+                }
 
                 completions.AddRange(_helper.FilterEventNames(state.TagName, state.AttributeName, attached: false)
                     .Select(v => new Completion(v, v + attributeSuffix, v, CompletionKind.Event, v.Length + attributeOffset)));
@@ -334,7 +362,15 @@ public class CompletionEngine
                 }
                 else if (prop?.Type?.Name == typeof(Type).FullName)
                 {
-                    completions.AddRange(_helper.FilterTypeNames(state.AttributeValue).Select(x => new Completion(x, x, x, CompletionKind.Class)));
+                    var cKind = CompletionKind.Class;
+                    if (state?.AttributeName?.Equals("TargetType") == true || 
+                        state?.AttributeName?.Equals("Selector") == true)
+                    {
+                        cKind |= CompletionKind.TargetTypeClass;
+                    }
+
+                    completions.AddRange(_helper.FilterTypeNames(state?.AttributeValue)
+                        .Select(x => new Completion(x, x, x, cKind)));
                 }
                 else if ((state.AttributeName == "xmlns" || state.AttributeName?.Contains("xmlns:") == true)
                     && state.AttributeValue is not null)
@@ -348,24 +384,26 @@ public class CompletionEngine
                         return result;
                     }
 
+                    var cKind = CompletionKind.Namespace | CompletionKind.VS_XMLNS;
+
                     if (state.AttributeValue.StartsWith("clr-namespace:"))
                         completions.AddRange(
                                 filterNamespaces(v => v.StartsWith(state.AttributeValue))
-                                .Select(v => new Completion(v.Substring("clr-namespace:".Length), v, v, CompletionKind.Namespace)));
+                                .Select(v => new Completion(v.Substring("clr-namespace:".Length), v, v, cKind)));
                     else
                     {
                         if ("using:".StartsWith(state.AttributeValue))
-                            completions.Add(new Completion("using:", CompletionKind.Namespace));
+                            completions.Add(new Completion("using:", cKind));
 
                         if ("clr-namespace:".StartsWith(state.AttributeValue))
-                            completions.Add(new Completion("clr-namespace:", CompletionKind.Namespace));
+                            completions.Add(new Completion("clr-namespace:", cKind));
 
                         completions.AddRange(
                             filterNamespaces(
                                 v =>
                                     v.StartsWith(state.AttributeValue) &&
                                     !v.StartsWith("clr-namespace"))
-                                .Select(v => new Completion(v, CompletionKind.Namespace)));
+                                .Select(v => new Completion(v, cKind)));
                     }
                 }
                 else if (state.AttributeName?.EndsWith(":Class") == true && state.AttributeValue is not null)
@@ -379,12 +417,54 @@ public class CompletionEngine
                         completions.AddRange(
                                fullClassNames
                                 .Where(v => v.StartsWith(state.AttributeValue))
-                                .Select(v => new Completion(v, CompletionKind.Class)));
+                                .Select(v => new Completion(v, CompletionKind.Class | CompletionKind.TargetTypeClass)));
                     }
                 }
                 else if (state.TagName == "Setter" && (state.AttributeName == "Value" || state.AttributeName == "Property"))
                 {
                     ProcessStyleSetter(state.AttributeName, state, completions, currentAssemblyName);
+
+                    bool isAttached = textToCursor.AsSpan().Slice(curStart, pos - curStart).IndexOf('.') != -1;
+                    if (isAttached)
+                        curStart = pos;
+                }
+                else if (state.TagName == "On")
+                {
+                    if (state?.AttributeName?.Equals("Options") == true)
+                    {
+                        var parentTag = state.GetParentTagName(1);
+                        if (parentTag?.Equals("OnPlatform") == true)
+                        {
+                            // Built in types from:
+                            //https://github.com/AvaloniaUI/Avalonia/blob/master/src/Markup/Avalonia.Markup.Xaml/MarkupExtensions/OnPlatformExtension.cs
+                            completions.Add(new Completion("Windows", CompletionKind.Enum));
+                            completions.Add(new Completion("macOS", CompletionKind.Enum));
+                            completions.Add(new Completion("Linux", CompletionKind.Enum));
+                            completions.Add(new Completion("Android", CompletionKind.Enum));
+                            completions.Add(new Completion("IOS", CompletionKind.Enum));
+                            completions.Add(new Completion("Browser", CompletionKind.Enum));
+                        }
+                        else if (parentTag?.Equals("OnFormFactor") == true)
+                        {
+                            completions.Add(new Completion("Desktop", CompletionKind.Enum));
+                            completions.Add(new Completion("Mobile", CompletionKind.Enum));
+                        }
+                    }
+                    else if (state?.AttributeName?.Equals("Content") == true)
+                    {
+                        // For content, lets find the completions relevant to the property
+                        var propertyTag = state.GetParentTagName(2)!;
+                        var dotPos = propertyTag.IndexOf(".");
+                        var typeName = propertyTag.Substring(0, dotPos);
+                        var compName = propertyTag.Substring(dotPos + 1);
+
+                        var property = _helper.LookupProperty(typeName, compName);
+
+                        if (property?.Type?.HasHintValues == true)
+                        {
+                            completions.AddRange(GetHintCompletions(property.Type, null, currentAssemblyName));
+                        }
+                    }
                 }
             }
         }
@@ -435,7 +515,7 @@ public class CompletionEngine
                 var sameType = state.GetParentTagName(1) == typeName;
 
                 completions.AddRange(_helper.FilterPropertyNames(typeName, compName, attached: true, hasSetter: true)
-                                .Select(p => new Completion(p, $"{typeName}.{p}", p, CompletionKind.AttachedProperty)));
+                                .Select(p => new Completion(p, p, p, CompletionKind.AttachedProperty)));
             }
             else
             {
@@ -484,7 +564,16 @@ public class CompletionEngine
 
         if (type.HintValues is not null)
         {
-            foreach (var v in type.HintValues.Where(v => v.StartsWith(entered, StringComparison.OrdinalIgnoreCase)))
+            // Don't filter values here by 'StartsWith' (old behavior), provide all the hints,
+            // For VS, Intellisense will filter the results for us, other users of the completion
+            // engine (outside of VS) will need to filter later
+            // Otherwise, in VS, it's impossible to get the full list for something like brushes:
+            // Background="Red" -> Background="B", will only populate with the 'B' brushes and hitting
+            // backspace after that will keep the 'B' brushes only instead of showing the whole list
+            // WPF/UWP loads the full list of brushes and highlights starting at the B and then
+            // filters the list down from there - otherwise its difficult to keep the completion list
+            // and see all choices if making edits
+            foreach (var v in type.HintValues)
             {
                 yield return v;
             }
@@ -499,7 +588,7 @@ public class CompletionEngine
             {
                 foreach (var propertyName in MetadataHelper.FilterPropertyNames(filterType, filter, false, false))
                 {
-                    yield return new Completion(propertyName, fmtInsertText?.Invoke(propertyName) ?? propertyName, propertyName, CompletionKind.Property);
+                    yield return new Completion(propertyName, fmtInsertText?.Invoke(propertyName) ?? propertyName, propertyName, CompletionKind.DataProperty);
                 }
             }
         }
@@ -627,6 +716,58 @@ public class CompletionEngine
             if (ext.State == MarkupExtensionParser.ParserStateType.InsideElement)
                 forcedStart = data.Length;
 
+            var isOnPlatform = ext.ElementName?.Trim().Equals("OnPlatform");
+            var isOnFormFactor = ext.ElementName?.Trim().Equals("OnFormFactor");
+
+            if ((isOnPlatform == true) || (isOnFormFactor == true))
+            {
+                // If we type a comma after a previous attribute: // {Binding Path=MyProp,
+                // the parser shows that as InsideElement, though we really want that to
+                // be StartAttribute for a list of completions relevant to the markup extension
+                // i.e., above we'd get the completion list for {Binding} again
+                bool isActuallyStartAttribute = false;
+                for (int i = data.Length - 1; i >= 0; i--)
+                {
+                    if (data[i] == ',')
+                    {
+                        isActuallyStartAttribute = true;
+                        break;
+                    }
+                    else if (data[i] == '=')
+                    {
+                        break;
+                    }
+                }
+
+                if (isActuallyStartAttribute || ext.State == MarkupExtensionParser.ParserStateType.StartAttribute)
+                {
+                    if (isOnPlatform == true)
+                    {
+                        completions.Add(new Completion("Windows", "Windows=", "Windows", CompletionKind.Enum));
+                        completions.Add(new Completion("macOS", "macOS=", "macOS", CompletionKind.Enum));
+                        completions.Add(new Completion("Linux", "Linux=", "Linux", CompletionKind.Enum));
+                        completions.Add(new Completion("Android", "Android=", "Android", CompletionKind.Enum));
+                        completions.Add(new Completion("iOS", "iOS=", "iOS", CompletionKind.Enum));
+                        completions.Add(new Completion("Browser", "Browser=", "Browser", CompletionKind.Enum));
+                    }
+                    else
+                    {
+                        completions.Add(new Completion("Desktop", "Desktop=", "Desktop", CompletionKind.Enum));
+                        completions.Add(new Completion("Mobile", "Mobile=", "Mobile", CompletionKind.Enum));
+                    }
+                }
+                else
+                {
+                    var prop = _helper.LookupProperty(state?.TagName, state?.AttributeName);
+                    if (prop?.Type?.HasHintValues == true)
+                    {
+                        completions.AddRange(GetHintCompletions(prop.Type, null, currentAssemblyName));
+                    }                    
+                }
+
+                return forcedStart ?? ext.CurrentValueStart;
+            }
+
             completions.AddRange(_helper.FilterPropertyNames(transformedName, ext.AttributeName ?? "", attached: false, hasSetter: true)
                 .Select(x => new Completion(x, x + "=", x, CompletionKind.Property)));
 
@@ -688,7 +829,18 @@ public class CompletionEngine
         if (ext.State == MarkupExtensionParser.ParserStateType.AttributeValue
             || ext.State == MarkupExtensionParser.ParserStateType.BeforeAttributeValue)
         {
-            var prop = _helper.LookupProperty(transformedName, ext.AttributeName);
+            var elementName = ext.ElementName?.Trim();
+            MetadataProperty? prop;
+            if (elementName?.Equals("OnPlatform") == true ||
+                elementName?.Equals("OnFormFactor") == true)
+            {
+                prop = _helper.LookupProperty(state.TagName, state.AttributeName);
+            }
+            else
+            {
+                prop = _helper.LookupProperty(transformedName, ext.AttributeName);
+            }
+
             if (prop?.Type?.HasHintValues == true)
             {
                 var start = data.Substring(ext.CurrentValueStart);
@@ -703,7 +855,8 @@ public class CompletionEngine
     {
         return char.IsLetterOrDigit(typedChar) || typedChar == '/' || typedChar == '<'
             || typedChar == ' ' || typedChar == '.' || typedChar == ':' || typedChar == '$'
-            || typedChar == '#' || typedChar == '-' || typedChar == '^';
+            || typedChar == '#' || typedChar == '-' || typedChar == '^' || typedChar == '{'
+            || typedChar == '=';
     }
 
     public static CompletionKind GetCompletionKindForHintValues(MetadataType type)

@@ -139,10 +139,9 @@ namespace CompletionEngineTests
         {
             var compl = GetCompletionsFor("<DataTemplate");
 
-            Assert.Equal(3, compl.Completions.Count);
+            Assert.Equal(2, compl.Completions.Count);
             Assert.Equal("DataTemplate", compl.Completions[0].InsertText);
-            Assert.Equal("DataTemplateExtensions", compl.Completions[1].InsertText);
-            Assert.Equal("DataTemplates", compl.Completions[2].InsertText);
+            Assert.Equal("DataTemplates", compl.Completions[1].InsertText);
         }
     }
 }
