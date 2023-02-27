@@ -55,13 +55,21 @@ namespace AvaloniaVS.IntelliSense
                     var span = new SnapshotSpan(pos.Snapshot, start, pos.Position - start);
                     var applicableTo = pos.Snapshot.CreateTrackingSpan(span, SpanTrackingMode.EdgeInclusive);
 
-                    completionSets.Insert(0, new CompletionSet(
-                        "Avalonia",
-                        "Avalonia",
-                        applicableTo,
-                        XamlCompletion.Create(completions.Completions),
-                        null));
+                    try
+                    {
+                        var xamlcompletions = XamlCompletion.Create(completions.Completions).ToArray();
+                        var intellisenseFilter = GetFilter(xamlcompletions);
 
+                        completionSets.Insert(0, XamlCompletionSet.Create(
+                            applicableTo,
+                            xamlcompletions,
+                            intellisenseFilter
+                            ));
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine(ex);
+                    }
                     // This selects the first item in the completion popup - otherwise you have to physically
                     // interact with the completion list (either via mouse or keyboard arrows) otherwise tab
                     // or space won't trigger it
@@ -82,6 +90,12 @@ namespace AvaloniaVS.IntelliSense
 
                 sw.Stop();
             }
+
+            IReadOnlyList<IIntellisenseFilter> GetFilter(IEnumerable<XamlCompletion> completions) =>
+                completions.GroupBy(c => c.Kind)
+                    .Select(g => XamIntellisenseFilter.Create(g.Key))
+                    .ToArray();
+
         }
 
         public void Dispose()

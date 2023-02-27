@@ -16,9 +16,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)Converters\NotNullOrEmptyToVisibilityConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Guids.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IntelliSense\TextChangeAdapter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IntelliSense\XamIntellisenseFilter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IntelliSense\XamlCompletion.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IntelliSense\XamlCompletionCommandHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IntelliSense\XamlCompletionHandlerProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IntelliSense\XamlCompletionSet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IntelliSense\XamlCompletionSource.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IntelliSense\XamlCompletionSourceProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IntelliSense\XamlErrorTableEntry.cs" />
@@ -41,6 +43,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\Throttle.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TaskExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\FrameworkInfoUtils.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\ImageMonikerUtility.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\AvaloniaDesigner.xaml.cs">
       <DependentUpon>AvaloniaDesigner.xaml</DependentUpon>
     </Compile>
