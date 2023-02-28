@@ -116,62 +116,6 @@
       <Project>{cd7db042-4282-4dfb-9910-958036dd621d}</Project>
       <Name>Avalonia.Ide.CompletionEngine</Name>
     </ProjectReference>
-    <ProjectReference Include="..\templates\AvaloniaResourceDictionaryTemplate\AvaloniaResourceDictionaryTemplate.csproj">
-      <Project>{f7ee3a1d-ddb2-4f82-a6e7-f444a24abb62}</Project>
-      <Name>AvaloniaResourceDictionaryTemplate</Name>
-      <VSIXSubPath>ItemTemplates</VSIXSubPath>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
-    </ProjectReference>
-    <ProjectReference Include="..\templates\AvaloniaStylesTemplate\AvaloniaStylesTemplate.csproj">
-      <Project>{9fef480a-5a56-489d-ad89-53970fd2b2a1}</Project>
-      <Name>AvaloniaStylesTemplate</Name>
-      <VSIXSubPath>ItemTemplates</VSIXSubPath>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
-    </ProjectReference>
-    <ProjectReference Include="..\templates\AvaloniaTemplatedControlTemplate\AvaloniaTemplatedControlTemplate.csproj">
-      <Project>{8c4e8335-59ba-4e56-80ff-68c559e3f664}</Project>
-      <Name>AvaloniaTemplatedControlTemplate</Name>
-      <VSIXSubPath>ItemTemplates</VSIXSubPath>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
-    </ProjectReference>
-    <ProjectReference Include="..\templates\AvaloniaUserControlTemplate\AvaloniaUserControlTemplate.csproj">
-      <Project>{3bfd12bb-e6d8-46d7-9d5f-119a9896941e}</Project>
-      <Name>AvaloniaUserControlTemplate</Name>
-      <VSIXSubPath>ItemTemplates</VSIXSubPath>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
-    </ProjectReference>
-    <ProjectReference Include="..\templates\AvaloniaWindowTemplate\AvaloniaWindowTemplate.csproj">
-      <Project>{c8b3ff98-50a3-4c04-8f8c-ed853ec0760c}</Project>
-      <Name>AvaloniaWindowTemplate</Name>
-      <VSIXSubPath>ItemTemplates</VSIXSubPath>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
-    </ProjectReference>
-    <ProjectReference Include="..\templates\FsAvaloniaTemplatedControlTemplate\FsAvaloniaTemplatedControlTemplate.csproj">
-      <Project>{94AFBDF7-D3C5-4952-9070-5A517970B964}</Project>
-      <Name>FsAvaloniaTemplatedControlTemplate</Name>
-      <VSIXSubPath>ItemTemplates</VSIXSubPath>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
-    </ProjectReference>
-    <ProjectReference Include="..\templates\FsAvaloniaUserControlTemplate\FsAvaloniaUserControlTemplate.csproj">
-      <Project>{807da0c2-1ddc-4693-8b6d-901692ec0180}</Project>
-      <Name>FsAvaloniaUserControlTemplate</Name>
-      <VSIXSubPath>ItemTemplates</VSIXSubPath>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
-    </ProjectReference>
-    <ProjectReference Include="..\templates\FsAvaloniaWindowTemplate\FsAvaloniaWindowTemplate.csproj">
-      <Project>{f71567e3-ae77-4009-9901-6994596eafa6}</Project>
-      <Name>FsAvaloniaWindowTemplate</Name>
-      <VSIXSubPath>ItemTemplates</VSIXSubPath>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Templates.pkgdef">
