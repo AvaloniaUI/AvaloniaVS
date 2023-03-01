@@ -90,7 +90,9 @@ public class CompletionEngine
 
         public IEnumerable<string> FilterTypeNames(string? prefix, bool withAttachedPropertiesOrEventsOnly = false, bool markupExtensionsOnly = false, bool staticGettersOnly = false, bool xamlDirectiveOnly = false)
         {
-            return FilterTypes(prefix, withAttachedPropertiesOrEventsOnly, markupExtensionsOnly, staticGettersOnly, xamlDirectiveOnly).Select(s => s.Key);
+            return FilterTypes(prefix, withAttachedPropertiesOrEventsOnly, markupExtensionsOnly, staticGettersOnly, xamlDirectiveOnly)
+                .Select(s => s.Key)
+                .OrderBy(t => t, StringComparer.OrdinalIgnoreCase);
         }
 
         public MetadataType? LookupType(string? name)
@@ -138,7 +140,9 @@ public class CompletionEngine
             else
                 e = e.Where(p => !p.IsStatic);
 
-            return e.Select(p => p.Name);
+            return e
+                .OrderBy(p => p.Name, StringComparer.OrdinalIgnoreCase)
+                .Select(p => p.Name);
         }
 
         public IEnumerable<string> FilterEventNames(string typeName, string? propName,
@@ -149,7 +153,9 @@ public class CompletionEngine
             if (t == null)
                 return Array.Empty<string>();
 
-            return t.Events.Where(n => n.IsAttached == attached && n.Name.StartsWith(propName)).Select(n => n.Name);
+            return t.Events.Where(n => n.IsAttached == attached && n.Name.StartsWith(propName))
+                .OrderBy(t => t.Name, StringComparer.OrdinalIgnoreCase)
+                .Select(n => n.Name);
         }
 
         public MetadataProperty? LookupProperty(string? typeName, string? propName)
@@ -247,7 +253,9 @@ public class CompletionEngine
             }
             else
             {
-                completions.AddRange(_helper.FilterTypes(tagName).Select(kvp =>
+                completions.AddRange(_helper.FilterTypes(tagName)
+                    .OrderBy(kvp => kvp.Value.Name, StringComparer.CurrentCultureIgnoreCase)
+                    .Select(kvp =>
                 {
                     if (kvp.Value.IsMarkupExtension)
                     {
@@ -257,7 +265,7 @@ public class CompletionEngine
 
                     return new Completion(kvp.Key, CompletionKind.Class);
                 }));
-            }                
+            }
         }
         else if (state.State == XmlParser.ParserState.InsideElement ||
                  state.State == XmlParser.ParserState.StartAttribute)
@@ -297,7 +305,7 @@ public class CompletionEngine
                 // this up to be dealt with in the future
                 if (state.TagName.Equals("On"))
                 {
-                    completions.Add(new Completion("Options", "Options=\"\"", "Options", 
+                    completions.Add(new Completion("Options", "Options=\"\"", "Options",
                         CompletionKind.Property, 9 /*recommendedCursorOffset*/));
                 }
 
@@ -310,6 +318,7 @@ public class CompletionEngine
                     completions.AddRange(
                         _helper.FilterTypes(state.AttributeName, xamlDirectiveOnly: true)
                             .Where(t => t.Value.IsValidForXamlContextFunc?.Invoke(currentAssemblyName, targetType, null) ?? true)
+                            .OrderBy(kvp => kvp.Value.Name, StringComparer.OrdinalIgnoreCase)
                             .Select(v => new Completion(v.Key, v.Key + attributeSuffix, v.Key, CompletionKind.Class, v.Key.Length + attributeOffset)));
 
                     if (targetType.IsAvaloniaObjectType)
@@ -363,7 +372,7 @@ public class CompletionEngine
                 else if (prop?.Type?.Name == typeof(Type).FullName)
                 {
                     var cKind = CompletionKind.Class;
-                    if (state?.AttributeName?.Equals("TargetType") == true || 
+                    if (state?.AttributeName?.Equals("TargetType") == true ||
                         state?.AttributeName?.Equals("Selector") == true)
                     {
                         cKind |= CompletionKind.TargetTypeClass;
@@ -586,7 +595,9 @@ public class CompletionEngine
         {
             if (filterType != null)
             {
-                foreach (var propertyName in MetadataHelper.FilterPropertyNames(filterType, filter, false, false))
+                var propertyNames = MetadataHelper.FilterPropertyNames(filterType, filter, false, false)
+                    .OrderBy(p => p, StringComparer.CurrentCultureIgnoreCase);
+                foreach (var propertyName in propertyNames)
                 {
                     yield return new Completion(propertyName, fmtInsertText?.Invoke(propertyName) ?? propertyName, propertyName, CompletionKind.DataProperty);
                 }
@@ -688,6 +699,7 @@ public class CompletionEngine
         var kind = GetCompletionKindForHintValues(type);
 
         var completions = FilterHintValues(type, entered, currentAssemblyName, state)
+            .OrderBy(h => h, StringComparer.OrdinalIgnoreCase)
             .Select(val => new Completion(val, kind)).ToList();
 
         if (type.FullName == "{BindingPath}" && state != null)
@@ -762,7 +774,7 @@ public class CompletionEngine
                     if (prop?.Type?.HasHintValues == true)
                     {
                         completions.AddRange(GetHintCompletions(prop.Type, null, currentAssemblyName));
-                    }                    
+                    }
                 }
 
                 return forcedStart ?? ext.CurrentValueStart;
@@ -796,7 +808,8 @@ public class CompletionEngine
                         var mType = _helper.LookupType(type);
                         if (mType != null && t.SupportCtorArgument == MetadataTypeCtorArgument.HintValues)
                         {
-                            var hints = FilterHintValues(mType, prop, currentAssemblyName, state);
+                            var hints = FilterHintValues(mType, prop, currentAssemblyName, state)
+                                .OrderBy(h => h, StringComparer.OrdinalIgnoreCase);
                             completions.AddRange(hints.Select(x => new Completion(x, $"{type}.{x}", x, GetCompletionKindForHintValues(mType))));
                         }
 
