@@ -236,7 +236,7 @@ namespace AvaloniaVS.Shared.Views
 
         int IVsDeferredDocView.get_CmdUIGuid(out System.Guid pGuidCmdId)
         {
-            pGuidCmdId = Guids.AvaloniaDesignerEditorFactory;
+            pGuidCmdId = Constants.AvaloviaFactoryEditorGuid;
             return VSConstants.S_OK;
         }
 

@@ -16,7 +16,6 @@ namespace AvaloniaVS
     [Guid(Constants.PackageGuidString)]
     [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)]
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
-    [ProvideAutoLoad(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_string, PackageAutoLoadFlags.BackgroundLoad)]
     [ProvideEditorExtension(
         typeof(EditorFactory),
         "." + Constants.axaml,
@@ -64,8 +63,6 @@ namespace AvaloniaVS
         DebuggingLogicalViewEditor = typeof(EditorFactory),
         TextLogicalViewEditor = typeof(EditorFactory))]
     [ProvideOptionPage(typeof(OptionsDialogPage), Constants.PackageName, "General", 113, 0, supportsAutomation: true)]
-
-
     [ProvideBindingPath]
     internal sealed class AvaloniaPackage : AsyncPackage
     {
