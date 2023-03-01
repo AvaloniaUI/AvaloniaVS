@@ -14,20 +14,11 @@ namespace AvaloniaVS.IntelliSense
     [Name("Avalonia XAML Completion")]
     internal class XamlCompletionSourceProvider : ICompletionSourceProvider
     {
-        private readonly IVsImageService2 _imageService;
-
-        [ImportingConstructor]
-        public XamlCompletionSourceProvider(
-            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
-        {
-            _imageService = serviceProvider.GetService<IVsImageService2, SVsImageService>();
-        }
-
         public ICompletionSource TryCreateCompletionSource(ITextBuffer textBuffer)
         {
             if (textBuffer.Properties.ContainsProperty(typeof(XamlBufferMetadata)))
             {
-                return new XamlCompletionSource(textBuffer, _imageService);
+                return new XamlCompletionSource(textBuffer);
             }
 
             return null;
