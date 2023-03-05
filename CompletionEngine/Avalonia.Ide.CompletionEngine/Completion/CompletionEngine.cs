@@ -470,9 +470,38 @@ public class CompletionEngine
         }
 
         if (completions.Count != 0)
-            return new CompletionSet() { Completions = completions.OrderBy(i => i.Kind).ThenBy(i => i.InsertText).ToList(), StartPosition = curStart };
+            return new CompletionSet() { Completions = SortCompletions(completions), StartPosition = curStart };
 
         return null;
+    }
+
+    private static List<Completion> SortCompletions(List<Completion> completions)
+    {
+        // Group the completions based on Kind, and sort the completions for each group
+        return completions
+            .GroupBy(i => i.Kind, (kind, compl) =>
+                (Kind: kind, Completions: compl.OrderBy(j => j.DisplayText)))
+            .OrderBy(i => GetCompletionPriority(i.Kind))
+            .SelectMany(i => i.Completions)
+            .ToList();
+    }
+
+    private static int GetCompletionPriority(CompletionKind kind)
+    {
+        return kind switch
+        {
+            CompletionKind.MarkupExtension => 0,
+            CompletionKind.Namespace => 1,
+            CompletionKind.Property => 2,
+            CompletionKind.AttachedProperty => 3,
+            CompletionKind.StaticProperty => 4,
+            CompletionKind.Event => 5,
+            CompletionKind.AttachedEvent => 6,
+            CompletionKind.Class => 7,
+            CompletionKind.Enum => 8,
+            CompletionKind.None => 9,
+            _ => (int)kind
+        };
     }
 
     private void ProcessStyleSetter(string setterPropertyName, XmlParser state, List<Completion> completions, string? currentAssemblyName)
