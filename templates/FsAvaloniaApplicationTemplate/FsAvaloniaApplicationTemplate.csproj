@@ -35,6 +35,7 @@
     <RootNamespace>FsAvaloniaApplicationTemplate</RootNamespace>
     <AssemblyName>FsAvaloniaApplicationTemplate</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+	<RuntimeIdentifier>win</RuntimeIdentifier>
     <FileAlignment>512</FileAlignment>
     <GeneratePkgDefFile>false</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
