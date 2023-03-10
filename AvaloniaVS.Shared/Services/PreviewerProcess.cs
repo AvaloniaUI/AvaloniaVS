@@ -149,7 +149,7 @@ namespace AvaloniaVS.Services
             if (!File.Exists(executablePath))
             {
                 throw new FileNotFoundException(
-                    $"Could not find executable '{executablePath}'. " + 
+                    $"Could not find executable '{executablePath}'. " +
                     "Please build your project to enable previewing and intellisense.");
             }
 
@@ -250,15 +250,15 @@ namespace AvaloniaVS.Services
             _listener?.Dispose();
             _listener = null;
 
-            if (_connection != null)
+            if (_connection is IAvaloniaRemoteTransportConnection connection)
             {
-                _connection.OnMessage -= ConnectionMessageReceived;
-                _connection.OnException -= ConnectionExceptionReceived;
-                _connection.Dispose();
                 _connection = null;
+                connection.OnMessage -= ConnectionMessageReceived;
+                connection.OnException -= ConnectionExceptionReceived;
+                connection.Dispose();
             }
 
-            if (_process != null && !_process.HasExited)
+            if (_process?.HasExited == false)
             {
                 _log.Debug("Killing previewer process");
 
@@ -386,7 +386,8 @@ namespace AvaloniaVS.Services
         private async Task SendAsync(object message)
         {
             _log.Debug("=> Sending {@Message}", message);
-            await _connection.Send(message);
+            if (_connection is IAvaloniaRemoteTransportConnection connection)
+                await connection.Send(message);
         }
 
         private async Task OnMessageAsync(object message)
@@ -397,55 +398,55 @@ namespace AvaloniaVS.Services
             switch (message)
             {
                 case FrameMessage frame:
-                {
-                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-
-                    if (_bitmap == null || _bitmap.PixelWidth != frame.Width || _bitmap.PixelHeight != frame.Height)
                     {
-                        _bitmap = new WriteableBitmap(
-                            Math.Max(frame.Width, 1),
-                            Math.Max(frame.Height, 1),
-                            96,
-                            96,
-                            ToWpf(frame.Format),
-                            null);
+                        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                        if (_bitmap == null || _bitmap.PixelWidth != frame.Width || _bitmap.PixelHeight != frame.Height)
+                        {
+                            _bitmap = new WriteableBitmap(
+                                Math.Max(frame.Width, 1),
+                                Math.Max(frame.Height, 1),
+                                96,
+                                96,
+                                ToWpf(frame.Format),
+                                null);
+                        }
+
+                        if (frame.Width > 0 && frame.Height > 0)
+                        {
+                            _bitmap.WritePixels(
+                                new Int32Rect(0, 0, _bitmap.PixelWidth, _bitmap.PixelHeight),
+                                frame.Data,
+                                frame.Stride,
+                                0);
+                        }
+
+                        FrameReceived?.Invoke(this, EventArgs.Empty);
+
+                        await SendAsync(new FrameReceivedMessage
+                        {
+                            SequenceId = frame.SequenceId
+                        });
+                        break;
                     }
-
-                    if (frame.Width > 0 && frame.Height > 0)
-                    {
-                        _bitmap.WritePixels(
-                            new Int32Rect(0, 0, _bitmap.PixelWidth, _bitmap.PixelHeight),
-                            frame.Data,
-                            frame.Stride,
-                            0);
-                    }
-
-                    FrameReceived?.Invoke(this, EventArgs.Empty);
-
-                    await SendAsync(new FrameReceivedMessage
-                    {
-                        SequenceId = frame.SequenceId
-                    });
-                    break;
-                }
                 case UpdateXamlResultMessage update:
-                {
-                    var exception = update.Exception;
-
-                    if (exception == null && !string.IsNullOrWhiteSpace(update.Error))
                     {
-                        exception = new ExceptionDetails { Message = update.Error };
+                        var exception = update.Exception;
+
+                        if (exception == null && !string.IsNullOrWhiteSpace(update.Error))
+                        {
+                            exception = new ExceptionDetails { Message = update.Error };
+                        }
+
+                        Error = exception;
+
+                        if (exception != null)
+                        {
+                            _log.Error(new XamlException(exception.Message, null, exception.LineNumber ?? 0, exception.LinePosition ?? 0), "UpdateXamlResult error");
+                        }
+
+                        break;
                     }
-
-                    Error = exception;
-
-                    if (exception != null)
-                    {
-                        _log.Error(new XamlException(exception.Message, null, exception.LineNumber ?? 0, exception.LinePosition ?? 0), "UpdateXamlResult error");
-                    }
-
-                    break;
-                }
             }
 
             _log.Verbose("Finished PreviewerProcess.OnMessageAsync()");
