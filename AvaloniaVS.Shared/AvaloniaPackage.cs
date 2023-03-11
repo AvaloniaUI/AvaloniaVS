@@ -54,6 +54,7 @@ namespace AvaloniaVS
         DebuggingLogicalViewEditor = typeof(EditorFactory),
         TextLogicalViewEditor = typeof(EditorFactory))]
     [ProvideOptionPage(typeof(OptionsDialogPage), Name, "General", 113, 0, supportsAutomation: true)]
+    [ProvideBindingPath]
     internal sealed class AvaloniaPackage : AsyncPackage
     {
         public const string PackageGuidString = "865ba8d5-1180-4bf8-8821-345f72a4cb79";
