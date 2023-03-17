@@ -273,12 +273,12 @@ public class CompletionEngine
                 attributeSuffix = "";
                 attributeOffset = 0;
             }
-
-            if (state.AttributeName?.Contains('.') == true)
+            var attributeName = state.AttributeName;
+            if (attributeName?.Contains('.') == true)
             {
-                var dotPos = state.AttributeName.IndexOf('.');
+                var dotPos = attributeName.IndexOf('.');
                 curStart += dotPos + 1;
-                var split = state.AttributeName.Split(new[] { '.' }, 2);
+                var split = attributeName.Split(new[] { '.' }, 2);
                 completions.AddRange(_helper.FilterPropertyNames(split[0], split[1], attached: true, hasSetter: true)
                     .Select(x => new Completion(x, x + attributeSuffix, x, CompletionKind.AttachedProperty, x.Length + attributeOffset)));
 
@@ -287,7 +287,7 @@ public class CompletionEngine
             }
             else if (state.TagName is not null)
             {
-                completions.AddRange(_helper.FilterPropertyNames(state.TagName, state.AttributeName, attached: false, hasSetter: true)
+                completions.AddRange(_helper.FilterPropertyNames(state.TagName, attributeName, attached: false, hasSetter: true)
                     .Select(x => new Completion(x, x + attributeSuffix, x, CompletionKind.Property, x.Length + attributeOffset)));
 
                 // Special case for "<On " here, 'Options' property is get only list property
@@ -301,21 +301,27 @@ public class CompletionEngine
                         CompletionKind.Property, 9 /*recommendedCursorOffset*/));
                 }
 
-                completions.AddRange(_helper.FilterEventNames(state.TagName, state.AttributeName, attached: false)
+                completions.AddRange(_helper.FilterEventNames(state.TagName, attributeName, attached: false)
                     .Select(v => new Completion(v, v + attributeSuffix, v, CompletionKind.Event, v.Length + attributeOffset)));
 
                 var targetType = _helper.LookupType(state.TagName);
                 if (targetType is not null)
                 {
                     completions.AddRange(
-                        _helper.FilterTypes(state.AttributeName, xamlDirectiveOnly: true)
+                        _helper.FilterTypes(attributeName, xamlDirectiveOnly: true)
                             .Where(t => t.Value.IsValidForXamlContextFunc?.Invoke(currentAssemblyName, targetType, null) ?? true)
                             .Select(v => new Completion(v.Key, v.Key + attributeSuffix, v.Key, CompletionKind.Class, v.Key.Length + attributeOffset)));
 
                     if (targetType.IsAvaloniaObjectType)
+                    {
+                        if (string.IsNullOrEmpty(attributeName) || "xmlns".StartsWith(attributeName,StringComparison.OrdinalIgnoreCase))
+                        {
+                            completions.Add(new("xmlns:", CompletionKind.Class));
+                        }
                         completions.AddRange(
-                            _helper.FilterTypeNames(state.AttributeName, withAttachedPropertiesOrEventsOnly: true)
+                            _helper.FilterTypeNames(attributeName, withAttachedPropertiesOrEventsOnly: true)
                                 .Select(v => new Completion(v, v + ".", v, CompletionKind.Class)));
+                    }
                 }
             }
         }
