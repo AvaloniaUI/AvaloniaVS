@@ -1,12 +1,10 @@
 ﻿#nullable enable
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml;
-using System.Xml.Linq;
 
 namespace Avalonia.Ide.CompletionEngine;
 
@@ -920,10 +918,6 @@ public class CompletionEngine
         int? parsered = default;
         var parser = SelectorParser.Parse(text);
         var previusStatment = parser.PreviusStatment;
-        Debug.WriteLine($"Current {parser.Statment}", "Selector Parser");
-        Debug.WriteLine($"Previus {previusStatment}", "Selector Parser");
-        Debug.WriteLine($"LastParseredPosition {parser.LastParseredPosition}", "Selector Parser");
-        Debug.WriteLine($"Text lengt {text.Length}", "Selector Parser");
         switch (parser.Statment)
         {
             case SelectorStatment.Colon:
@@ -1231,7 +1225,6 @@ public class CompletionEngine
             default:
                 break;
         }
-        Debug.WriteLine($"Return posistion {parsered}", "Selector Parser");
         return parsered;
 
         string GetFullName(SelectorParser parser)

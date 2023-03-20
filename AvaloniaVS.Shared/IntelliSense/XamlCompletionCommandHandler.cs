@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Avalonia.Ide.CompletionEngine;
@@ -103,8 +101,6 @@ namespace AvaloniaVS.IntelliSense
 
         private bool HandleSessionStart(char c)
         {
-            System.Diagnostics.Debug.WriteLine($"HandleSessionStart({((int)c):0x}{(char.IsWhiteSpace(c) ? ' ' : c)})", "Session");
-
             // If the pressed key is a key that can start a completion session.
             if (CompletionEngine.ShouldTriggerCompletionListOn(c) || c == '\a')
             {
@@ -135,7 +131,6 @@ namespace AvaloniaVS.IntelliSense
 
         private bool HandleSessionUpdate(char c)
         {
-            System.Diagnostics.Debug.WriteLine($"HandleSessionUpdate({((int)c):0x}{(char.IsWhiteSpace(c) ? ' ' : c)})", "Session");
             // Update the filter if there is a deletion.
             if (c == '\b')
             {
@@ -157,7 +152,6 @@ namespace AvaloniaVS.IntelliSense
             var start = line.Start;
             var end = Math.Min(line.End, _textView.Caret.Position.BufferPosition);
 
-            System.Diagnostics.Debug.WriteLine($"HandleSessionCompletion(({(char.IsWhiteSpace(c) ? ' ' : c)}))", "Session");
             // Adding a xmlns is special-cased here because we don't want '.' triggering
             // a completion, which can complete on the wrong value
             // So we only trigger on ' ' or '\t', and swallow that so it doesn't get 
@@ -403,28 +397,17 @@ namespace AvaloniaVS.IntelliSense
             return false;
         }
 
-        private bool TriggerCompletion([CallerMemberName] string memberName = "",
-            [CallerFilePath] string fileName = "",
-            [CallerLineNumber] int lineNumber = 0)
+        private bool TriggerCompletion()
         {
-
-            System.Diagnostics.Debug.WriteLine($"TriggerCompletion Call by {memberName} at {lineNumber}", "Session");
-            System.Diagnostics.Debug.WriteLine($"TriggerCompletion Start", "Session");
-
             // The caret must be in a non-projection location.
             var caretPoint = _textView.Caret.Position.Point.GetPoint(
                 x => (!x.ContentType.IsOfType("projection")),
                 PositionAffinity.Predecessor);
 
-            System.Diagnostics.Debug.WriteLine($"TriggerCompletion caretPoint{caretPoint}", "Session");
-
             if (!caretPoint.HasValue)
             {
                 return false;
             }
-
-
-            System.Diagnostics.Debug.WriteLine($"TriggerCompletion Char = {caretPoint.Value.GetChar()}", "Session");
 
             // When adding an xmlns definition, we were getting 2 intellisense popups because (I think)
             // the VS XML intellisense handler was popping one up and then we are creating our own session
@@ -455,8 +438,6 @@ namespace AvaloniaVS.IntelliSense
                         break;
                 }
             }
-
-            System.Diagnostics.Debug.WriteLine($"TriggerCompletion start session {caretPoint.Value.Position}", "Session");
 
             _session = existingSession ?? _completionBroker.CreateCompletionSession(
                 _textView,

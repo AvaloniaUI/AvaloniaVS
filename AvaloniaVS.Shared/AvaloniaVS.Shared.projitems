@@ -41,6 +41,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\SolutionService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Throttle.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TaskExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TextViewExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\FrameworkInfoUtils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\AvaloniaDesigner.xaml.cs">
       <DependentUpon>AvaloniaDesigner.xaml</DependentUpon>
