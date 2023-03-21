@@ -1010,7 +1010,7 @@ public class CompletionEngine
                                     completions.AddRange(parts!.Select(p => new Completion(p.Name, CompletionKind.Name | CompletionKind.Class, p.Type?.Name)
                                     {
                                         RecommendedCursorOffset = (p.Name.Length + (p.Type?.Name.Length > 0 ? p.Type.Name.Length + 3 : 0)),
-                                        RepleceCursorOffset = -x,
+                                        DeleteTextOffset = -x,
                                     }));
                                 }
                             }

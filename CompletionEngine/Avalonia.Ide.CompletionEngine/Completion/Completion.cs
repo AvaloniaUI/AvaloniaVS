@@ -43,7 +43,7 @@ public record Completion(string DisplayText,
     CompletionKind Kind,
     int? RecommendedCursorOffset = null,
     string? Suffix = null,
-    int? RepleceCursorOffset = null
+    int? DeleteTextOffset = null
     )
 {
     public override string ToString() => DisplayText;

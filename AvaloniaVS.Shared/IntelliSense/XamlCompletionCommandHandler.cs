@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using System.Threading;
 using Avalonia.Ide.CompletionEngine;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -198,24 +197,18 @@ namespace AvaloniaVS.IntelliSense
                     var selected = _session.SelectedCompletionSet.SelectionStatus.Completion as XamlCompletion;
 
                     var bufferPos = _textView.Caret.Position.BufferPosition;
-                    if (selected.RepleceCursorOffset is int rof)
-                    {
-                        var newCursorPos = bufferPos.Add(rof);
-                        SnapshotSpan ss = newCursorPos < bufferPos
-                            ? new(newCursorPos, -rof)
-                            : new(bufferPos, rof);
-                        System.Threading.Tasks.Task.Factory.StartNew(stateArg =>
-                        {
-                            var span = (SnapshotSpan)stateArg;
-                            _textView.TextBuffer.Replace(span, string.Empty);
-                        }, ss
-                        , CancellationToken.None
-                        , System.Threading.Tasks.TaskCreationOptions.None
-                        , System.Threading.Tasks.TaskScheduler.FromCurrentSynchronizationContext());
-                    }
 
                     _session.Commit();
-
+                    
+                    if (selected.DeleteTextOffset is int rof)
+                    {
+                        var newCursorPos = bufferPos.Add(rof);
+                        SnapshotSpan deleteSpan = newCursorPos < bufferPos
+                            ? new(newCursorPos, -rof)
+                            : new(bufferPos, rof);
+                        _textView.TextBuffer.Delete(deleteSpan);
+                    }
+                    
                     if (selected?.CursorOffset > 0)
                     {
                         // Offset the cursor if necessary e.g. to place it within the quotation
@@ -224,7 +217,6 @@ namespace AvaloniaVS.IntelliSense
                         var newCursorPos = cursorPos - selected.CursorOffset;
                         _textView.Caret.MoveTo(newCursorPos);
                     }
-
 
                     // Ideally, we should only parse the current line of text, where the parser State would return
                     // 'None' if you're spreading control attributes out across multiple lines

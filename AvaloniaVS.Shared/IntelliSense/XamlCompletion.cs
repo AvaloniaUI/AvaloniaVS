@@ -30,10 +30,10 @@ namespace AvaloniaVS.IntelliSense
             }
 
             Kind = completion.Kind;
-            RepleceCursorOffset = completion.RepleceCursorOffset;
+            DeleteTextOffset = completion.DeleteTextOffset;
         }
 
-        public int? RepleceCursorOffset { get; }
+        public int? DeleteTextOffset { get; }
 
         public override string InsertionText
         {
@@ -67,7 +67,6 @@ namespace AvaloniaVS.IntelliSense
             {
                 LoadImages();
             }
-
             if (HasFlag(kind, CompletionKind.DataProperty))
             {
                 return s_images[(int)CompletionKind.DataProperty];
@@ -89,8 +88,6 @@ namespace AvaloniaVS.IntelliSense
                 return s_images[(int)CompletionKind.Class];
             }
             return s_images[(int)kind];
-
-
         }
 
         private static bool HasFlag(CompletionKind test, CompletionKind expected)
