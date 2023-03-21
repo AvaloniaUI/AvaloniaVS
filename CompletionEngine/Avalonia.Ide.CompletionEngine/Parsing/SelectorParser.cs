@@ -3,9 +3,7 @@ using System.Globalization;
 
 namespace Avalonia.Ide.CompletionEngine;
 
-
-
-internal enum SelectorStatment
+internal enum SelectorStatement
 {
     Start,
     Middle,
@@ -36,7 +34,7 @@ internal ref struct SelectorParser
             _data = data;
             _original = data;
         }
-        private SelectorStatment statment = SelectorStatment.Start;
+        private SelectorStatement statement = SelectorStatement.Start;
         public int NamespaceStart = -1;
         public int NamespaceEnd = -1;
         public int TypeNameStart = -1;
@@ -49,42 +47,42 @@ internal ref struct SelectorParser
         public int ValueEnd = -1;
         public int NameStart = -1;
         public int NameEnd = -1;
-        public int FuntcionNameStart = -1;
+        public int FunctionNameStart = -1;
         public int FunctionNameEnd = -1;
         public int Position { get; private set; }
         public bool IsError = false;
         public char Peek => _data[0];
         public bool End =>
             _data.IsEmpty;
-        public int? LastParseredPosition = default;
+        public int? LastParsedPosition = default;
         public bool IsTemplate;
-        public int TemplateOnwnerStart = -1;
-        public int TemplateOnwnerEnd = -1;
-        public int NamespaceTemplateOnwnerStart = -1;
-        public int NamespaceTemplateOnwnerEnd = -1;
+        public int TemplateOwnerStart = -1;
+        public int TemplateOwnerEnd = -1;
+        public int NamespaceTemplateOwnerStart = -1;
+        public int NamespaceTemplateOwnerEnd = -1;
         public int LastSegmentStartPosition;
 
-        public SelectorStatment PreviusStatment { get; private set; }
+        public SelectorStatement PreviousStatement { get; private set; }
 
-        public SelectorStatment Statment
+        public SelectorStatement Statement
         {
-            get => statment;
+            get => statement;
             set
             {
-                if (statment != value)
+                if (statement != value)
                 {
-                    if (value is SelectorStatment.Start or SelectorStatment.Middle)
+                    if (value is SelectorStatement.Start or SelectorStatement.Middle)
                     {
                         LastSegmentStartPosition = Position;
                     }
-                    if (value is SelectorStatment.Start)
+                    if (value is SelectorStatement.Start)
                     {
-                        (NamespaceStart, NamespaceEnd, TypeNameStart, TypeNameEnd, ClassNameStart, ClassNameEnd, PropertyNameStart, PropertyNameEnd, NameStart, NameEnd, ValueStart, ValueEnd, FuntcionNameStart, FunctionNameEnd) =
+                        (NamespaceStart, NamespaceEnd, TypeNameStart, TypeNameEnd, ClassNameStart, ClassNameEnd, PropertyNameStart, PropertyNameEnd, NameStart, NameEnd, ValueStart, ValueEnd, FunctionNameStart, FunctionNameEnd) =
                             (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1);
                     }
-                    PreviusStatment = statment;
+                    PreviousStatement = statement;
                 }
-                statment = value;
+                statement = value;
             }
         }
 
@@ -254,19 +252,19 @@ internal ref struct SelectorParser
         _context.GetRange(_context.NameStart, _context.NameEnd).ToString();
 
     public string? FunctionName =>
-        _context.GetRange(_context.FuntcionNameStart, _context.FunctionNameEnd).ToString();
+        _context.GetRange(_context.FunctionNameStart, _context.FunctionNameEnd).ToString();
 
-    public SelectorStatment Statment =>
-        _context.Statment;
+    public SelectorStatement Statement =>
+        _context.Statement;
 
     public bool IsError =>
         _context.IsError;
 
-    public int? LastParseredPosition =>
-        _context.LastParseredPosition;
+    public int? LastParsedPosition =>
+        _context.LastParsedPosition;
 
-    public SelectorStatment PreviusStatment =>
-        _context.PreviusStatment;
+    public SelectorStatement PreviousStatement =>
+        _context.PreviousStatement;
 
     public bool IsTemplate =>
         _context.IsTemplate;
@@ -279,21 +277,20 @@ internal ref struct SelectorParser
         get
         {
             var sb = new System.Text.StringBuilder();
-            if (_context.NamespaceTemplateOnwnerEnd > -1)
+            if (_context.NamespaceTemplateOwnerEnd > -1)
             {
 #if NET5_0_OR_GREATER
-                sb.Append(_context.GetRange(_context.NamespaceTemplateOnwnerStart, _context.NamespaceTemplateOnwnerEnd));
+                sb.Append(_context.GetRange(_context.NamespaceTemplateOwnerStart, _context.NamespaceTemplateOwnerEnd));
 #else
-                sb.Append(_context.GetRange(_context.NamespaceTemplateOnwnerStart, _context.NamespaceTemplateOnwnerEnd).ToArray());
+                sb.Append(_context.GetRange(_context.NamespaceTemplateOwnerStart, _context.NamespaceTemplateOwnerEnd).ToArray());
 #endif
                 sb.Append(':');
             }
 #if NET5_0_OR_GREATER
-            sb.Append(_context.GetRange(_context.TemplateOnwnerStart, _context.TemplateOnwnerEnd));
+            sb.Append(_context.GetRange(_context.TemplateOwnerStart, _context.TemplateOwnerEnd));
 #else
-            sb.Append(_context.GetRange(_context.TemplateOnwnerStart, _context.TemplateOnwnerEnd).ToArray());
+            sb.Append(_context.GetRange(_context.TemplateOwnerStart, _context.TemplateOwnerEnd).ToArray());
 #endif
-
             return sb.ToString();
         }
     }
@@ -313,47 +310,47 @@ internal ref struct SelectorParser
 
     private static void Parse(ref ParserContext context, char? end = default)
     {
-        while (!context.End && !context.IsError && context.Statment != SelectorStatment.End)
+        while (!context.End && !context.IsError && context.Statement != SelectorStatement.End)
         {
-            switch (context.Statment)
+            switch (context.Statement)
             {
-                case SelectorStatment.Start:
+                case SelectorStatement.Start:
                     ParseStart(ref context);
                     break;
-                case SelectorStatment.Middle:
+                case SelectorStatement.Middle:
                     ParseMiddle(ref context, end);
                     break;
-                case SelectorStatment.Colon:
+                case SelectorStatement.Colon:
                     ParseColon(ref context);
                     break;
-                case SelectorStatment.Class:
+                case SelectorStatement.Class:
                     ParseClass(ref context);
                     break;
-                case SelectorStatment.Name:
+                case SelectorStatement.Name:
                     ParseName(ref context);
                     break;
-                case SelectorStatment.CanHaveType:
+                case SelectorStatement.CanHaveType:
                     ParseCanHaveType(ref context);
                     break;
-                case SelectorStatment.Traversal:
+                case SelectorStatement.Traversal:
                     ParseTraversal(ref context);
                     break;
-                case SelectorStatment.TypeName:
+                case SelectorStatement.TypeName:
                     ParseTypeName(ref context);
                     break;
-                case SelectorStatment.Property:
+                case SelectorStatement.Property:
                     ParseProperty(ref context);
                     break;
-                case SelectorStatment.AttachedProperty:
+                case SelectorStatement.AttachedProperty:
                     ParseAttachedProperty(ref context);
                     break;
-                case SelectorStatment.Template:
+                case SelectorStatement.Template:
                     ParseTemplate(ref context);
                     break;
-                case SelectorStatment.FunctionArgs:
+                case SelectorStatement.FunctionArgs:
                     ParseFunctionArgs(ref context);
                     break;
-                case SelectorStatment.End:
+                case SelectorStatement.End:
                     break;
                 default:
                     break;
@@ -363,7 +360,7 @@ internal ref struct SelectorParser
 
     private static void ParseFunctionArgs(ref ParserContext context)
     {
-        context.Statment = SelectorStatment.Middle;
+        context.Statement = SelectorStatement.Middle;
     }
 
     private static void ParseStart(ref ParserContext context)
@@ -371,35 +368,35 @@ internal ref struct SelectorParser
         context.SkipWhitespace();
         if (context.End)
         {
-            context.LastParseredPosition = context.Position;
-            context.Statment = SelectorStatment.End;
+            context.LastParsedPosition = context.Position;
+            context.Statement = SelectorStatement.End;
         }
 
         if (context.TakeIf(':'))
         {
-            context.LastParseredPosition = context.Position;
-            context.Statment = SelectorStatment.Colon;
+            context.LastParsedPosition = context.Position;
+            context.Statement = SelectorStatement.Colon;
         }
         else if (context.TakeIf('.'))
         {
 
-            context.LastParseredPosition = context.Position;
-            context.Statment = SelectorStatment.Class;
+            context.LastParsedPosition = context.Position;
+            context.Statement = SelectorStatement.Class;
         }
         else if (context.TakeIf('#'))
         {
-            context.LastParseredPosition = context.Position;
-            context.Statment = SelectorStatment.Name;
+            context.LastParsedPosition = context.Position;
+            context.Statement = SelectorStatement.Name;
         }
         else if (context.TakeIf('^'))
         {
 
-            context.LastParseredPosition = context.Position;
-            context.Statment = SelectorStatment.CanHaveType;
+            context.LastParsedPosition = context.Position;
+            context.Statement = SelectorStatement.CanHaveType;
         }
         else if (!context.End)
         {
-            context.Statment = SelectorStatment.Middle;
+            context.Statement = SelectorStatement.Middle;
         }
     }
 
@@ -407,51 +404,51 @@ internal ref struct SelectorParser
     {
         if (context.TakeIf(':'))
         {
-            context.LastParseredPosition = context.Position;
-            context.Statment = SelectorStatment.Colon;
+            context.LastParsedPosition = context.Position;
+            context.Statement = SelectorStatement.Colon;
         }
         else if (context.TakeIf('.'))
         {
-            context.LastParseredPosition = context.Position;
-            context.Statment = SelectorStatment.Class;
+            context.LastParsedPosition = context.Position;
+            context.Statement = SelectorStatement.Class;
         }
         else if (context.TakeIf(char.IsWhiteSpace) || context.Peek == '>')
         {
 
-            context.LastParseredPosition = context.Position;
-            context.Statment = SelectorStatment.Traversal;
+            context.LastParsedPosition = context.Position;
+            context.Statement = SelectorStatement.Traversal;
         }
         else if (context.TakeIf('/'))
         {
 
-            context.Statment = SelectorStatment.Template;
+            context.Statement = SelectorStatement.Template;
         }
         else if (context.TakeIf('#'))
         {
 
-            context.LastParseredPosition = context.Position;
-            context.Statment = SelectorStatment.Name;
+            context.LastParsedPosition = context.Position;
+            context.Statement = SelectorStatement.Name;
         }
         else if (context.TakeIf(','))
         {
 
-            context.LastParseredPosition = context.Position;
-            context.Statment = SelectorStatment.Start;
+            context.LastParsedPosition = context.Position;
+            context.Statement = SelectorStatement.Start;
         }
         else if (context.TakeIf('^'))
         {
-            context.LastParseredPosition = context.Position;
-            context.Statment = SelectorStatment.CanHaveType;
+            context.LastParsedPosition = context.Position;
+            context.Statement = SelectorStatement.CanHaveType;
         }
         else if (end.HasValue && !context.End && context.Peek == end.Value)
         {
-            context.LastParseredPosition = context.Position;
-            context.Statment = SelectorStatment.End;
+            context.LastParsedPosition = context.Position;
+            context.Statement = SelectorStatement.End;
         }
         else
         {
-            context.LastParseredPosition = context.Position;
-            context.Statment = SelectorStatment.TypeName;
+            context.LastParsedPosition = context.Position;
+            context.Statement = SelectorStatement.TypeName;
         }
     }
 
@@ -473,99 +470,95 @@ internal ref struct SelectorParser
 
         if (identifier.SequenceEqual(IsKeyword.AsSpan()))
         {
-            r.FuntcionNameStart = start;
-            r.Statment = SelectorStatment.Function;
-            r.LastParseredPosition = r.Position;
+            r.FunctionNameStart = start;
+            r.Statement = SelectorStatement.Function;
+            r.LastParsedPosition = r.Position;
             if (r.TakeIf('('))
             {
-                r.Statment = SelectorStatment.FunctionArgs;
+                r.Statement = SelectorStatement.FunctionArgs;
                 r.FunctionNameEnd = r.Position - 1;
                 if (r.End)
                 {
                     return;
                 }
-                r.Statment = SelectorStatment.TypeName;
+                r.Statement = SelectorStatement.TypeName;
                 ParseType(ref r);
                 if (!Expect(ref r, ')'))
                 {
                     return;
                 }
-                r.Statment = SelectorStatment.Middle;
+                r.Statement = SelectorStatement.Middle;
             }
         }
         else if (identifier.SequenceEqual(NotKeyword.AsSpan()))
         {
-            r.FuntcionNameStart = start;
-            r.Statment = SelectorStatment.Function;
-            r.LastParseredPosition = r.Position;
+            r.FunctionNameStart = start;
+            r.Statement = SelectorStatement.Function;
+            r.LastParsedPosition = r.Position;
             if (r.TakeIf('('))
             {
                 r.FunctionNameEnd = r.Position - 1;
-                r.Statment = SelectorStatment.FunctionArgs;
+                r.Statement = SelectorStatement.FunctionArgs;
                 Parse(ref r, ')');
                 if (r.IsError)
                 {
                     return;
                 }
-                r.Statment = SelectorStatment.FunctionArgs;
+                r.Statement = SelectorStatement.FunctionArgs;
                 Expect(ref r, ')');
                 if (r.IsError)
                 {
                     return;
                 }
-                r.Statment = SelectorStatment.Middle;
+                r.Statement = SelectorStatement.Middle;
             }
         }
         else if (identifier.SequenceEqual(NthChildKeyword.AsSpan()))
         {
-            r.FuntcionNameStart = start;
-            r.Statment = SelectorStatment.Function;
-            r.LastParseredPosition = r.Position;
+            r.FunctionNameStart = start;
+            r.Statement = SelectorStatement.Function;
+            r.LastParsedPosition = r.Position;
             if (r.TakeIf('('))
             {
                 r.FunctionNameEnd = r.Position - 1;
-                r.Statment = SelectorStatment.FunctionArgs;
-                //var (step, offset) = ParseNthChildArguments(ref r);
+                r.Statement = SelectorStatement.FunctionArgs;
                 r.TakeUntil(')');
                 Expect(ref r, ')');
                 if (r.IsError)
                 {
                     return;
                 }
-                r.Statment = SelectorStatment.Middle;
-                r.LastParseredPosition = r.Position;
+                r.Statement = SelectorStatement.Middle;
+                r.LastParsedPosition = r.Position;
                 return;
             }
 
         }
         else if (identifier.SequenceEqual(NthLastChildKeyword.AsSpan()))
         {
-            r.FuntcionNameStart = start;
-            r.Statment = SelectorStatment.Function;
-            r.LastParseredPosition = r.Position;
+            r.FunctionNameStart = start;
+            r.Statement = SelectorStatement.Function;
+            r.LastParsedPosition = r.Position;
             if (r.TakeIf('('))
             {
                 r.FunctionNameEnd = r.Position - 1;
-                r.Statment = SelectorStatment.FunctionArgs;
-                //var (step, offset) = ParseNthChildArguments(ref r);
-
-                //var syntax = new NthLastChildSyntax { Step = step, Offset = offset };
+                r.Statement = SelectorStatement.FunctionArgs;
                 r.TakeUntil(')');
                 Expect(ref r, ')');
                 if (r.IsError)
                 {
                     return;
                 }
-                r.LastParseredPosition = r.Position;
-                r.Statment = SelectorStatment.Middle;
+                r.LastParsedPosition = r.Position;
+                r.Statement = SelectorStatement.Middle;
             }
         }
         else
         {
             r.ClassNameStart = start;
             r.ClassNameEnd = r.Position;
-            r.LastParseredPosition = r.Position;
-            r.Statment = SelectorStatment.CanHaveType;
+            r.LastParsedPosition = r.Position;
+            r.Statement = SelectorStatement.CanHaveType;
         }
     }
 
@@ -579,8 +572,8 @@ internal ref struct SelectorParser
             return;
         }
         r.ClassNameEnd = r.Position;
-        r.LastParseredPosition = r.Position;
-        r.Statment = SelectorStatment.CanHaveType;
+        r.LastParsedPosition = r.Position;
+        r.Statement = SelectorStatement.CanHaveType;
     }
 
     private static void ParseName(ref ParserContext r)
@@ -594,19 +587,19 @@ internal ref struct SelectorParser
         }
         r.NameEnd = r.Position;
         if (!r.End)
-            r.Statment = SelectorStatment.CanHaveType;
+            r.Statement = SelectorStatement.CanHaveType;
     }
 
     private static void ParseCanHaveType(ref ParserContext r)
     {
         if (r.TakeIf('['))
         {
-            r.LastParseredPosition = r.Position;
-            r.Statment = SelectorStatment.Property;
+            r.LastParsedPosition = r.Position;
+            r.Statement = SelectorStatement.Property;
         }
         else
         {
-            r.Statment = SelectorStatment.Middle;
+            r.Statement = SelectorStatement.Middle;
         }
     }
 
@@ -616,25 +609,21 @@ internal ref struct SelectorParser
         if (r.TakeIf('>'))
         {
             r.SkipWhitespace();
-            //return (State.Middle, new ChildSyntax());
-            r.Statment = SelectorStatment.Middle;
+            r.Statement = SelectorStatement.Middle;
         }
         else if (r.TakeIf('/'))
         {
-            //return (State.Template, null);
-            r.LastParseredPosition = r.Position;
-            r.Statment = SelectorStatment.Template;
+            r.LastParsedPosition = r.Position;
+            r.Statement = SelectorStatement.Template;
         }
         else if (!r.End)
         {
-            //return (State.Middle, new DescendantSyntax());
-            r.Statment = SelectorStatment.Middle;
+            r.Statement = SelectorStatement.Middle;
         }
         else
         {
-            //return (State.End, null);
-            r.LastParseredPosition = r.Position;
-            r.Statment = SelectorStatment.End;
+            r.LastParsedPosition = r.Position;
+            r.Statement = SelectorStatement.End;
         }
     }
 
@@ -645,14 +634,13 @@ internal ref struct SelectorParser
         {
             return;
         }
-        r.LastParseredPosition = r.Position;
-        //return (State.CanHaveType, ParseType(ref r, new OfTypeSyntax()));
-        r.Statment = SelectorStatment.CanHaveType;
+        r.LastParsedPosition = r.Position;
+        r.Statement = SelectorStatement.CanHaveType;
     }
 
     private static void ParseProperty(ref ParserContext r)
     {
-        r.LastParseredPosition = r.Position;
+        r.LastParsedPosition = r.Position;
         r.PropertyNameStart = r.Position;
         var property = r.ParseIdentifier();
 
@@ -664,8 +652,7 @@ internal ref struct SelectorParser
 
         if (r.TakeIf('('))
         {
-            //return (State.AttachedProperty, default);
-            r.Statment = SelectorStatment.AttachedProperty;
+            r.Statement = SelectorStatement.AttachedProperty;
             return;
         }
         else if (!r.TakeIf('='))
@@ -673,8 +660,8 @@ internal ref struct SelectorParser
             r.IsError = true;
         }
         r.PropertyNameEnd = r.Position - 1;
-        r.LastParseredPosition = r.Position;
-        r.Statment = SelectorStatment.Value;
+        r.LastParsedPosition = r.Position;
+        r.Statement = SelectorStatement.Value;
         r.ValueStart = r.Position;
         _ = r.TakeUntil(']');
         if (!Expect(ref r, ']'))
@@ -682,24 +669,23 @@ internal ref struct SelectorParser
             return;
         }
         r.ValueEnd = r.Position;
-        r.Statment = SelectorStatment.Property;
-        r.LastParseredPosition = r.Position;
+        r.Statement = SelectorStatement.Property;
+        r.LastParsedPosition = r.Position;
         if (!r.End)
         {
-            r.Statment = SelectorStatment.Middle;
+            r.Statement = SelectorStatement.Middle;
         }
-        //return (State.CanHaveType, new PropertySyntax { Property = property.ToString(), Value = value.ToString() });
     }
 
     private static void ParseAttachedProperty(ref ParserContext r)
     {
-        r.LastParseredPosition = r.Position;
+        r.LastParsedPosition = r.Position;
         ParseType(ref r);
         if (r.IsError)
         {
             return;
         }
-        r.LastParseredPosition = r.Position;
+        r.LastParsedPosition = r.Position;
         if (r.End || !r.TakeIf('.'))
         {
             r.IsError = true;
@@ -725,7 +711,7 @@ internal ref struct SelectorParser
             return;
         }
         r.SkipWhitespace();
-        r.LastParseredPosition = r.Position;
+        r.LastParsedPosition = r.Position;
 
         if (r.End || !r.TakeIf('='))
         {
@@ -733,7 +719,7 @@ internal ref struct SelectorParser
             return;
         }
         r.ValueStart = r.Position;
-        r.Statment = SelectorStatment.Value;
+        r.Statement = SelectorStatement.Value;
         _ = r.TakeUntil(']');
         r.ValueEnd = r.Position;
         if (Expect(ref r, ']'))
@@ -741,10 +727,10 @@ internal ref struct SelectorParser
             r.IsError = true;
             return;
         }
-        r.LastParseredPosition = r.Position;
+        r.LastParsedPosition = r.Position;
         if (!r.End)
         {
-            r.Statment = SelectorStatment.Middle;
+            r.Statement = SelectorStatement.Middle;
         }
     }
 
@@ -754,26 +740,26 @@ internal ref struct SelectorParser
         const string TemplateKeyword = "template";
         if (!template.SequenceEqual(TemplateKeyword.AsSpan()))
         {
-            r.LastParseredPosition = r.Position;
+            r.LastParsedPosition = r.Position;
             r.IsError = true;
             return;
         }
         else if (!r.TakeIf('/'))
         {
-            r.LastParseredPosition = r.Position;
+            r.LastParsedPosition = r.Position;
             r.IsError = true;
             return;
         }
-        r.LastParseredPosition = r.Position;
+        r.LastParsedPosition = r.Position;
         r.IsTemplate = true;
-        (r.TemplateOnwnerStart, r.TemplateOnwnerEnd, r.NamespaceTemplateOnwnerStart, r.NamespaceTemplateOnwnerEnd) =
+        (r.TemplateOwnerStart, r.TemplateOwnerEnd, r.NamespaceTemplateOwnerStart, r.NamespaceTemplateOwnerEnd) =
             (r.TypeNameStart, r.TypeNameEnd, r.NamespaceStart, r.NamespaceEnd);
-        r.Statment = SelectorStatment.Start;
+        r.Statement = SelectorStatement.Start;
     }
 
     private static void ParseType(ref ParserContext r)
     {
-        r.LastParseredPosition = r.Position;
+        r.LastParsedPosition = r.Position;
         ReadOnlySpan<char> ns = default;
         var startPosition = r.Position;
         var namespaceOrTypeName = r.ParseIdentifier();
@@ -803,7 +789,7 @@ internal ref struct SelectorParser
             r.TypeNameStart = startPosition;
             r.TypeNameEnd = r.Position;
         }
-        r.LastParseredPosition = r.Position;
+        r.LastParsedPosition = r.Position;
     }
 
     private static bool Expect(ref ParserContext r, char c)

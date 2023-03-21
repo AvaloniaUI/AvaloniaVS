@@ -1,7 +1,7 @@
 ﻿using Avalonia.Ide.CompletionEngine;
 using Xunit;
 
-namespace CompletionEngineTests
+namespace CompletionEngineTests.Parsing
 {
     public class SelectorParserTest
     {
@@ -10,9 +10,9 @@ namespace CompletionEngineTests
         {
             var parser = SelectorParser.Parse(":is(B");
 
-            Assert.Equal(SelectorStatment.FunctionArgs, parser.PreviusStatment);
+            Assert.Equal(SelectorStatement.FunctionArgs, parser.PreviousStatement);
             Assert.Equal("is", parser.FunctionName);
-            Assert.Equal(SelectorStatment.TypeName, parser.Statment);
+            Assert.Equal(SelectorStatement.TypeName, parser.Statement);
             Assert.Equal("B", parser.TypeName);
         }
 
@@ -21,9 +21,9 @@ namespace CompletionEngineTests
         {
             var parser = SelectorParser.Parse(":not(B");
 
-            Assert.Equal(SelectorStatment.CanHaveType, parser.PreviusStatment);
+            Assert.Equal(SelectorStatement.CanHaveType, parser.PreviousStatement);
             Assert.Equal("not", parser.FunctionName);
-            Assert.Equal(SelectorStatment.FunctionArgs, parser.Statment);
+            Assert.Equal(SelectorStatement.FunctionArgs, parser.Statement);
             Assert.Equal("B", parser.TypeName);
         }
 
@@ -32,9 +32,9 @@ namespace CompletionEngineTests
         {
             var parser = SelectorParser.Parse("Button:not(:disabled)");
 
-            Assert.Equal(SelectorStatment.FunctionArgs, parser.PreviusStatment);
+            Assert.Equal(SelectorStatement.FunctionArgs, parser.PreviousStatement);
             Assert.Equal("not", parser.FunctionName);
-            Assert.Equal(SelectorStatment.Middle, parser.Statment);
+            Assert.Equal(SelectorStatement.Middle, parser.Statement);
             Assert.Equal("disabled", parser.Class);
         }
 
@@ -43,9 +43,9 @@ namespace CompletionEngineTests
         {
             var parser = SelectorParser.Parse("Button[IsDefault=True]:");
 
-            Assert.Equal(SelectorStatment.Middle, parser.PreviusStatment);
+            Assert.Equal(SelectorStatement.Middle, parser.PreviousStatement);
             Assert.Equal("IsDefault", parser.PropertyName);
-            Assert.Equal(SelectorStatment.Colon, parser.Statment);
+            Assert.Equal(SelectorStatement.Colon, parser.Statement);
             Assert.Equal("", parser.Class);
         }
 
