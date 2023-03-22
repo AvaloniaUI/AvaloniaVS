@@ -24,7 +24,7 @@ namespace AvaloniaVS.IntelliSense
         private readonly string _path;
         private PreviewerProcess _process;
         private ExceptionDetails _error;
-        private ITagSpan<IErrorTag> _tagSpan;
+        private TagSpan<IErrorTag> _tagSpan;
         private ITableDataSink _sink;
 
         public XamlErrorTagger(
@@ -79,94 +79,87 @@ namespace AvaloniaVS.IntelliSense
         {
             var result = GetErrorTag(spans);
 
-            if (result != null)
+            if (result is not null)
             {
-                _tagSpan = result;
+                return new[] { result };
             }
-
-            return result != null ? new[] { result } : Array.Empty<ITagSpan<IErrorTag>>();
+            return Array.Empty<ITagSpan<IErrorTag>>();
         }
 
         IDisposable ITableDataSource.Subscribe(ITableDataSink sink)
         {
             _sink = sink;
-            
-            if (_error != null)
+            if (_error is { } error)
             {
-                _sink.AddEntries(new[] { new XamlErrorTableEntry(_projectName, _path, _error) });
+                _sink?.AddEntries(new[] { new XamlErrorTableEntry(_projectName, _path, error) });
             }
-
+            else
+            {
+                _sink?.RemoveAllEntries();
+            }
             return null;
         }
 
         private TagSpan<IErrorTag> GetErrorTag(NormalizedSnapshotSpanCollection spans)
         {
-            if (_error?.LineNumber == null)
+            if (_tagSpan is null)
             {
-                return null;
+                if (_error is { LineNumber: not null } error)
+                {
+                    var line = error.LineNumber.Value - 1;
+                    var col = (error.LinePosition ?? 1) - 1;
+
+                    if (line < 0 || line >= _buffer.CurrentSnapshot.LineCount || col < 0)
+                    {
+                        return default;
+                    }
+
+                    var snapshotline = _buffer.CurrentSnapshot.GetLineFromLineNumber(line);
+
+                    if (snapshotline.Start.Position + col >= snapshotline.Snapshot.Length)
+                    {
+                        return default;
+                    }
+
+                    var start = snapshotline.Start + col;
+                    var startSpan = new SnapshotSpan(start, start + 1);
+                    var span = _navigator.GetSpanOfFirstChild(startSpan);
+                    var tag = new ErrorTag(PredefinedErrorTypeNames.CompilerError, error.Message);
+
+                    if (!spans.IntersectsWith(span))
+                    {
+                        return default;
+                    }
+
+                    _tagSpan = new(span, tag);
+
+                }
             }
-
-            var line = _error.LineNumber.Value - 1;
-            var col = (_error?.LinePosition ?? 1) - 1;
-
-            if (line < 0 || line >= _buffer.CurrentSnapshot.LineCount || col < 0)
-            {
-                return null;
-            }
-
-            var snapshotline = _buffer.CurrentSnapshot.GetLineFromLineNumber(line);
-
-            if (snapshotline.Start.Position + col >= snapshotline.Snapshot.Length)
-            {
-                return null;
-            }
-
-            var start = snapshotline.Start + col;
-            var startSpan = new SnapshotSpan(start, start + 1);
-            var span = _navigator.GetSpanOfFirstChild(startSpan);
-            var tag = new ErrorTag(PredefinedErrorTypeNames.CompilerError, _error.Message);
-
-            if (!spans.IntersectsWith(span))
-            {
-                return null;
-            }
-
-            return new TagSpan<IErrorTag>(span, tag);
+            return _tagSpan;
         }
 
         private void HandleErrorChanged(object sender, EventArgs e)
         {
-            if (_tagSpan != null)
+            var error = _process.Error;
+            _tagSpan = default;
+            if (error is not null)
             {
-                TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(_tagSpan.Span));
-                _tagSpan = null;
+                _sink?.AddEntries(new[] { new XamlErrorTableEntry(_projectName, _path, error) }, true);
             }
-
-            _error = _process.Error;
-
-            if (_sink != null)
+            else
             {
-                if (_error != null)
-                {
-                    _sink.AddEntries(new[] { new XamlErrorTableEntry(_projectName, _path, _error) }, true);
-                }
-                else
-                {
-                    _sink.RemoveAllEntries();
-                }
+                _sink?.RemoveAllEntries();
             }
-
-            RaiseTagsChanged(_error);
+            RaiseTagsChanged(error);
         }
 
         private void RaiseTagsChanged(ExceptionDetails error)
         {
-            if (error?.LineNumber != null &&
-                TagsChanged != null &&
-                error.LineNumber.Value < _buffer.CurrentSnapshot.LineCount)
+            _error = error;
+            if (TagsChanged is { } tagsChanged)
             {
-                var line = _buffer.CurrentSnapshot.GetLineFromLineNumber(Math.Max(error.LineNumber.Value - 1, 0));
-                TagsChanged(this, new SnapshotSpanEventArgs(line.Extent));
+                var textSnapshot = _buffer.CurrentSnapshot;
+                tagsChanged(this, new SnapshotSpanEventArgs(new SnapshotSpan(textSnapshot, 0, textSnapshot.Length)));
             }
         }
 
