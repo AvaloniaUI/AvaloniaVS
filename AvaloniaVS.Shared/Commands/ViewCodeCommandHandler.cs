@@ -12,7 +12,7 @@ using Serilog;
 namespace AvaloniaVS.Shared.Commands
 {
     [Export(typeof(ICommandHandler))]
-    [ContentType("text")]
+    [ContentType(AvaloniaVS.Constants.xaml)]
     [Name("ViewCodeCommandHandler")]
     internal class ViewCodeCommandHandler : ICommandHandler<ViewCodeCommandArgs>
     {
@@ -44,7 +44,7 @@ namespace AvaloniaVS.Shared.Commands
                 if (!codeFile)
                     return false;
 
-                var wnd = codeProjectItem.Open(Constants.vsViewKindTextView);
+                var wnd = codeProjectItem.Open(EnvDTE.Constants.vsViewKindTextView);
                 wnd.Activate();
 
                 return true;

@@ -13,38 +13,38 @@ using Task = System.Threading.Tasks.Task;
 
 namespace AvaloniaVS
 {
-    [Guid(PackageGuidString)]
+    [Guid(Constants.PackageGuidString)]
     [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)]
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [ProvideAutoLoad(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_string, PackageAutoLoadFlags.BackgroundLoad)]
     [ProvideEditorExtension(
         typeof(EditorFactory),
-        ".axaml",
+        "." + Constants.axaml,
         100,
         NameResourceID = 113,
         EditorFactoryNotify = true,
         ProjectGuid = VSConstants.UICONTEXT.CSharpProject_string,
-        DefaultName = Name)]
+        DefaultName = Constants.PackageName)]
     [ProvideEditorExtension(
         typeof(EditorFactory),
-        ".paml",
+        "." + Constants.paml,
         100,
         NameResourceID = 113,
         EditorFactoryNotify = true,
         ProjectGuid = VSConstants.UICONTEXT.CSharpProject_string,
-        DefaultName = Name)]
+        DefaultName = Constants.PackageName)]
     [ProvideEditorExtension(
         typeof(EditorFactory),
-        ".xaml",
+        "." + Constants.xaml,
         0x40,
         NameResourceID = 113,
         EditorFactoryNotify = true,
         ProjectGuid = VSConstants.UICONTEXT.CSharpProject_string,
-        DefaultName = Name)]
+        DefaultName = Constants.PackageName)]
     [ProvideEditorFactory(typeof(EditorFactory), 113, TrustLevel = __VSEDITORTRUSTLEVEL.ETL_AlwaysTrusted)]
     [ProvideEditorLogicalView(typeof(EditorFactory), LogicalViewID.Designer)]
-    [ProvideXmlEditorChooserDesignerView(Name,
-        "xaml",
+    [ProvideXmlEditorChooserDesignerView(Constants.PackageName,
+        Constants.xaml,
         LogicalViewID.Designer,
         10000,
         Namespace = "https://github.com/avaloniaui",
@@ -53,13 +53,20 @@ namespace AvaloniaVS
         DesignerLogicalViewEditor = typeof(EditorFactory),
         DebuggingLogicalViewEditor = typeof(EditorFactory),
         TextLogicalViewEditor = typeof(EditorFactory))]
-    [ProvideOptionPage(typeof(OptionsDialogPage), Name, "General", 113, 0, supportsAutomation: true)]
+    [ProvideXmlEditorChooserDesignerView(Constants.PackageName,
+        Constants.axaml,
+        LogicalViewID.Designer,
+        10000,
+        Namespace = "https://github.com/avaloniaui",
+        MatchExtensionAndNamespace = true,
+        CodeLogicalViewEditor = typeof(EditorFactory),
+        DesignerLogicalViewEditor = typeof(EditorFactory),
+        DebuggingLogicalViewEditor = typeof(EditorFactory),
+        TextLogicalViewEditor = typeof(EditorFactory))]
+    [ProvideOptionPage(typeof(OptionsDialogPage), Constants.PackageName, "General", 113, 0, supportsAutomation: true)]
     [ProvideBindingPath]
     internal sealed class AvaloniaPackage : AsyncPackage
     {
-        public const string PackageGuidString = "865ba8d5-1180-4bf8-8821-345f72a4cb79";
-        public const string Name = "Avalonia Xaml Editor";
-
         public static SolutionService SolutionService { get; private set; }
 
         protected override async Task InitializeAsync(
