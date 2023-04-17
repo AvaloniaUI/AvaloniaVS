@@ -15,12 +15,7 @@ Avalonia Visual Studio extension adds such capabilities to your Visual Studio:
 | [VS2022](https://marketplace.visualstudio.com/items?itemName=AvaloniaTeam.AvaloniaVS) |
 | ------------- |
 
-# Building and debugging
-Before building project you will need to restore all submodules.
-This command will help you to restore submodules.
-
-```git submodule update --init --recursive```
-
+# Debugging
 If you want to debug Avalonia previewer extension the *easiest* way to do that is [VS Experimental instance](https://docs.microsoft.com/en-us/visualstudio/extensibility/the-experimental-instance?view=vs-2019).
 To run it you simply need to set **AvaloniaVS.csproj** as startup project and run it,it will open VS Experimental instance,you can run here your repro and put the breakpoints in the original VS in AvaloniaVS project.
 
