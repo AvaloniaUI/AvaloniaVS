@@ -233,7 +233,7 @@ public class CompletionEngine
                     return null;
                 completions.Add(new Completion("/" + name + ">", CompletionKind.Class));
             }
-            else if (tagName.Contains("."))
+            else if (tagName.Contains('.'))
             {
                 var dotPos = tagName.IndexOf(".");
                 var typeName = tagName.Substring(0, dotPos);
@@ -274,7 +274,7 @@ public class CompletionEngine
                 attributeOffset = 0;
             }
 
-            if (state.AttributeName?.Contains(".") == true)
+            if (state.AttributeName?.Contains('.') == true)
             {
                 var dotPos = state.AttributeName.IndexOf('.');
                 curStart += dotPos + 1;
@@ -322,7 +322,7 @@ public class CompletionEngine
         else if (state.State == XmlParser.ParserState.AttributeValue)
         {
             MetadataProperty? prop = null;
-            if (state.AttributeName?.Contains(".") == true)
+            if (state.AttributeName?.Contains('.') == true)
             {
                 //Attached property
                 var split = state.AttributeName.Split('.');
@@ -352,7 +352,7 @@ public class CompletionEngine
                         search = last;
 
                         // Special case for pseudoclasses within the current edit
-                        if (state.AttributeName!.Equals("Selector") && search!.Contains(":"))
+                        if (state.AttributeName!.Equals("Selector") && search!.Contains(':'))
                         {
                             search = ":";
                         }
@@ -533,7 +533,7 @@ public class CompletionEngine
         {
             var value = state.AttributeValue ?? "";
 
-            if (value.Contains("."))
+            if (value.Contains('.'))
             {
                 var curStart = state.CurrentValueStart ?? 0;
                 var dotPos = value.IndexOf(".");
@@ -560,7 +560,7 @@ public class CompletionEngine
             var setterProperty = state.FindParentAttributeValue("Property", maxLevels: 0);
             if (setterProperty is not null)
             {
-                if (setterProperty.Contains(".") == true)
+                if (setterProperty.Contains('.') == true)
                 {
                     var vals = setterProperty.Split('.');
                     selectorTypeName = vals[0];
@@ -814,7 +814,7 @@ public class CompletionEngine
                         completions.AddRange(GetHintCompletions(t, attribName));
                     }
                 }
-                else if (attribName.Contains("."))
+                else if (attribName.Contains('.'))
                 {
                     if (t.SupportCtorArgument != MetadataTypeCtorArgument.Type)
                     {
