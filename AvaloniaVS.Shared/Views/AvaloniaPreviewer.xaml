@@ -10,6 +10,7 @@
                       x:Name="previewScroller">
             <Grid HorizontalAlignment="Center"
                   VerticalAlignment="Center"
+                  UseLayoutRounding="True"
                   x:Name="previewGrid">
                 <Border BorderBrush="Black" BorderThickness="2">
                     <Border.Effect>
