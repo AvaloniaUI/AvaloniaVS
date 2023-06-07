@@ -66,19 +66,19 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
-  <Target Name="PreCreateVsixContainer" BeforeTargets="GetVsixSourceItems">
+  <!--<Target Name="PreCreateVsixContainer" BeforeTargets="GetVsixSourceItems">
     <ItemGroup>
       <_TemplatePackage Include="$(NuGetPackageRoot)\$(AvaloniaTemplatesPackageName.ToLowerInvariant())\$(AvaloniaTemplatesPackageVersion)\$(AvaloniaTemplatesPackageName.ToLowerInvariant()).$(AvaloniaTemplatesPackageVersion).nupkg" />
     </ItemGroup>
     <Error Text="No template files found." Condition="@(_TemplatePackage-&gt;Count()) == 0" />
-    <Message Text="Template nuget packages found: @(_TemplatePackage)" Importance="low" />
-    <!-- don't modify the following, the pkgdef file uses the path below -->
-    <ItemGroup>
+    <Message Text="Template nuget packages found: @(_TemplatePackage)" Importance="low" /> -->
+  <!-- don't modify the following, the pkgdef file uses the path below -->
+  <!--<ItemGroup>
       <VSIXSourceItem Include="@(_TemplatePackage)">
         <VSIXSubPath>ProjectTemplates\</VSIXSubPath>
       </VSIXSourceItem>
     </ItemGroup>
-  </Target>
+  </Target> -->
   <ItemGroup>
     <PackageReference Include="Avalonia.Remote.Protocol" Version="11.0-preview4" />
     <PackageReference Include="Microsoft.VisualStudio.ProjectSystem">
@@ -175,12 +175,6 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Templates.pkgdef">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
   </ItemGroup>
   <Import Project="..\AvaloniaVS.Shared\AvaloniaVS.Shared.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
