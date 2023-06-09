@@ -1,6 +1,5 @@
 name: Bug Report
 description: File a bug report
-title: ""
 labels: ["bug"]
 body:
   - type: textarea
@@ -22,6 +21,7 @@ body:
     attributes:
       label: AvaloniaVS plugin version
       placeholder: e.g. 0.10.18.3
+    validations:
       required: true
   - type: input
     id: avalonia-version
