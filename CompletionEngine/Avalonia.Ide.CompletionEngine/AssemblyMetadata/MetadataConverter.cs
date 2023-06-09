@@ -532,7 +532,7 @@ public static class MetadataConverter
 
     private static void PreProcessTypes(Dictionary<string, MetadataType> types, Metadata metadata)
     {
-        MetadataType xDataType, xCompiledBindings, boolType, typeType;
+        MetadataType xDataType, xCompiledBindings, boolType, typeType, int32Type;
         var toAdd = new List<MetadataType>
         {
             (boolType = new MetadataType(typeof(bool).FullName!)
@@ -551,6 +551,17 @@ public static class MetadataConverter
             new MetadataType("Avalonia.Media.IBrush"),
             new MetadataType("Avalonia.Media.Imaging.IBitmap"),
             new MetadataType("Avalonia.Media.IImage"),
+            (int32Type = new MetadataType(typeof(int).FullName!)
+            {
+                HasHintValues = false,
+            }),
+            new MetadataType("System.Nullable`1<System.Int32>")
+            {
+                HasHintValues = false,
+                IsNullable = true,
+                UnderlyingType = int32Type,
+            },
+
         };
 
         foreach (var t in toAdd)
