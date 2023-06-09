@@ -267,15 +267,18 @@ public static class MetadataConverter
                                 IMethodInformation? setMethod = null;
                                 IMethodInformation? getMethod = null;
 
+                                var setMethodName = $"Set{name}";
+                                var getMethodName = $"Get{name}";
+
                                 foreach (var methodDef in typeDef.Methods)
                                 {
-                                    if (methodDef.Name.StartsWith("Set", StringComparison.OrdinalIgnoreCase) && methodDef.IsStatic && methodDef.IsPublic
+                                    if (methodDef.Name.Equals(setMethodName, StringComparison.OrdinalIgnoreCase) && methodDef.IsStatic && methodDef.IsPublic
                                         && methodDef.Parameters.Count == 2)
                                     {
                                         setMethod = methodDef;
                                     }
                                     if (methodDef.IsStatic
-                                        && methodDef.Name.StartsWith("Get", StringComparison.OrdinalIgnoreCase)
+                                        && methodDef.Name.Equals(getMethodName, StringComparison.OrdinalIgnoreCase)
                                         && methodDef.IsPublic
                                         && methodDef.Parameters.Count == 1
                                         && !string.IsNullOrEmpty(methodDef.ReturnTypeFullName)
@@ -532,7 +535,7 @@ public static class MetadataConverter
 
     private static void PreProcessTypes(Dictionary<string, MetadataType> types, Metadata metadata)
     {
-        MetadataType xDataType, xCompiledBindings, boolType, typeType;
+        MetadataType xDataType, xCompiledBindings, boolType, typeType, int32Type;
         var toAdd = new List<MetadataType>
         {
             (boolType = new MetadataType(typeof(bool).FullName!)
@@ -551,6 +554,17 @@ public static class MetadataConverter
             new MetadataType("Avalonia.Media.IBrush"),
             new MetadataType("Avalonia.Media.Imaging.IBitmap"),
             new MetadataType("Avalonia.Media.IImage"),
+            (int32Type = new MetadataType(typeof(int).FullName!)
+            {
+                HasHintValues = false,
+            }),
+            new MetadataType("System.Nullable`1<System.Int32>")
+            {
+                HasHintValues = false,
+                IsNullable = true,
+                UnderlyingType = int32Type,
+            },
+
         };
 
         foreach (var t in toAdd)
