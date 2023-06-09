@@ -15,7 +15,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Converters\EnumValuesConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Converters\NotNullOrEmptyToVisibilityConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Constants.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Guids.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IntelliSense\TextChangeAdapter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IntelliSense\XamlCompletion.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IntelliSense\XamlCompletionCommandHandler.cs" />
@@ -31,6 +30,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Models\ProjectInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\ProjectOutputInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\XamlBufferMetadata.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ProjectSystem\AvaloniaProject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ServiceProviderExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\AvaloniaVSSettings.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\EditorFactory.cs" />

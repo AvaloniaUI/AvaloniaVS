@@ -76,7 +76,7 @@ namespace AvaloniaVS.Services
 
             ppunkDocView = IntPtr.Zero;
             ppunkDocData = IntPtr.Zero;
-            pguidCmdUI = Guids.AvaloniaDesignerEditorFactory;
+            pguidCmdUI = Constants.AvaloviaFactoryEditorGuid;
             pgrfCDW = 0;
             pbstrEditorCaption = string.Empty;
 
