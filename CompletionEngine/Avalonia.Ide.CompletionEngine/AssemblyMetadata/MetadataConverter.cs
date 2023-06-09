@@ -267,15 +267,18 @@ public static class MetadataConverter
                                 IMethodInformation? setMethod = null;
                                 IMethodInformation? getMethod = null;
 
+                                var setMenthdName = $"Set{name}";
+                                var getMenthdName = $"Get{name}";
+
                                 foreach (var methodDef in typeDef.Methods)
                                 {
-                                    if (methodDef.Name.StartsWith("Set", StringComparison.OrdinalIgnoreCase) && methodDef.IsStatic && methodDef.IsPublic
+                                    if (methodDef.Name.Equals(setMenthdName, StringComparison.OrdinalIgnoreCase) && methodDef.IsStatic && methodDef.IsPublic
                                         && methodDef.Parameters.Count == 2)
                                     {
                                         setMethod = methodDef;
                                     }
                                     if (methodDef.IsStatic
-                                        && methodDef.Name.StartsWith("Get", StringComparison.OrdinalIgnoreCase)
+                                        && methodDef.Name.Equals(getMenthdName, StringComparison.OrdinalIgnoreCase)
                                         && methodDef.IsPublic
                                         && methodDef.Parameters.Count == 1
                                         && !string.IsNullOrEmpty(methodDef.ReturnTypeFullName)
