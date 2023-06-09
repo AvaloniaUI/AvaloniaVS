@@ -4,6 +4,7 @@ extern alias A2;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Avalonia.Controls;
 using Avalonia.Ide.CompletionEngine;
 using Avalonia.Ide.CompletionEngine.AssemblyMetadata;
 using Avalonia.Ide.CompletionEngine.DnlibMetadataProvider;
@@ -79,6 +80,22 @@ namespace CompletionEngineTests
             Assert.NotNull(ns);
             ns.TryGetValue(scenario.ClrType.Name, out var type);
             scenario.CheckAction(scenario.ClrType, type);
+        }
+
+        [Fact]
+        public void AttachedPropertySetterAndGetterMixmatch()
+        {
+            var clrType = typeof(Grid);
+            string nsName = "clr-namespace:" + clrType.Namespace + ";assembly=" + clrType.Assembly.GetName().Name;
+            var ns = Metadata.Namespaces[nsName];
+            Assert.NotNull(ns);
+            ns.TryGetValue(clrType.Name, out var type);
+            Assert.NotNull(type);
+
+            var property = type.Properties.SingleOrDefault(p=> p.Name == "Column");
+            Assert.NotNull(property);
+            Assert.True(property.IsAttached);
+            Assert.Equal("System.Int32", property.Type?.Name);
         }
 
         public static IEnumerable<object[]> GetCasese()
