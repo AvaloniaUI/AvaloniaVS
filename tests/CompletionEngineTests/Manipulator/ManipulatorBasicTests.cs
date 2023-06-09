@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Avalonia.Ide.CompletionEngine;
-using Xunit;
+﻿using Xunit;
 
 namespace CompletionEngineTests.Manipulator
 {

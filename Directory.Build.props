@@ -5,6 +5,10 @@
     <LangVersion>11.0</LangVersion>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <PublicKey>0024000004800000940000000602000000240000525341310004000001000100b111cf707bc11956645caffc0d3749fde7a81ee7bdca74d0a3f3f7f599aab8d6c256db70757a96a4589c353e81c8d521d7b72e3fbc59f90715f362057c4d06cd35a5c3956b4d38f12251cbf1d53db778c94dd6fb652a3fb27a03256a9df604bf9bb4c435e5163b605e00f18200433e354459c8a812fa1dee5b6b90efa3100db2</PublicKey>
+  </PropertyGroup>
+  
   <ItemGroup>
     <PackageReference Include="IsExternalInit" Version="1.0.3">
       <PrivateAssets>all</PrivateAssets>

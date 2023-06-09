@@ -3,6 +3,9 @@
     <PropertyGroup>
         <TargetFramework>net7.0</TargetFramework>
         <IsPackable>false</IsPackable>
+        <SignAssembly>True</SignAssembly>
+        <DelaySign>True</DelaySign>
+        <AssemblyOriginatorKeyFile>..\..\Key.snk</AssemblyOriginatorKeyFile>
     </PropertyGroup>
 
     <ItemGroup>
@@ -17,6 +20,10 @@
       <AvaloniaResource Include="Test.bmp" />
       <AvaloniaResource Include="Test.xaml" />
       <AvaloniaResource Include="TestCompiledTheme.xaml" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Include="..\..\Key.snk" Link="Key.snk" />
     </ItemGroup>
 
     <ItemGroup>

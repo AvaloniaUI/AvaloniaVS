@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+#nullable enable
 
 namespace Avalonia.Ide.CompletionEngine.AssemblyMetadata;
 
@@ -12,6 +13,7 @@ public interface IAssemblyInformation
     Stream GetManifestResourceStream(string name);
     IEnumerable<string> InternalsVisibleTo { get; }
     string AssemblyName { get; }
+    string PublicKey { get; }
 }
 
 public interface ICustomAttributeInformation
@@ -38,6 +40,7 @@ public interface ITypeInformation
     IEnumerable<IEventInformation> Events { get; }
     IEnumerable<IFieldInformation> Fields { get; }
     IEnumerable<string> Pseudoclasses { get; }
+    IEnumerable<(ITypeInformation Type,string Name)> TemplateParts { get; }
 
     bool IsEnum { get; }
     bool IsStatic { get; }
@@ -86,7 +89,7 @@ public interface IPropertyInformation
     string TypeFullName { get; }
     string QualifiedTypeFullName { get; }
     string Name { get; }
-    bool IsVisbleTo(string assemblyName);
+    bool IsVisbleTo(IAssemblyInformation assembly);
 }
 
 public interface IEventInformation

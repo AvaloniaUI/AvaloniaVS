@@ -1,5 +1,7 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using Xunit;
 
@@ -60,25 +62,25 @@ namespace CompletionEngineTests
         {
             AssertSingleCompletion("<UserControl Background=\"{Binding RelativeSource={RelativeSource ", "Se", "Self");
         }
-        
+
         [Fact]
         public void Binding_Path_Should_Be_Completed_From_xDataType()
         {
             AssertSingleCompletion("<UserControl x:DataType=\"Button\"><TextBlock Tag=\"{Binding Path=", "Conte", "Content");
         }
-        
+
         [Fact]
         public void Binding_Path_Should_Be_Completed_From_xDataType2()
         {
             AssertSingleCompletion("<UserControl x:DataType=\"Button\"><TextBlock Tag=\"{Binding ", "Conte", "Content");
         }
-        
+
         [Fact]
         public void Binding_Path_Should_Be_Completed_From_sParent()
         {
             AssertSingleCompletion("<UserControl Background=\"{Binding ", "$pa", "$parent[");
         }
-        
+
         [Fact]
         public void Binding_Path_Should_Be_Completed_From_sParentType()
         {
@@ -96,7 +98,7 @@ namespace CompletionEngineTests
         {
             AssertSingleCompletion("<UserControl Background=\"{Binding ", "$parent[Button].Ta", "$parent[Button].Tag");
         }
-        
+
         [Fact]
         public void Binding_Path_Should_Be_Completed_From_sParent_Property()
         {
@@ -114,7 +116,7 @@ namespace CompletionEngineTests
         {
             AssertSingleCompletion("<DataTemplate DataType=\"{x:Type ", "But", "Button");
         }
-        
+
         [Fact]
         public void Extension_DataType_Types_Should_Be_Completed()
         {
@@ -153,7 +155,7 @@ namespace CompletionEngineTests
         [Fact]
         public void StyleSelector_Some_WellKnown_PseudoClasses_Should_Be_Completed()
         {
-            var compl = GetCompletionsFor("<Style Selector=\"").Completions;
+            var compl = GetCompletionsFor("<Style Selector=\"Button:").Completions;
 
             Assert.Contains(compl, v => v.InsertText == ":pointerover");
             Assert.Contains(compl, v => v.InsertText == ":disabled");
@@ -183,7 +185,7 @@ namespace CompletionEngineTests
         {
             var xaml = "<Style Selector=\"Button\"><Setter Property=\"";
             var typed = "TextElement.FontWe";
-            
+
             var comp = GetCompletionsFor(xaml + typed);
             if (comp == null)
                 throw new Exception("No completions found");
@@ -298,7 +300,7 @@ namespace CompletionEngineTests
         [Fact]
         public void xTypeArguments_Directive_Should_Not_Be_Completed_On_NonGeneric_Type()
         {
-           Assert.Null(GetCompletionsFor("<UserControl x:TypeArgum"));
+            Assert.Null(GetCompletionsFor("<UserControl x:TypeArgum"));
         }
 
         [Fact]
@@ -443,6 +445,173 @@ namespace CompletionEngineTests
                 }
             }
             Assert.Empty(formFactors);
+        }
+        [Theory]
+        [MemberData(nameof(GetStyleSelectors))]
+        public void StyleSelector_Completions(string selector,
+            bool contain,
+            IEnumerable<Avalonia.Ide.CompletionEngine.Completion> expected)
+        {
+            var compl = GetCompletionsFor(selector)?.Completions;
+            if (contain == false)
+            {
+                Assert.Equal(expected, compl);
+            }
+            else
+            {
+                foreach (var item in expected)
+                {
+                    Assert.Contains(item, compl);
+                }
+            }
+
+        }
+
+        public static IEnumerable<object[]> GetStyleSelectors()
+        {
+            yield return new object[]
+            {
+                "<Style Selector=\"Button[Min",
+                false,
+                new Avalonia.Ide.CompletionEngine.Completion[]
+                {
+                    new ("MinHeight","MinHeight=", Avalonia.Ide.CompletionEngine.CompletionKind.Property),
+                    new ("MinWidth","MinWidth=",Avalonia.Ide.CompletionEngine.CompletionKind.Property),
+                },
+            };
+            yield return new object[]
+            {
+                "<Style Selector=\"Button[(Grid.",
+                false,
+                new Avalonia.Ide.CompletionEngine.Completion[]
+                {
+                    new ("Column","Column)", Avalonia.Ide.CompletionEngine.CompletionKind.AttachedProperty),
+                    new ("ColumnSpan","ColumnSpan)",Avalonia.Ide.CompletionEngine.CompletionKind.AttachedProperty),
+                    new ("IsSharedSizeScope","IsSharedSizeScope)", Avalonia.Ide.CompletionEngine.CompletionKind.AttachedProperty),
+                    new ("Row","Row)",Avalonia.Ide.CompletionEngine.CompletionKind.AttachedProperty),
+                    new ("RowSpan","RowSpan)",Avalonia.Ide.CompletionEngine.CompletionKind.AttachedProperty),
+                },
+            };
+            yield return new object[]
+            {
+                "<Style Selector=\"",
+                true,
+                new Avalonia.Ide.CompletionEngine.Completion[]
+                {
+                    new (":", Avalonia.Ide.CompletionEngine.CompletionKind.Selector | Avalonia.Ide.CompletionEngine.CompletionKind.Enum),
+                    new (">", Avalonia.Ide.CompletionEngine.CompletionKind.Selector | Avalonia.Ide.CompletionEngine.CompletionKind.Enum),
+                    new (".", Avalonia.Ide.CompletionEngine.CompletionKind.Selector | Avalonia.Ide.CompletionEngine.CompletionKind.Enum),
+                    new ("^", Avalonia.Ide.CompletionEngine.CompletionKind.Selector | Avalonia.Ide.CompletionEngine.CompletionKind.Enum),
+                },
+            };
+            yield return new object[]
+            {
+                "<Style Selector=\"Button:",
+                false,
+                new Avalonia.Ide.CompletionEngine.Completion[]
+                {
+                    new (":disabled", Avalonia.Ide.CompletionEngine.CompletionKind.Selector | Avalonia.Ide.CompletionEngine.CompletionKind.Enum),
+                    new (":flyout-open", Avalonia.Ide.CompletionEngine.CompletionKind.Selector | Avalonia.Ide.CompletionEngine.CompletionKind.Enum),
+                    new (":focus", Avalonia.Ide.CompletionEngine.CompletionKind.Selector | Avalonia.Ide.CompletionEngine.CompletionKind.Enum),
+                    new (":focus-visible", Avalonia.Ide.CompletionEngine.CompletionKind.Selector | Avalonia.Ide.CompletionEngine.CompletionKind.Enum),
+                    new (":focus-within", Avalonia.Ide.CompletionEngine.CompletionKind.Selector | Avalonia.Ide.CompletionEngine.CompletionKind.Enum),
+                    new (":not()", ":not(", Avalonia.Ide.CompletionEngine.CompletionKind.Selector | Avalonia.Ide.CompletionEngine.CompletionKind.Enum),
+                    new (":nth-child()", ":nth-child(", Avalonia.Ide.CompletionEngine.CompletionKind.Selector | Avalonia.Ide.CompletionEngine.CompletionKind.Enum),
+                    new (":nth-last-child()", ":nth-last-child(", Avalonia.Ide.CompletionEngine.CompletionKind.Selector | Avalonia.Ide.CompletionEngine.CompletionKind.Enum),
+                    new (":pointerover", Avalonia.Ide.CompletionEngine.CompletionKind.Selector | Avalonia.Ide.CompletionEngine.CompletionKind.Enum),
+                    new (":pressed", Avalonia.Ide.CompletionEngine.CompletionKind.Selector | Avalonia.Ide.CompletionEngine.CompletionKind.Enum),
+                },
+            };
+            yield return new object[]
+            {
+                "<Style Selector=\"/temp",
+                false,
+                new Avalonia.Ide.CompletionEngine.Completion[]
+                {
+                    new ("/template/","/template/", Avalonia.Ide.CompletionEngine.CompletionKind.Selector | Avalonia.Ide.CompletionEngine.CompletionKind.Enum),
+                },
+            };
+            yield return new object[]
+            {
+                "<UserControl x:Name=\"foo\"><UserControl.Styles><Style Selector=\"#",
+                false,
+                new Avalonia.Ide.CompletionEngine.Completion[]
+                {
+                    new ("foo","foo", Avalonia.Ide.CompletionEngine.CompletionKind.Name | Avalonia.Ide.CompletionEngine.CompletionKind.Class),
+                },
+            };
+            yield return new object[]
+            {
+                "<Style Selector=\"Button[(Grid.IsSharedSizeScope)=",
+                false,
+                new Avalonia.Ide.CompletionEngine.Completion[]
+                {
+                    new ("False", Avalonia.Ide.CompletionEngine.CompletionKind.StaticProperty),
+                    new ("True", Avalonia.Ide.CompletionEngine.CompletionKind.StaticProperty),
+                },
+            };
+            yield return new object[]
+            {
+                "<Style Selector=\"TextBlock[HorizontalAlignment=",
+                false,
+                new Avalonia.Ide.CompletionEngine.Completion[]
+                {
+                    new ("Center", Avalonia.Ide.CompletionEngine.CompletionKind.Enum),
+                    new ("Left", Avalonia.Ide.CompletionEngine.CompletionKind.Enum),
+                    new ("Right", Avalonia.Ide.CompletionEngine.CompletionKind.Enum),
+                    new ("Stretch", Avalonia.Ide.CompletionEngine.CompletionKind.Enum),
+                },
+            };
+            yield return new object[]
+            {
+                "<Style Selector=\"TextBlock[HorizontalAlignment=c",
+                false,
+                new Avalonia.Ide.CompletionEngine.Completion[]
+                {
+                    new ("Center", Avalonia.Ide.CompletionEngine.CompletionKind.Enum),
+                },
+            };
+            yield return new object[]
+            {
+                "<Style Selector=\"Button[(Grid.IsSharedSizeScope)=t",
+                false,
+                new Avalonia.Ide.CompletionEngine.Completion[]
+                {
+                    new ("True", Avalonia.Ide.CompletionEngine.CompletionKind.StaticProperty),
+                },
+            };
+            yield return new object[]
+            {
+                "<Style Selector=\"local|",
+                true,
+                new Avalonia.Ide.CompletionEngine.Completion[]
+                {
+                    new ("AttachedBehavior","local|AttachedBehavior", Avalonia.Ide.CompletionEngine.CompletionKind.Class | Avalonia.Ide.CompletionEngine.CompletionKind.TargetTypeClass),
+                },
+            };
+            
+            yield return new object[]
+            {
+                "<Style Selector=\"ToggleSwitch /template/ #",
+                true,
+                new Avalonia.Ide.CompletionEngine.Completion[]
+                {
+                    new ("PART_MovingKnobs", Avalonia.Ide.CompletionEngine.CompletionKind.Class | Avalonia.Ide.CompletionEngine.CompletionKind.Name) { RecommendedCursorOffset = - 268},
+                    new ("PART_OffContentPresenter", Avalonia.Ide.CompletionEngine.CompletionKind.Class | Avalonia.Ide.CompletionEngine.CompletionKind.Name)  { RecommendedCursorOffset = - 249},
+                    new ("PART_OnContentPresenter", Avalonia.Ide.CompletionEngine.CompletionKind.Class | Avalonia.Ide.CompletionEngine.CompletionKind.Name) { RecommendedCursorOffset = -250 },
+                    new ("PART_SwitchKnob", Avalonia.Ide.CompletionEngine.CompletionKind.Class | Avalonia.Ide.CompletionEngine.CompletionKind.Name) { RecommendedCursorOffset = -269 },
+                },
+            };
+            yield return new object[]
+            {
+                "<Style Selector=\"ToggleSwitch /template/ ContentPresenter#",
+                true,
+                new Avalonia.Ide.CompletionEngine.Completion[]
+                {
+                    new ("PART_OffContentPresenter", Avalonia.Ide.CompletionEngine.CompletionKind.Class | Avalonia.Ide.CompletionEngine.CompletionKind.Name)  { RecommendedCursorOffset = - 249},
+                    new ("PART_OnContentPresenter", Avalonia.Ide.CompletionEngine.CompletionKind.Class | Avalonia.Ide.CompletionEngine.CompletionKind.Name) { RecommendedCursorOffset = -250 },
+                },
+            };
         }
     }
 }

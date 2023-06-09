@@ -113,7 +113,6 @@ namespace CompletionEngineTests
                      Assert.Equal(ExpectedPublicOrInternalProperties,mdType.Properties.Select(p=>p.Name));
                  })),
             };
-
             // TestAssembly1 with InternalsVisibleTo
             yield return new object[]
             {
@@ -121,7 +120,7 @@ namespace CompletionEngineTests
                   typeof(A1::CompletionEngineTests.Models.InternalAttachedBehavior),
                  new Action<Type,MetadataType>(static (clrType,mdType) =>
                  {
-                     Assert.Equal(clrType.AssemblyQualifiedName, mdType.AssemblyQualifiedName);
+                     Assert.Equal(clrType.AssemblyQualifiedName, mdType?.AssemblyQualifiedName);
                  })),
             };
             yield return new object[]
@@ -144,7 +143,6 @@ namespace CompletionEngineTests
                      Assert.Equal(ExpectedPublicOrInternalProperties,mdType.Properties.Select(p=>p.Name));
                  })),
             };
-
             // TestAssembly2 without InternalsVisibleTo
             yield return new object[]
             {

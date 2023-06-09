@@ -21,7 +21,8 @@ namespace AvaloniaVS.IntelliSense
                 completion.InsertText,
                 completion.Description,
                 GetImage(completion.Kind),
-                completion.Kind.ToString())
+                completion.Kind.ToString(),
+                suffix:  string.IsNullOrWhiteSpace(completion.Suffix) ? string.Empty : $"({completion.Suffix})")
         {
             if (completion.RecommendedCursorOffset.HasValue)
             {
@@ -29,6 +30,23 @@ namespace AvaloniaVS.IntelliSense
             }
 
             Kind = completion.Kind;
+            DeleteTextOffset = completion.DeleteTextOffset;
+        }
+
+        public int? DeleteTextOffset { get; }
+
+        public override string InsertionText
+        {
+            get
+            {
+                if (HasFlag(Kind, CompletionKind.Name) && !string.IsNullOrEmpty(Suffix))
+                {
+                    return $"{Suffix.Substring(1,Suffix.Length-2)}#{base.InsertionText}";
+                }
+                return base.InsertionText;
+            }
+
+            set => base.InsertionText = value;
         }
 
         public int CursorOffset { get; }
@@ -49,7 +67,6 @@ namespace AvaloniaVS.IntelliSense
             {
                 LoadImages();
             }
-
             if (HasFlag(kind, CompletionKind.DataProperty))
             {
                 return s_images[(int)CompletionKind.DataProperty];
@@ -62,13 +79,20 @@ namespace AvaloniaVS.IntelliSense
             {
                 return s_images[(int)CompletionKind.Enum];
             }
-
-            return s_images[(int)kind];
-
-            bool HasFlag(CompletionKind test, CompletionKind expected)
+            else if (HasFlag(kind, CompletionKind.Selector))
             {
-                return (test & expected) == expected;
+                return s_images[(int)CompletionKind.Enum];
             }
+            else if (HasFlag(kind, CompletionKind.Name))
+            {
+                return s_images[(int)CompletionKind.Class];
+            }
+            return s_images[(int)kind];
+        }
+
+        private static bool HasFlag(CompletionKind test, CompletionKind expected)
+        {
+            return (test & expected) == expected;
         }
 
         private static void LoadImages()
@@ -90,6 +114,7 @@ namespace AvaloniaVS.IntelliSense
             s_images[(int)CompletionKind.MarkupExtension] = KnownMonikers.Namespace;
             s_images[(int)CompletionKind.DataProperty] = KnownMonikers.DatabaseProperty;
             s_images[(int)CompletionKind.TargetTypeClass] = KnownMonikers.ClassPublic;
+            s_images[(int)CompletionKind.Selector] = KnownMonikers.Namespace;
         }
     }
 }
