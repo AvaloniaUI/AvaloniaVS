@@ -498,7 +498,7 @@ public static class MetadataConverter
         types.Add(xDataType.Name, xDataType);
         types.Add(xCompiledBindings.Name, xCompiledBindings);
 
-        metadata.AddType("", new MetadataType("xmlns") { IsXamlDirective = true });
+        //metadata.AddType("", new MetadataType("xmlns") { IsXamlDirective = true });
     }
 
     private static void PostProcessTypes(Dictionary<string, MetadataType> types, Metadata metadata,

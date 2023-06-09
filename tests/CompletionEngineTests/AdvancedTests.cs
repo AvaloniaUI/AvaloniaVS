@@ -306,7 +306,7 @@ namespace CompletionEngineTests
         {
             var compl = GetCompletionsFor("<UserControl x").Completions;
 
-            Assert.Contains(compl, v => v.InsertText == "xmlns=\"\"");
+            Assert.Contains(compl, v => v.InsertText == "xmlns:");
         }
 
         [Fact]

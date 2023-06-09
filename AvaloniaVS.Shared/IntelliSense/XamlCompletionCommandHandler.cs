@@ -207,6 +207,12 @@ namespace AvaloniaVS.IntelliSense
                         _textView.Caret.MoveTo(newCursorPos);
                     }
 
+                    // special-cased avoid TriggerCompletion
+                    if (selected.InsertionText == "xmlns:")
+                    {
+                        return true;
+                    }
+
                     // Ideally, we should only parse the current line of text, where the parser State would return
                     // 'None' if you're spreading control attributes out across multiple lines
                     // BUT, Selectors can span multiple lines (aggregates separated by ',') and this theory
