@@ -242,6 +242,11 @@ namespace AvaloniaVS.IntelliSense
                             // {Binding path, RelativeSource={RelativeSource -> ...={RelativeSource |
                             if (parser.AttributeValue?.StartsWith("{") == true)
                             {
+                                // If press Tab or CR in expression ignore it in completation session
+                                if(c is '\t' or '\n')
+                                {
+                                    return true;
+                                }
                                 // To determine, we'll walk back the text from the cursor position
                                 // until we hit either something that isn't a character
                                 // If that's a {, we apply the space, otherwise we dont
