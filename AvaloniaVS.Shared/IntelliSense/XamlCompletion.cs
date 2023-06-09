@@ -87,6 +87,10 @@ namespace AvaloniaVS.IntelliSense
             {
                 return s_images[(int)CompletionKind.Class];
             }
+            else if (HasFlag(kind, CompletionKind.Comment))
+            {
+                return s_images[(int)CompletionKind.Comment];
+            }
             return s_images[(int)kind];
         }
 
@@ -115,6 +119,7 @@ namespace AvaloniaVS.IntelliSense
             s_images[(int)CompletionKind.DataProperty] = KnownMonikers.DatabaseProperty;
             s_images[(int)CompletionKind.TargetTypeClass] = KnownMonikers.ClassPublic;
             s_images[(int)CompletionKind.Selector] = KnownMonikers.Namespace;
+            s_images[(int)CompletionKind.Comment] = KnownMonikers.XMLCommentTag;
         }
     }
 }

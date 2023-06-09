@@ -260,6 +260,7 @@ public class CompletionEngine
             }
             else
             {
+                completions.Add(new Completion("!--", "!---->", CompletionKind.Comment) { RecommendedCursorOffset = 3 });
                 completions.AddRange(_helper.FilterTypes(tagName).Select(kvp =>
                 {
                     if (kvp.Value.IsMarkupExtension)
