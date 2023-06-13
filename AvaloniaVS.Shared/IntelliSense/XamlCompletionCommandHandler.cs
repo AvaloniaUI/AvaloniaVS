@@ -333,7 +333,7 @@ namespace AvaloniaVS.IntelliSense
                                 TriggerCompletion();
                         }
                     }
-                    else if (state != XmlParser.ParserState.StartElement)
+                    else if (state != XmlParser.ParserState.StartElement || selected.TriggerCompletion)
                     {
                         TriggerCompletion();
                     }

@@ -244,7 +244,7 @@ public class CompletionEngine
                 var name = closingState.GetParentTagName(0);
                 if (name == null)
                     return null;
-                completions.Add(new Completion("/" + name + ">", CompletionKind.Class));
+                completions.Add(new Completion("/" + name + ">", CompletionKind.Class, priority: 0));
             }
             else if (tagName.Contains('.'))
             {
@@ -260,7 +260,23 @@ public class CompletionEngine
             }
             else
             {
-                completions.AddRange(_helper.FilterTypes(tagName).Select(kvp =>
+                if (state.GetParentTagName(1) is string parentTag)
+                {
+                    if (!state.IsInClosingTag)
+                    {
+                        completions.Add(new Completion("/" + parentTag + ">", CompletionKind.Class, priority: 0));
+                    }
+                    if (parentTag.IndexOf('.') == -1)
+                    {
+                        completions.Add(new Completion(parentTag, $"{parentTag}.", CompletionKind.Class, priority: 1)
+                        {
+                            TriggerCompletionAfterInsert = true,
+                        });
+                    }
+                }
+
+                completions.AddRange(_helper.FilterTypes(tagName)
+                    .Select(kvp =>
                 {
                     if (kvp.Value.IsMarkupExtension)
                     {
@@ -327,7 +343,7 @@ public class CompletionEngine
 
                     if (targetType.IsAvaloniaObjectType)
                     {
-                        if (string.IsNullOrEmpty(attributeName) || "xmlns".StartsWith(attributeName,StringComparison.OrdinalIgnoreCase))
+                        if (string.IsNullOrEmpty(attributeName) || "xmlns".StartsWith(attributeName, StringComparison.OrdinalIgnoreCase))
                         {
                             completions.Add(new("xmlns:", CompletionKind.Class));
                         }
@@ -508,7 +524,8 @@ public class CompletionEngine
         // Group the completions based on Kind, and sort the completions for each group
         return completions
             .GroupBy(i => i.Kind, (kind, compl) =>
-                (Kind: kind, Completions: compl.OrderBy(j => j.DisplayText)))
+                (Kind: kind, Completions: compl
+                .OrderBy(j => j.Priority).ThenBy(j => j.DisplayText)))
             .OrderBy(i => GetCompletionPriority(i.Kind))
             .SelectMany(i => i.Completions)
             .ToList();

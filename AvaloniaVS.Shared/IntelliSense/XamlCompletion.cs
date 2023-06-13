@@ -22,15 +22,22 @@ namespace AvaloniaVS.IntelliSense
                 completion.Description,
                 GetImage(completion.Kind),
                 completion.Kind.ToString(),
-                suffix:  string.IsNullOrWhiteSpace(completion.Suffix) ? string.Empty : $"({completion.Suffix})")
+                suffix: string.IsNullOrWhiteSpace(completion.Suffix) ? string.Empty : $"({completion.Suffix})")
         {
             if (completion.RecommendedCursorOffset.HasValue)
             {
                 CursorOffset = completion.InsertText.Length - completion.RecommendedCursorOffset.Value;
             }
-
+            TriggerCompletion = completion.TriggerCompletionAfterInsert;
             Kind = completion.Kind;
             DeleteTextOffset = completion.DeleteTextOffset;
+            if (completion.Priority < 255)
+            {
+                this.AttributeIcons = new Microsoft.VisualStudio.Language.Intellisense.CompletionIcon2[]
+                {
+                    new (KnownMonikers.OverlayProtected,"",""),
+                };
+            }
         }
 
         public int? DeleteTextOffset { get; }
@@ -41,7 +48,7 @@ namespace AvaloniaVS.IntelliSense
             {
                 if (HasFlag(Kind, CompletionKind.Name) && !string.IsNullOrEmpty(Suffix))
                 {
-                    return $"{Suffix.Substring(1,Suffix.Length-2)}#{base.InsertionText}";
+                    return $"{Suffix.Substring(1, Suffix.Length - 2)}#{base.InsertionText}";
                 }
                 return base.InsertionText;
             }
@@ -52,6 +59,8 @@ namespace AvaloniaVS.IntelliSense
         public int CursorOffset { get; }
 
         public CompletionKind Kind { get; }
+
+        public bool TriggerCompletion { get; }
 
         public static IEnumerable<XamlCompletion> Create(
             IEnumerable<Completion> source)
@@ -100,7 +109,7 @@ namespace AvaloniaVS.IntelliSense
             ThreadHelper.ThrowIfNotOnUIThread();
 
             var capacity = Enum.GetValues(typeof(CompletionKind)).Cast<int>().Max() + 1;
-            
+
             s_images = new ImageMoniker[capacity];
             s_images[(int)CompletionKind.Property] = KnownMonikers.Property;
             s_images[(int)CompletionKind.Event] = KnownMonikers.Event;
