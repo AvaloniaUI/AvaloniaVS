@@ -3,7 +3,7 @@
 namespace CompletionEngineTests.Manipulator
 {
 
-    public class ManipulatorBasicTests : ManipulatorTestBase
+    public partial class ManipulatorBasicTests : ManipulatorTestBase
     {
         [Fact]
         public void DoNotInsertToUnclosedTag()
