@@ -43,20 +43,23 @@ public record Completion(string DisplayText,
     CompletionKind Kind,
     int? RecommendedCursorOffset = null,
     string? Suffix = null,
-    int? DeleteTextOffset = null
+    int? DeleteTextOffset = null,
+    byte Priority = 255
     )
 {
     public override string ToString() => DisplayText;
 
-    public Completion(string insertText, CompletionKind kind, string? suffix = default) :
-        this(insertText, insertText, insertText, kind, Suffix: suffix)
+    public Completion(string insertText, CompletionKind kind, string? suffix = default, byte priority = 255) :
+        this(insertText, insertText, insertText, kind, Suffix: suffix, Priority: priority)
     {
 
     }
 
-    public Completion(string displayText, string insertText, CompletionKind kind, string? suffix = default) :
-        this(displayText, insertText, displayText, kind)
+    public Completion(string displayText, string insertText, CompletionKind kind, string? suffix = default, byte priority = 255) :
+        this(displayText, insertText, displayText, kind, Priority: priority)
     {
 
     }
+
+    public bool TriggerCompletionAfterInsert { get; init; }
 }
