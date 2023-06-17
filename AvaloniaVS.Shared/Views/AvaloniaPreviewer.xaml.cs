@@ -106,7 +106,7 @@ namespace AvaloniaVS.Views
 
         private double GetScaling()
         {
-            var result = Process?.Scaling ?? 1;
+            var result = (Process?.Scaling ?? 1) / VisualTreeHelper.GetDpi(this).DpiScaleX;
             return result > 0 ? result : 1;
         }
 

@@ -18,9 +18,10 @@ public class XmlParser
         BeforeAttributeValue,
         AttributeValue,
         AfterAttributeValue,
+        Error,
     }
 
-    public ParserState State { get; set; }
+    public ParserState State { get; private set; }
 
     private readonly ReadOnlyMemory<char> _data;
     private int _parserPos;
@@ -99,6 +100,7 @@ public class XmlParser
         var i = _parserPos++;
         var span = _data.Span;
         var c = span[i];
+        char lastChar;
         if (c == '<' && State == ParserState.None)
         {
             State = ParserState.StartElement;
@@ -168,6 +170,10 @@ public class XmlParser
             _attributeNameStart = i;
             _attributeNameEnd = null;
         }
+        else if (State == ParserState.InsideElement && c == '<')
+        {
+            State = ParserState.Error;
+        }
         else if (State == ParserState.StartAttribute && (c == '=' || char.IsWhiteSpace(c)))
         {
             State = ParserState.BeforeAttributeValue;
@@ -186,6 +192,11 @@ public class XmlParser
         {
             State = ParserState.InsideElement;
         }
+        else if (State == ParserState.Error && CheckPrev(i - 1, "<"))
+        {
+            State = ParserState.StartElement;
+            _parserPos--;
+        }
         return true;
     }
 
@@ -198,7 +209,6 @@ public class XmlParser
         if (m.Success)
             return m.Value.Substring(1);
         return null;
-
     }
 
     public string? FindParentAttributeValue(string attributeExpr, int startLevel = 0, int maxLevels = int.MaxValue)
@@ -277,7 +287,11 @@ public class XmlParser
 
     public static XmlParser Parse(ReadOnlyMemory<char> data, int start, int end)
     {
-        var rv = new XmlParser(data, start);
+        var rv = new XmlParser(data, 0);
+        while(rv.ParserPos < start)
+        {
+            rv.ParseChar();
+        }
         for (var i = start; i < end; i++)
         {
             if (!rv.ParseChar())
@@ -303,7 +317,8 @@ public class XmlParser
             // leave initial start element
         }
 
-        while (NestingLevel != 0)
+        var currentLevel = NestingLevel;
+        while (NestingLevel >= currentLevel)
         {
             if (!ParseChar())
             {
@@ -321,7 +336,7 @@ public class XmlParser
             // find start of next element
         }
 
-        return true;
+        return NestingLevel < currentLevel;
     }
 
     public override string ToString()
