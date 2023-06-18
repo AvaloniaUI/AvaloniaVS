@@ -6,16 +6,17 @@ namespace Avalonia.Ide.CompletionEngine;
 public enum CompletionKind
 {
     None = 0x0,
-    Class = 0x1,
-    Property = 0x2,
-    AttachedProperty = 0x4,
-    StaticProperty = 0x8,
-    Namespace = 0x10,
-    Enum = 0x20,
-    MarkupExtension = 0x40,
-    Event = 0x80,
-    AttachedEvent = 0x100,
-
+    Comment = 0x1,
+    Class = 0x2,
+    Property = 0x4,
+    AttachedProperty = 0x8,
+    StaticProperty = 0x10,
+    Namespace = 0x20,
+    Enum = 0x40,
+    MarkupExtension = 0x80,
+    Event = 0x100,
+    AttachedEvent = 0x200,
+    
     /// <summary>
     /// Properties from DataContexts (view models), specifically this is for VS
     /// to use a different icon from normal properties
