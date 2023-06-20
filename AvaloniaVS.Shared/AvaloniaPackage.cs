@@ -52,18 +52,7 @@ namespace AvaloniaVS
         DesignerLogicalViewEditor = typeof(EditorFactory),
         DebuggingLogicalViewEditor = typeof(EditorFactory),
         TextLogicalViewEditor = typeof(EditorFactory))]
-    [ProvideXmlEditorChooserDesignerView(Constants.PackageName,
-        Constants.axaml,
-        LogicalViewID.Designer,
-        10000,
-        Namespace = "https://github.com/avaloniaui",
-        MatchExtensionAndNamespace = true,
-        CodeLogicalViewEditor = typeof(EditorFactory),
-        DesignerLogicalViewEditor = typeof(EditorFactory),
-        DebuggingLogicalViewEditor = typeof(EditorFactory),
-        TextLogicalViewEditor = typeof(EditorFactory))]
     [ProvideOptionPage(typeof(OptionsDialogPage), Constants.PackageName, "General", 113, 0, supportsAutomation: true)]
-    [ProvideBindingPath]
     internal sealed class AvaloniaPackage : AsyncPackage
     {
         public static SolutionService SolutionService { get; private set; }
