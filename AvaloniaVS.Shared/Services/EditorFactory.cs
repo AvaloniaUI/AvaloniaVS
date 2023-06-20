@@ -18,7 +18,6 @@ namespace AvaloniaVS.Services
     /// Implements <see cref="IVsEditorFactory"/> to create <see cref="DesignerPane"/>s containing
     /// an Avalonia XAML designer.
     /// </summary>
-    [Guid(AvaloniaVS.Constants.AvaloviaFactoryEditorGuidString)]
     internal sealed class EditorFactory : IVsEditorFactory, IDisposable
     {
         private readonly AvaloniaPackage _package;
