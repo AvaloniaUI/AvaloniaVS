@@ -15,8 +15,11 @@ namespace AvaloniaVS.IntelliSense
     /// </summary>
     [Name("Avalonia XAML manupulator")]
     [ContentType("xml")]
+    [ContentType("axaml")]
+    [ContentType("xaml")]
     [Export(typeof(IWpfTextViewCreationListener))]
     [TextViewRole(PredefinedTextViewRoles.Editable)]
+    [TextViewRole(PredefinedTextViewRoles.PrimaryDocument)]
     internal sealed class XamlTextViewCreationListener : IWpfTextViewCreationListener
     {
         private readonly IServiceProvider _serviceProvider;
