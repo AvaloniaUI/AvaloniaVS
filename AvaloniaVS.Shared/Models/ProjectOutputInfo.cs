@@ -23,6 +23,13 @@ namespace AvaloniaVS.Models
         public string TargetFrameworkIdentifier { get; }
 
         /// <summary>
+        /// Gets the RuntimeIdentifier of the project.
+        /// </summary>
+        public string RuntimeIdentifier { get; }
+
+        public string TargetPlatfromIdentifier { get; }
+
+        /// <summary>
         /// Gets the full path to the Avalonia.Designer.HostApp.dll to use.
         /// </summary>
         public string HostApp { get; }
@@ -43,12 +50,14 @@ namespace AvaloniaVS.Models
         public bool IsNetStandard => FrameworkInfoUtils.IsNetStandard(TargetFrameworkIdentifier);
 
         public ProjectOutputInfo(
-            string targetAssembly, string targetFramework, string targetFrameworkIdentifier, string hostApp)
+            string targetAssembly, string targetFramework, string targetFrameworkIdentifier, string hostApp, string runtimeIdentifier, string targetPlatfromIdentifier)
         {
             TargetAssembly = targetAssembly;
             TargetFramework = targetFramework;
             TargetFrameworkIdentifier = targetFrameworkIdentifier;
             HostApp = hostApp;
+            RuntimeIdentifier = runtimeIdentifier;
+            TargetPlatfromIdentifier = targetPlatfromIdentifier;
         }
     }
 }
