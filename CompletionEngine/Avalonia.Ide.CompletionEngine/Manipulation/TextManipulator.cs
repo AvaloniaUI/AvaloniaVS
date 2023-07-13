@@ -113,7 +113,7 @@ public class TextManipulator
         if (searchEndTag.SeekClosingTag())
         {
             var endTag = searchEndTag.ParseCurrentTagName();
-            if (endTag is null || endTag[0] != '/')
+            if (endTag is null || string.IsNullOrEmpty(endTag) || endTag[0] != '/')
             {
                 return;
             }
