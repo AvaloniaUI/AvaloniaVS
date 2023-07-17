@@ -1,4 +1,5 @@
 ﻿using AvaloniaVS.Views;
+using EnvDTE;
 
 namespace AvaloniaVS.Models
 {
@@ -21,6 +22,8 @@ namespace AvaloniaVS.Models
         /// Gets or sets the full path to the assembly containing the XAML.
         /// </summary>
         public string XamlAssembly { get; set; }
+
+        public Project Project { get; set; }
 
         /// <summary>
         /// Gets the full path to the Avalonia.Designer.HostApp.dll to use.

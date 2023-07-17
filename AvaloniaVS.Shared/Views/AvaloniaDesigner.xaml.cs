@@ -203,6 +203,15 @@ namespace AvaloniaVS.Views
             set => SetValue(ZoomLevelProperty, value);
         }
 
+        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+            if (e.Property == SelectedTargetProperty)
+            {
+                previewer.SelectedProject = SelectedTarget.Project;
+            }
+            base.OnPropertyChanged(e);
+        }
+
         /// <summary>
         /// Starts the designer.
         /// </summary>
@@ -368,6 +377,7 @@ namespace AvaloniaVS.Views
                                ExecutableAssembly = output.TargetAssembly,
                                XamlAssembly = GetXamlAssembly(output),
                                HostApp = output.HostApp,
+                               Project = project.Project
                            }).ToList();
 
                 SelectedTarget = Targets.FirstOrDefault(t => t.Name == oldSelectedTarget?.Name) ?? Targets.FirstOrDefault();
@@ -615,6 +625,9 @@ namespace AvaloniaVS.Views
             errorIndicator.Visibility = Visibility.Visible;
             errorHeading.Text = heading;
             errorMessage.Text = message;
+            previewer.error.Visibility = Visibility.Visible;
+            previewer.errorHeading.Text = heading;
+            previewer.errorMessage.Text = message;
         }
 
         private void ShowPreview()
