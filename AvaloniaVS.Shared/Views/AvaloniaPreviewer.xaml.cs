@@ -6,7 +6,9 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Avalonia.Remote.Protocol.Input;
+using AvaloniaVS.Models;
 using AvaloniaVS.Services;
+using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Serilog;
 using AvMouseButton = Avalonia.Remote.Protocol.Input.MouseButton;
@@ -20,6 +22,7 @@ namespace AvaloniaVS.Views
         private bool _centerPreviewer;
         private Size _lastBitmapSize;
 
+        public Project SelectedProject { get; set; }
         public AvaloniaPreviewer()
         {
             InitializeComponent();
@@ -27,14 +30,23 @@ namespace AvaloniaVS.Views
 
             Loaded += AvaloniaPreviewer_Loaded;
 
+            buildButton.Click += BuildButton_Click;
             previewScroller.ScrollChanged += PreviewScroller_ScrollChanged;
+        }
+
+        private async void BuildButton_Click(object sender, RoutedEventArgs e)
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            var dte = (DTE)Package.GetGlobalService(typeof(DTE));
+            var solutionBuild = dte.Solution.SolutionBuild;
+            solutionBuild.BuildProject(solutionBuild.ActiveConfiguration.Name, SelectedProject.UniqueName);
         }
 
         private void AvaloniaPreviewer_Loaded(object sender, RoutedEventArgs e)
         {
             // Debugging will cause Loaded/Unloaded events to fire, we only want to do this
             // the first time the designer is loaded, so unsub
-            Loaded -= AvaloniaPreviewer_Loaded;            
+            Loaded -= AvaloniaPreviewer_Loaded;
             _centerPreviewer = true;
         }
 
@@ -127,7 +139,7 @@ namespace AvaloniaVS.Views
         private void Update(BitmapSource bitmap)
         {
             preview.Source = bitmap;
-            
+
             if (bitmap != null)
             {
                 var scaling = VisualTreeHelper.GetDpi(this).DpiScaleX;
@@ -141,8 +153,7 @@ namespace AvaloniaVS.Views
                     preview.Width = bitmap.Width / scaling;
                     preview.Height = bitmap.Height / scaling;
                 }
-                
-                loading.Visibility = Visibility.Collapsed;
+                error.Visibility = Visibility.Collapsed;
                 previewScroller.Visibility = Visibility.Visible;
 
                 var fullScaling = scaling * Process.Scaling;
@@ -161,11 +172,10 @@ namespace AvaloniaVS.Views
                 {
                     _centerPreviewer = true;
                     _lastBitmapSize = new Size(preview.Width, preview.Height);
-                }                
+                }
             }
             else
             {
-                loading.Visibility = Visibility.Visible;
                 previewScroller.Visibility = Visibility.Collapsed;
             }
         }
@@ -243,10 +253,14 @@ namespace AvaloniaVS.Views
         {
             switch (button)
             {
-                case WpfMouseButton.Left: return AvMouseButton.Left;
-                case WpfMouseButton.Middle: return AvMouseButton.Middle;
-                case WpfMouseButton.Right: return AvMouseButton.Right;
-                default: return AvMouseButton.None;
+                case WpfMouseButton.Left:
+                    return AvMouseButton.Left;
+                case WpfMouseButton.Middle:
+                    return AvMouseButton.Middle;
+                case WpfMouseButton.Right:
+                    return AvMouseButton.Right;
+                default:
+                    return AvMouseButton.None;
             }
         }
 
