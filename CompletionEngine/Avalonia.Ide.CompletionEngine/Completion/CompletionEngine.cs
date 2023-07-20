@@ -162,7 +162,7 @@ public class CompletionEngine
             if (t == null)
                 return Array.Empty<string>();
 
-            return t.Events.Where(n => n.IsAttached == attached && n.Name.StartsWith(propName)).Select(n => n.Name);
+            return t.Events.Where(n => n.IsAttached == attached && n.Name.StartsWith(propName, StringComparison.OrdinalIgnoreCase)).Select(n => n.Name);
         }
 
         public MetadataProperty? LookupProperty(string? typeName, string? propName)
