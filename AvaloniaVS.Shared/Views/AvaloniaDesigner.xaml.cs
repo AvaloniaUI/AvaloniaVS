@@ -14,7 +14,6 @@ using Avalonia.Ide.CompletionEngine.AssemblyMetadata;
 using Avalonia.Ide.CompletionEngine.DnlibMetadataProvider;
 using AvaloniaVS.Models;
 using AvaloniaVS.Services;
-using AvaloniaVS.Shared.Views;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
@@ -100,6 +99,7 @@ namespace AvaloniaVS.Views
         private bool _disposed;
         private double _scaling = 1;
         private AvaloniaDesignerView _unPausedView;
+        private bool _buidRequired;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AvaloniaDesigner"/> class.
@@ -340,7 +340,7 @@ namespace AvaloniaVS.Views
 
                 bool IsValidTarget(ProjectInfo project)
                 {
-                    return project.IsExecutable && 
+                    return project.IsExecutable &&
                         project.References.Contains("Avalonia.DesignerSupport") &&
                         (project.Project == _project || project.ProjectReferences.Contains(_project));
                 }
@@ -483,6 +483,7 @@ namespace AvaloniaVS.Views
                 }
                 catch (FileNotFoundException ex)
                 {
+                    _buidRequired = true;
                     ShowError("Build Required", ex.Message);
                     Log.Logger.Debug(ex, "StartAsync could not find executable");
                 }
@@ -495,6 +496,7 @@ namespace AvaloniaVS.Views
                 {
                     _startingProcess.Release();
                 }
+                _buidRequired = false;
             }
             else
             {
@@ -625,9 +627,13 @@ namespace AvaloniaVS.Views
             errorIndicator.Visibility = Visibility.Visible;
             errorHeading.Text = heading;
             errorMessage.Text = message;
-            previewer.error.Visibility = Visibility.Visible;
-            previewer.errorHeading.Text = heading;
-            previewer.errorMessage.Text = message;
+            if (_buidRequired == true)
+            {
+                previewer.buildButton.Visibility = Visibility.Visible;
+                previewer.error.Visibility = Visibility.Visible;
+                previewer.errorHeading.Text = heading;
+                previewer.errorMessage.Text = message;
+            }
         }
 
         private void ShowPreview()
@@ -677,7 +683,7 @@ namespace AvaloniaVS.Views
                 {
                     HorizontalGrid();
                     var content = SwapPanesButton.Content as UIElement;
-                    content.RenderTransform = new RotateTransform(90);                    
+                    content.RenderTransform = new RotateTransform(90);
                 }
                 else
                 {
@@ -705,7 +711,7 @@ namespace AvaloniaVS.Views
             {
                 case Orientation.Horizontal:
                     var editorRow = Grid.GetRow(editorHost);
-                    
+
                     if (editorRow == 0)
                     {
                         Grid.SetRow(editorHost, 2);

@@ -69,6 +69,7 @@
                 Name="buildButton"
                 Margin="0,15,0,0"
                 Padding="7,5,7,5"
+                Visibility="Hidden"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 Content="Build" />
