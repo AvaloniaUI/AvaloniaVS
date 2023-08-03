@@ -630,10 +630,15 @@ namespace AvaloniaVS.Views
             if (_buidRequired == true)
             {
                 previewer.buildButton.Visibility = Visibility.Visible;
-                previewer.error.Visibility = Visibility.Visible;
-                previewer.errorHeading.Text = heading;
-                previewer.errorMessage.Text = message;
             }
+            else
+            {
+                previewer.buildButton.Visibility = Visibility.Hidden;
+            }
+            previewer.error.Visibility = Visibility.Visible;
+            previewer.errorHeading.Text = heading;
+            previewer.errorMessage.Text = message;
+            previewer.previewScroller.Visibility = Visibility.Hidden;
         }
 
         private void ShowPreview()
