@@ -225,9 +225,11 @@ namespace AvaloniaVS.Services
 
                         var tf = GetFrameworkInfo(loaded, msbuildProperties, "TargetFramework");
                         var tfi = GetFrameworkInfo(loaded, msbuildProperties, "TargetFrameworkIdentifier");
+                        var rid = GetFrameworkInfo(loaded, msbuildProperties, "RuntimeIdentifier");
+                        var tpi = GetFrameworkInfo(loaded, msbuildProperties, "TargetPlatformIdentifier");
                         var hostApp = FrameworkInfoUtils.IsNetFramework(tfi) ? hostAppNetFx : hostAppNetCore;
 
-                        alternatives[tf] = new ProjectOutputInfo(targetPath, tf, tfi, hostApp);
+                        alternatives[tf] = new ProjectOutputInfo(targetPath, tf, tfi, hostApp, rid, tpi);
                     }
                 }
             }

@@ -143,21 +143,21 @@ namespace AvaloniaVS.Services
             {
                 throw new FileNotFoundException(
                     $"Could not find '{assemblyPath}'. " +
-                    "Please build your project to enable previewing and intellisense.");
+                    "Please build your project to enable previewing and IntelliSense.");
             }
 
             if (!File.Exists(executablePath))
             {
                 throw new FileNotFoundException(
                     $"Could not find executable '{executablePath}'. " +
-                    "Please build your project to enable previewing and intellisense.");
+                    "Please build your project to enable previewing and IntelliSense.");
             }
 
             if (!File.Exists(hostAppPath))
             {
                 throw new FileNotFoundException(
                     $"Could not find executable '{hostAppPath}'. " +
-                    "Please build your project to enable previewing and intellisense.");
+                    "Please build your project to enable previewing and IntelliSense.");
             }
 
             _assemblyPath = assemblyPath;
