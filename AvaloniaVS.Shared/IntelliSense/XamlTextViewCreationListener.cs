@@ -1,11 +1,8 @@
 ﻿using System;
 using System.ComponentModel.Composition;
 using AvaloniaVS.Models;
-using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 
 namespace AvaloniaVS.IntelliSense
@@ -17,6 +14,7 @@ namespace AvaloniaVS.IntelliSense
     [ContentType("xml")]
     [Export(typeof(IWpfTextViewCreationListener))]
     [TextViewRole(PredefinedTextViewRoles.Editable)]
+    [TextViewRole(PredefinedTextViewRoles.PrimaryDocument)]
     internal sealed class XamlTextViewCreationListener : IWpfTextViewCreationListener
     {
         private readonly IServiceProvider _serviceProvider;
