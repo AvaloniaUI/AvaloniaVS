@@ -152,9 +152,9 @@ namespace AvaloniaVS.Views
                 {
                     preview.Width = bitmap.Width / scaling;
                     preview.Height = bitmap.Height / scaling;
+                    error.Visibility = Visibility.Collapsed;
+                    previewScroller.Visibility = Visibility.Visible;
                 }
-                error.Visibility = Visibility.Collapsed;
-                previewScroller.Visibility = Visibility.Visible;
 
                 var fullScaling = scaling * Process.Scaling;
                 var hScale = preview.Width * 2 / fullScaling;
