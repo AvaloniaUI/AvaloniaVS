@@ -347,7 +347,11 @@ namespace AvaloniaVS.Views
 
                 bool IsValidOutput(ProjectOutputInfo output)
                 {
-                    return output.IsNetCore && output.RuntimeIdentifier != "browser-wasm" && (output.TargetPlatfromIdentifier == "" || output.TargetPlatfromIdentifier == "Windows" || output.TargetPlatfromIdentifier == "macos");
+                    return output.IsNetCore
+                        && output.RuntimeIdentifier != "browser-wasm"
+                        && (output.TargetPlatfromIdentifier == ""
+                            || string.Equals(output.TargetPlatfromIdentifier, "windows", StringComparison.OrdinalIgnoreCase)
+                            || string.Equals(output.TargetPlatfromIdentifier, "macos", StringComparison.OrdinalIgnoreCase));
                 }
 
                 string GetXamlAssembly(ProjectOutputInfo output)
