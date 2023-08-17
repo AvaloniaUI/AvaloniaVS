@@ -347,7 +347,7 @@ namespace AvaloniaVS.Views
 
                 bool IsValidOutput(ProjectOutputInfo output)
                 {
-                    return output.IsNetCore
+                    return (output.IsNetCore || output.IsNetFramework)
                         && output.RuntimeIdentifier != "browser-wasm"
                         && (output.TargetPlatfromIdentifier == ""
                             || string.Equals(output.TargetPlatfromIdentifier, "windows", StringComparison.OrdinalIgnoreCase)
@@ -381,7 +381,8 @@ namespace AvaloniaVS.Views
                                ExecutableAssembly = output.TargetAssembly,
                                XamlAssembly = GetXamlAssembly(output),
                                HostApp = output.HostApp,
-                               Project = project.Project
+                               Project = project.Project,
+                               IsNetFramework = output.IsNetFramework
                            }).ToList();
 
                 SelectedTarget = Targets.FirstOrDefault(t => t.Name == oldSelectedTarget?.Name) ?? Targets.FirstOrDefault();
@@ -464,8 +465,9 @@ namespace AvaloniaVS.Views
             var assemblyPath = SelectedTarget?.XamlAssembly;
             var executablePath = SelectedTarget?.ExecutableAssembly;
             var hostAppPath = SelectedTarget?.HostApp;
+            var isNetFx = SelectedTarget?.IsNetFramework; 
 
-            if (assemblyPath != null && executablePath != null && hostAppPath != null)
+            if (assemblyPath != null && executablePath != null && hostAppPath != null && isNetFx != null)
             {
                 RebuildMetadata(assemblyPath, executablePath);
 
@@ -476,7 +478,7 @@ namespace AvaloniaVS.Views
                     if (!IsPaused)
                     {
                         await Process.SetScalingAsync(VisualTreeHelper.GetDpi(this).DpiScaleX * _scaling);
-                        await Process.StartAsync(assemblyPath, executablePath, hostAppPath);
+                        await Process.StartAsync(assemblyPath, executablePath, hostAppPath, (bool)isNetFx);
                         await Process.UpdateXamlAsync(await ReadAllTextAsync(_xamlPath));
                     }
                 }
