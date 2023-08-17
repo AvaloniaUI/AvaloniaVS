@@ -29,5 +29,7 @@ namespace AvaloniaVS.Models
         /// Gets the full path to the Avalonia.Designer.HostApp.dll to use.
         /// </summary>
         public string HostApp { get; set; }
+
+        public bool IsNetFramework { get; internal set; }
     }
 }

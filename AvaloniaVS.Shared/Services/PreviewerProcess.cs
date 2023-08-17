@@ -109,7 +109,8 @@ namespace AvaloniaVS.Services
         public async Task StartAsync(
             string assemblyPath,
             string executablePath,
-            string hostAppPath)
+            string hostAppPath,
+            bool isNetFx)
         {
             _log.Verbose("Started PreviewerProcess.StartAsync()");
 
@@ -189,24 +190,40 @@ namespace AvaloniaVS.Services
             var executableDir = Path.GetDirectoryName(_executablePath);
             var extensionDir = Path.GetDirectoryName(GetType().Assembly.Location);
             var targetName = Path.GetFileNameWithoutExtension(_executablePath);
-            var runtimeConfigPath = Path.Combine(executableDir, targetName + ".runtimeconfig.json");
-            var depsPath = Path.Combine(executableDir, targetName + ".deps.json");
-
-            EnsureExists(runtimeConfigPath);
-            EnsureExists(depsPath);
-            EnsureExists(depsPath);
-
-            var args = $@"exec --runtimeconfig ""{runtimeConfigPath}"" --depsfile ""{depsPath}"" ""{hostAppPath}"" --transport tcp-bson://127.0.0.1:{port}/ ""{_executablePath}""";
-
-            var processInfo = new ProcessStartInfo
+            string args;
+            ProcessStartInfo processInfo;
+            if (isNetFx == false)
             {
-                Arguments = args,
-                CreateNoWindow = true,
-                FileName = "dotnet",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-            };
+                var runtimeConfigPath = Path.Combine(executableDir, targetName + ".runtimeconfig.json");
+                var depsPath = Path.Combine(executableDir, targetName + ".deps.json");
+
+                EnsureExists(runtimeConfigPath);
+                EnsureExists(depsPath);
+                args = $@"exec --runtimeconfig ""{runtimeConfigPath}"" --depsfile ""{depsPath}"" ""{hostAppPath}"" --transport tcp-bson://127.0.0.1:{port}/ ""{_executablePath}""";
+                processInfo = new ProcessStartInfo
+                {
+                    Arguments = args,
+                    CreateNoWindow = true,
+                    FileName = "dotnet",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                };
+            }
+            else
+            {
+                args = $@"--transport tcp-bson://127.0.0.1:{port}/ ""{_executablePath}""";
+                processInfo = new ProcessStartInfo
+                {
+                    Arguments = args,
+                    CreateNoWindow = true,
+                    FileName = hostAppPath,
+                    WorkingDirectory = executableDir,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                };
+            }
 
             _log.Information("Starting previewer process for '{ExecutablePath}'", _executablePath);
             _log.Debug("> dotnet.exe {Args}", args);
