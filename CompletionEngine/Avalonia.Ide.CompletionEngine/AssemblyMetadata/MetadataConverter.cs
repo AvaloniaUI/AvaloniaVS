@@ -8,8 +8,13 @@ using Avalonia.Ide.CompletionEngine.AssemblyMetadata;
 
 namespace Avalonia.Ide.CompletionEngine;
 
+record class AvaloniaResourcesIndexEntry(string? Path, int Offset, int Size);
+
 public static class MetadataConverter
 {
+    private const int LegacyXmlResourceIndex = 1;
+    private const int CurrentResourceIndex = 2;
+
     private static readonly string[] _avaloniaBaseType = new[]
     {
         "Avalonia.Markup.Xaml.MarkupExtensions.BindingExtension,",
@@ -423,78 +428,93 @@ public static class MetadataConverter
                 var ms = new MemoryStream(r.ReadBytes(r.ReadInt32()));
                 var br = new BinaryReader(ms);
 
+                AvaloniaResourcesIndexEntry[] avaResEntries;
+
                 int version = br.ReadInt32();
-                if (version == 1)
+                switch (version)
                 {
-                    var assetDoc = XDocument.Load(ms);
-                    if (assetDoc.Root is null)
-                    {
-                        return;
-                    }
-
-                    var ns = assetDoc.Root.GetDefaultNamespace();
-                    var avaResEntries = assetDoc.Root.Element(ns.GetName("Entries"))?.Elements(ns.GetName("AvaloniaResourcesIndexEntry"))
-                        .Select(entry => new
+                    case LegacyXmlResourceIndex: // Legacy Xml formart
                         {
-                            Path = entry.Element(ns.GetName("Path"))?.Value,
-                            Offset = int.Parse(entry.Element(ns.GetName("Offset"))?.Value ?? "0"),
-                            Size = int.Parse(entry.Element(ns.GetName("Size"))?.Value ?? "0")
-                        }).ToArray();
-
-                    var xClassEntries = avaResEntries?.FirstOrDefault(v => v.Path == "/!AvaloniaResourceXamlInfo");
-
-                    //get information about x:Class resources
-                    if (xClassEntries != null && xClassEntries.Size > 0)
-                    {
-                        try
-                        {
-                            avaresStream.Seek(xClassEntries.Offset, SeekOrigin.Current);
-                            var xClassDoc = XDocument.Load(new MemoryStream(r.ReadBytes(xClassEntries.Size)));
-                            var xClassMappingNode = xClassDoc.Root?.Element(xClassDoc.Root.GetDefaultNamespace().GetName("ClassToResourcePathIndex"));
-                            if (xClassMappingNode != null)
+                            var assetDoc = XDocument.Load(ms);
+                            if (assetDoc.Root is null)
                             {
-                                const string arraysNs = "http://schemas.microsoft.com/2003/10/Serialization/Arrays";
-                                var keyvalueofss = XName.Get("KeyValueOfstringstring", arraysNs);
-                                var keyName = XName.Get("Key", arraysNs);
-                                var valueName = XName.Get("Value", arraysNs);
+                                return;
+                            }
+                            var ns = assetDoc.Root.GetDefaultNamespace();
+                            avaResEntries = assetDoc.Root.Element(ns.GetName("Entries"))?.Elements(ns.GetName("AvaloniaResourcesIndexEntry"))
+                                .Select(entry => new AvaloniaResourcesIndexEntry(Path: entry.Element(ns.GetName("Path"))?.Value,
+                                      Offset: int.Parse(entry.Element(ns.GetName("Offset"))?.Value ?? "0"),
+                                      Size: int.Parse(entry.Element(ns.GetName("Size"))?.Value ?? "0")
+                                   )).ToArray() ?? Array.Empty<AvaloniaResourcesIndexEntry>();
+                            break;
+                        }
+                    case CurrentResourceIndex: // Binary Formart
+                        var entryCount = br.ReadInt32();
+                        avaResEntries = new AvaloniaResourcesIndexEntry[entryCount];
+                        for (var i = 0; i < entryCount; ++i)
+                        {
+                            avaResEntries[i] = new(Path: br.ReadString(),
+                                Offset: br.ReadInt32(),
+                                Size: br.ReadInt32());
+                        }
+                        break;
+                    default:
+                        throw new NotSupportedException("Invalid Resource Format");
+                }
 
-                                var xClassMappings = xClassMappingNode.Elements(keyvalueofss)
-                                                .Where(e => e.Elements(keyName).Any() && e.Elements(valueName).Any())
-                                                .Select(e => new
-                                                {
-                                                    Type = e.Element(keyName)?.Value,
-                                                    Path = e.Element(valueName)?.Value,
-                                                }).ToArray();
 
-                                foreach (var xcm in xClassMappings)
+                if (avaResEntries?.FirstOrDefault(v => v.Path == "/!AvaloniaResourceXamlInfo") is AvaloniaResourcesIndexEntry xClassEntries)
+                {
+                    try
+                    {
+                        avaresStream.Seek(xClassEntries.Offset, SeekOrigin.Current);
+                        var xClassDoc = XDocument.Load(new MemoryStream(r.ReadBytes(xClassEntries.Size)));
+                        var xClassMappingNode = xClassDoc.Root?.Element(xClassDoc.Root.GetDefaultNamespace().GetName("ClassToResourcePathIndex"));
+                        if (xClassMappingNode != null)
+                        {
+                            const string arraysNs = "http://schemas.microsoft.com/2003/10/Serialization/Arrays";
+                            var keyvalueofss = XName.Get("KeyValueOfstringstring", arraysNs);
+                            var keyName = XName.Get("Key", arraysNs);
+                            var valueName = XName.Get("Value", arraysNs);
+
+                            var xClassMappings = xClassMappingNode.Elements(keyvalueofss)
+                                            .Where(e => e.Elements(keyName).Any() && e.Elements(valueName).Any())
+                                            .Select(e => new
+                                            {
+                                                Type = e.Element(keyName)?.Value,
+                                                Path = e.Element(valueName)?.Value,
+                                            }).ToArray();
+
+                            foreach (var xcm in xClassMappings)
+                            {
+                                var resultType = asmTypes.FirstOrDefault(t => t.FullName == xcm.Type);
+                                //if we need another check
+                                //if (resultType?.Methods?.Any(m => m.Name == "!XamlIlPopulate") ?? false)
+                                if (resultType != null)
                                 {
-                                    var resultType = asmTypes.FirstOrDefault(t => t.FullName == xcm.Type);
-                                    //if we need another check
-                                    //if (resultType?.Methods?.Any(m => m.Name == "!XamlIlPopulate") ?? false)
-                                    if (resultType != null)
-                                    {
-                                        //we set here base class like Style, Styles, UserControl so we can manage
-                                        //resources in a common way later
-                                        registeravares(xcm.Path, resultType.GetBaseType()?.FullName ?? "");
-                                    }
+                                    //we set here base class like Style, Styles, UserControl so we can manage
+                                    //resources in a common way later
+                                    registeravares(xcm.Path, resultType.GetBaseType()?.FullName ?? "");
                                 }
                             }
                         }
-                        catch (Exception xClassEx)
-                        {
-                            Console.WriteLine($"Failed fetch avalonia x:class resources in {asm.Name}, {xClassEx.Message}");
-                        }
+                    }
+                    catch (Exception xClassEx)
+                    {
+                        Console.WriteLine($"Failed fetch avalonia x:class resources in {asm.Name}, {xClassEx.Message}");
                     }
 
-                    //add other img/stream resources
-                    if (avaResEntries is not null)
+                }
+
+                //add other img/stream resources
+                if (avaResEntries is not null)
+                {
+                    foreach (var entry in avaResEntries.Where(v => v.Path is not null && !v.Path.StartsWith("/!")))
                     {
-                        foreach (var entry in avaResEntries.Where(v => v.Path is not null && !v.Path.StartsWith("/!")))
-                        {
-                            registeravares(entry.Path);
-                        }
+                        registeravares(entry.Path);
                     }
                 }
+
             }
             catch (Exception ex)
             {
