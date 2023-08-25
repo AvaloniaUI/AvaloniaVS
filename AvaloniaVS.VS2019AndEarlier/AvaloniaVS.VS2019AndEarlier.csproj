@@ -64,7 +64,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Avalonia.Remote.Protocol" Version="11.0-preview4" />
+    <PackageReference Include="Avalonia.Remote.Protocol" Version="11.0.4" />
     <PackageReference Include="Microsoft.VisualStudio.ProjectSystem">
       <Version>15.8.243</Version>
     </PackageReference>
