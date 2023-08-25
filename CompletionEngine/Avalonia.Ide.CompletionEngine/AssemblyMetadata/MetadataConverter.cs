@@ -631,6 +631,16 @@ public static class MetadataConverter
                 IsXamlDirective = true,
                 Properties = { new MetadataProperty("", boolType,null, false, false, false, true)},
             },
+            new MetadataType("True")
+            {
+                HasSetProperties = true,
+                IsMarkupExtension = true,
+            },
+            new MetadataType("False")
+            {
+                HasSetProperties = true,
+                IsMarkupExtension = true,
+            },
         };
 
         //as in avalonia 0.9 Portablexaml is missing we need to hardcode some extensions
