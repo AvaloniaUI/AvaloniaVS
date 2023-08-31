@@ -233,7 +233,11 @@ public class XmlParser
 
     public string? GetParentTagName(int level)
     {
-        if (NestingLevel - level - 1 < 0)
+        if (State == ParserState.None)
+        {
+            level--;
+        }
+        if (NestingLevel - level < 0)
             return null;
         var start = _containingTagStart.Skip(level).FirstOrDefault();
         var m = Regex.Match(_data.Span.Slice(start).ToString(), @"^<[^\s/>]+");
