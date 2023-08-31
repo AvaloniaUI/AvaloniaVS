@@ -10,6 +10,7 @@ public class XmlParser
     public enum ParserState
     {
         None,
+        InsideDeclaration,
         InsideComment,
         InsideCdata,
         StartElement,
@@ -76,6 +77,9 @@ public class XmlParser
     private const string CdataStart = "![CDATA[";
     private const string CdataEnd = "]]>";
 
+    private const string DeclarationStart = "?";
+    private const string DeclarationEnd = "?>";
+
     private bool CheckPrev(int caret, string checkFor)
     {
         var startAt = caret - checkFor.Length + 1;
@@ -100,7 +104,14 @@ public class XmlParser
         var i = _parserPos++;
         var span = _data.Span;
         var c = span[i];
+        /*
         char lastChar;
+        if (State == ParserState.None && IsInClosingTag)
+        {
+            _isClosingTag = false;
+        }
+        else
+        */
         if (c == '<' && State == ParserState.None)
         {
             State = ParserState.StartElement;
@@ -110,6 +121,18 @@ public class XmlParser
 
             _containingTagStart.Push(i);
         }
+        else if (State == ParserState.StartElement && CheckPrev(i, DeclarationStart))
+        {
+            State = ParserState.InsideDeclaration;
+        }
+        else if (State == ParserState.InsideDeclaration && CheckPrev(i, DeclarationEnd))
+        {
+            State = ParserState.None;
+            if (_containingTagStart.Count > 0)
+            {
+                _containingTagStart.Pop();
+            }
+        }
         else if (State == ParserState.StartElement && CheckPrev(i, CommentStart))
         {
             State = ParserState.InsideComment;
@@ -117,6 +140,10 @@ public class XmlParser
         else if (State == ParserState.InsideComment && CheckPrev(i, CommentEnd))
         {
             State = ParserState.None;
+            if (_containingTagStart.Count > 0)
+            {
+                _containingTagStart.Pop();
+            }
         }
         else if (State == ParserState.StartElement && CheckPrev(i, CdataStart))
         {
@@ -125,6 +152,10 @@ public class XmlParser
         else if (State == ParserState.InsideCdata && CheckPrev(i, CdataEnd))
         {
             State = ParserState.None;
+            if (_containingTagStart.Count > 0)
+            {
+                _containingTagStart.Pop();
+            }
         }
         else if (State == ParserState.StartElement && char.IsWhiteSpace(c))
         {
