@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Avalonia.Ide.CompletionEngine;
 using Xunit;
 
@@ -107,5 +108,36 @@ public class XmlParserTests
 
         Assert.False(result);
         Assert.Equal(seek, p.ParserPos);
+    }
+
+    [Theory]
+    [InlineData("One_Level", 553, 1, 1, "Window")]
+    [InlineData("One_Level_With_CDATA", 589, 1, 1, "Window")]
+    [InlineData("One_Level_With_Comment", 576, 1, 1, "Window")]
+    [InlineData("Two_Level", 578, 1, 2, "Window.Styles")]
+    [InlineData("Two_Level_With_CDATA", 626, 1, 2, "Window.Styles")]
+    [InlineData("Two_Level_With_Comment", 108, 1, 2, "Window.Styles")]
+    public void Should_GetParentTagName_At_Level(string source, int position, int level, int nestingLevelExpected, string expectedParentTag)
+    {
+        var data = GetData(source);
+
+        var state = XmlParser.Parse(data.AsMemory(), position, 0);
+        Assert.NotNull(state);
+        Assert.Equal(nestingLevelExpected, state.NestingLevel);
+        var parentTag = state.GetParentTagName(level);
+        Assert.Equal(expectedParentTag, parentTag);
+
+    }
+
+    string GetData(string name, [CallerMemberName] string callerMethod = "")
+    {
+        var ass = this.GetType().Assembly;
+        if (ass.GetManifestResourceNames()
+             .FirstOrDefault(n => n.EndsWith($"{callerMethod}_{name}.xml")) is string resName)
+        {
+            using var stream = ass.GetManifestResourceStream(resName);
+            return (new StreamReader(stream)).ReadToEnd();
+        }
+        return default(string);
     }
 }
