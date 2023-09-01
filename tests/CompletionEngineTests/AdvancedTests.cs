@@ -468,7 +468,7 @@ namespace CompletionEngineTests
         }
 
         [Fact]
-        public void Should_Not_ContainAbstractClass()
+        public void Should_Not_Contain_Abstract_Classes()
         {
             const string xaml = "<UserControl.Styles><Style";
             if (GetCompletionsFor(xaml)?.Completions?.Select(c => c.DisplayText) is { } completions)

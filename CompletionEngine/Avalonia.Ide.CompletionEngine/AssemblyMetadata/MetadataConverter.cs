@@ -76,6 +76,7 @@ public static class MetadataConverter
             IsEnum = type.IsEnum,
             HasHintValues = type.IsEnum,
             IsGeneric = type.IsGeneric,
+            IsAbstract = type.IsAbstract,
         };
         if (mt.IsEnum)
             mt.HintValues = type.EnumValues.ToArray();
