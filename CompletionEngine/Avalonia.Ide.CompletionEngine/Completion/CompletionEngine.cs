@@ -282,7 +282,11 @@ public class CompletionEngine
                         {
                             if (kvp.Value.IsMarkupExtension)
                             {
-                                var xamlName = kvp.Key.Substring(0, kvp.Key.Length - 9 /* length of "extension" */);
+                                var xamlName = kvp.Key;
+                                if (xamlName.EndsWith("extension", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    xamlName = xamlName.Substring(0, kvp.Key.Length - 9 /* length of "extension" */);
+                                }
                                 return new Completion(xamlName, CompletionKind.Class);
                             }
 
