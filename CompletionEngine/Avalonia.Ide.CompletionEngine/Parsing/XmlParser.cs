@@ -104,14 +104,6 @@ public class XmlParser
         var i = _parserPos++;
         var span = _data.Span;
         var c = span[i];
-        /*
-        char lastChar;
-        if (State == ParserState.None && IsInClosingTag)
-        {
-            _isClosingTag = false;
-        }
-        else
-        */
         if (c == '<' && State == ParserState.None)
         {
             State = ParserState.StartElement;
