@@ -51,6 +51,7 @@ public interface ITypeInformation
     bool IsInternal { get; }
     IEnumerable<string> EnumValues { get; }
     IEnumerable<ITypeInformation> NestedTypes { get; }
+    bool IsSubclassOf(ITypeInformation? parentType);
 }
 
 public interface IMethodInformation
@@ -77,6 +78,7 @@ public interface IParameterInformation
 {
     string TypeFullName { get; }
     string QualifiedTypeFullName { get; }
+    ITypeInformation? Type { get; }
 }
 
 public interface IPropertyInformation
@@ -90,6 +92,7 @@ public interface IPropertyInformation
     string QualifiedTypeFullName { get; }
     string Name { get; }
     bool IsVisbleTo(IAssemblyInformation assembly);
+    bool IsContent { get; }
 }
 
 public interface IEventInformation

@@ -260,37 +260,63 @@ public class CompletionEngine
             }
             else
             {
+                MetadataType? parentType = null;
                 if (state.GetParentTagName(1) is string parentTag)
                 {
+                    var propertySeparatorIndex = parentTag.IndexOf('.');
                     if (!state.IsInClosingTag)
                     {
                         completions.Add(new Completion("/" + parentTag + ">", CompletionKind.Class, priority: 0));
                     }
-                    if (parentTag.IndexOf('.') == -1)
+                    if (propertySeparatorIndex == -1)
                     {
+                        parentType = _helper.LookupType(parentTag);
                         completions.Add(new Completion(parentTag, $"{parentTag}.", CompletionKind.Class, priority: 1)
                         {
                             TriggerCompletionAfterInsert = true,
                         });
+                        if (parentType?.Properties?.FirstOrDefault(p => p.IsContent) is { } contentProperty)
+                        {
+                            parentType = contentProperty.Type;
+                        }
                     }
+                    else
+                    {
+                        var typeName = parentTag.Substring(0, propertySeparatorIndex);
+                        var propertyName = parentTag.Substring(propertySeparatorIndex + 1);
+                        if (_helper.LookupType(typeName) is { } t)
+                        {
+                            parentType = t.Properties
+                                .FirstOrDefault(p => string.Equals(p.Name, propertyName, StringComparison.OrdinalIgnoreCase))
+                                ?.Type;
+                        }
+                    }
+
                 }
                 completions.Add(new Completion("!--", "!---->", CompletionKind.Comment) { RecommendedCursorOffset = 3 });
 
-                completions.AddRange(_helper.FilterTypes(tagName)
-                    .Where(kvp=>!kvp.Value.IsAbstract)
-                    .Select(kvp =>
+                var candidateTypes = _helper.FilterTypes(tagName).Select(kv => kv.Value);
+
+                if ((parentType?.ItemsType ?? parentType) is { } itemType)
+                {
+                    candidateTypes = candidateTypes.Where(t => t.IsSubclassOf(itemType));
+                }
+
+                candidateTypes = candidateTypes!.Where(t => !t.IsAbstract);
+
+                completions.AddRange(candidateTypes
+                    .Select(t =>
                         {
-                            if (kvp.Value.IsMarkupExtension)
+                            var xamlName = t.Name;
+                            if (t.IsMarkupExtension)
                             {
-                                var xamlName = kvp.Key;
                                 if (xamlName.EndsWith("extension", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    xamlName = xamlName.Substring(0, kvp.Key.Length - 9 /* length of "extension" */);
+                                    xamlName = xamlName.Substring(0, xamlName.Length - 9 /* length of "extension" */);
                                 }
                                 return new Completion(xamlName, CompletionKind.Class);
                             }
-
-                            return new Completion(kvp.Key, CompletionKind.Class);
+                            return new Completion(xamlName, CompletionKind.Class);
                         }));
             }
         }

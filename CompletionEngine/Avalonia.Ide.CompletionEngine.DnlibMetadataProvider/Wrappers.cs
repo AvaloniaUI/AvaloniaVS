@@ -65,7 +65,7 @@ internal class TypeWrapper : ITypeInformation
 
     public IEnumerable<IEventInformation> Events => _type.Events.Select(e => new EventWrapper(e));
 
-    public IEnumerable<IMethodInformation> Methods => _type.Methods.Select(m => new MethodWrapper(m));
+    public IEnumerable<IMethodInformation> Methods => _type.GetMethodsHierarchy().Select(m => new MethodWrapper(m));
 
     public IEnumerable<IFieldInformation> Fields => _type.Fields.Select(f => new FieldWrapper(f));
 
@@ -121,6 +121,16 @@ internal class TypeWrapper : ITypeInformation
         }
     }
     public override string ToString() => Name;
+
+    public bool IsSubclassOf(ITypeInformation? type)
+    {
+        if (type is TypeWrapper wrapper)
+        {
+            return wrapper._type.IsAssignableFrom(_type);
+        }
+        return false;
+    }
+
     public IEnumerable<ITypeInformation> NestedTypes =>
         _type.HasNestedTypes ? _type.NestedTypes.Select(t => new TypeWrapper(t)) : Array.Empty<TypeWrapper>();
 
@@ -203,6 +213,7 @@ internal class PropertyWrapper : IPropertyInformation
         QualifiedTypeFullName = type.AssemblyQualifiedName;
 
         _prop = prop;
+        IsContent = _prop.CustomAttributes.Any(a => a.TypeFullName == "Avalonia.Metadata.ContentAttribute");
         if (HasPublicGetter || HasPublicSetter)
         {
             _isVisbleTo = static (_, _) => true;
@@ -271,6 +282,8 @@ internal class PropertyWrapper : IPropertyInformation
     public string TypeFullName { get; }
     public string QualifiedTypeFullName { get; }
     public string Name { get; }
+
+    public bool IsContent { get; }
 
     public bool IsVisbleTo(IAssemblyInformation assembly) =>
         _isVisbleTo(_prop, assembly);
@@ -368,13 +381,22 @@ internal class MethodWrapper : IMethodInformation
 
 internal class ParameterWrapper : IParameterInformation
 {
-    private readonly Parameter _param;
+    private readonly Lazy<ITypeInformation?> _type;
 
     public ParameterWrapper(Parameter param)
     {
-        _param = param;
-        QualifiedTypeFullName = _param.Type.AssemblyQualifiedName;
+        TypeFullName = param.Name;
+        QualifiedTypeFullName = param.Type.AssemblyQualifiedName;
+        _type = new Lazy<ITypeInformation?>(() =>
+        {
+            if (param.Type?.TryGetTypeDefOrRef()?.ResolveTypeDef() is { } td)
+            {
+                return TypeWrapper.FromDef(td);
+            }
+            return null;
+        });
     }
-    public string TypeFullName => _param.Type.FullName;
+    public string TypeFullName { get; }
     public string QualifiedTypeFullName { get; }
+    public ITypeInformation? Type => _type.Value;
 }

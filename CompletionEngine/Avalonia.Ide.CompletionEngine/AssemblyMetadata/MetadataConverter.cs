@@ -65,7 +65,10 @@ public static class MetadataConverter
         return false;
     }
 
-    public static MetadataType ConvertTypeInfomation(ITypeInformation type)
+    public static MetadataType ConvertTypeInfomation(ITypeInformation type) =>
+        ConvertTypeInfomation(type, null);
+
+    private static MetadataType ConvertTypeInfomation(ITypeInformation type, MetadataType? itemsType)
     {
         var mt = new MetadataType(type.Name)
         {
@@ -77,9 +80,27 @@ public static class MetadataConverter
             HasHintValues = type.IsEnum,
             IsGeneric = type.IsGeneric,
             IsAbstract = type.IsAbstract,
+            Type = type,
+            ItemsType = itemsType
         };
         if (mt.IsEnum)
             mt.HintValues = type.EnumValues.ToArray();
+        return mt;
+    }
+
+    private static MetadataType GetOrCreateMetadataType(Dictionary<string, MetadataType> types, ITypeInformation? type, params string[] keys)
+    {
+        if (GetType(types, keys) is { } mt)
+        {
+            return mt;
+        }
+        var itemsType = type is null
+             ? null
+             : type.Methods
+                        .Where(m => !m.IsStatic && m.IsPublic && m.Name == "Add" && m.Parameters.Count == 1 && m.Parameters[0].Type is not null)
+                        .Select(m => GetOrCreateMetadataType(types, m.Parameters[0].Type, m.Parameters[0].QualifiedTypeFullName, m.Parameters[0].TypeFullName))
+                        .FirstOrDefault();
+        mt = ConvertTypeInfomation(type!, itemsType);
         return mt;
     }
 
@@ -94,7 +115,6 @@ public static class MetadataConverter
     public static Metadata ConvertMetadata(IMetadataReaderSession provider)
     {
         var types = new Dictionary<string, MetadataType>();
-        var typeDefs = new Dictionary<MetadataType, ITypeInformation>();
         var metadata = new Metadata();
         var resourceUrls = new List<string>();
         var avaresValues = new List<AvaresInfo>();
@@ -166,8 +186,7 @@ public static class MetadataConverter
 
             foreach (var type in asmTypes)
             {
-                var mt = types[type.AssemblyQualifiedName] = ConvertTypeInfomation(type);
-                typeDefs[mt] = type;
+                var mt = types[type.AssemblyQualifiedName] = GetOrCreateMetadataType(types, type, type.AssemblyQualifiedName);
                 metadata.AddType("clr-namespace:" + type.Namespace + ";assembly=" + asm.Name, mt);
                 string usingNamespace = $"using:{type.Namespace}";
                 if (!aliases.TryGetValue(type.Namespace, out var nsAliases))
@@ -192,7 +211,7 @@ public static class MetadataConverter
         var at = types.Values.ToArray();
         foreach (var type in at)
         {
-            typeDefs.TryGetValue(type, out var typeDef);
+            var typeDef = type.Type;
 
             var ctors = typeDef?.Methods
                 .Where(m => m.IsPublic && !m.IsStatic && m.Name == ".ctor" && m.Parameters.Count == 1);
@@ -201,7 +220,7 @@ public static class MetadataConverter
             {
                 foreach (var value in typeDef.EnumValues)
                 {
-                    var p = new MetadataProperty(value, type, type, false, true, true, false);
+                    var p = new MetadataProperty(value, type, type, false, true, true, false, false);
 
                     type.Properties.Add(p);
                 }
@@ -212,7 +231,7 @@ public static class MetadataConverter
 
             type.TemplateParts = (typeDef?.TemplateParts ??
                 Array.Empty<(ITypeInformation, string)>())
-                .Select(item => (Type: ConvertTypeInfomation(item.Type), item.Name));
+                .Select(item => (Type: GetOrCreateMetadataType(types, item.Type, item.Type.AssemblyQualifiedName), item.Name));
 
             while (typeDef != null)
             {
@@ -230,9 +249,14 @@ public static class MetadataConverter
 
                     var propertyType = GetType(types, prop.TypeFullName, prop.QualifiedTypeFullName);
 
-                    var p = new MetadataProperty(prop.Name, propertyType,
-                        currentType, false, prop.IsStatic, prop.HasPublicGetter,
-                        prop.HasPublicSetter);
+                    var p = new MetadataProperty(prop.Name,
+                        propertyType,
+                        currentType,
+                        false,
+                        prop.IsStatic,
+                        prop.HasPublicGetter,
+                        prop.HasPublicSetter,
+                        prop.IsContent);
 
                     type.Properties.Add(p);
                 }
@@ -302,12 +326,14 @@ public static class MetadataConverter
                                         IsAttached: true,
                                         IsStatic: false,
                                         HasGetter: true,
-                                        HasSetter: setMethod is not null));
+                                        HasSetter: setMethod is not null,
+                                        IsContent: false));
                                 }
                             }
-                            else if (type.IsStatic)
+                            // Only Xaml Property without Clr Property
+                            else if (type.IsStatic && !type.Properties.Any(p => p.Name != fieldDef.Name))
                             {
-                                type.Properties.Add(new MetadataProperty(fieldDef.Name, null, type, false, true, true, false));
+                                type.Properties.Add(new MetadataProperty(fieldDef.Name, null, type, false, true, true, false, false));
                             }
                         }
                     }
@@ -357,36 +383,38 @@ public static class MetadataConverter
 
         PostProcessTypes(types, metadata, resourceUrls, avaresValues, pseudoclasses);
 
-        MetadataType? GetType(Dictionary<string, MetadataType> types, params string[] keys)
-        {
-            MetadataType? type = default;
-            foreach (var key in keys)
-            {
-                if (types.TryGetValue(key, out type))
-                {
-                    break;
-                }
-                else if (key.StartsWith("System.Nullable`1", StringComparison.OrdinalIgnoreCase))
-                {
-                    var typeName = extractType.Match(key);
-                    if (typeName.Success && types.TryGetValue(typeName.Groups[1].Value, out type))
-                    {
-                        type = new MetadataType(key)
-                        {
-                            AssemblyQualifiedName = type.AssemblyQualifiedName,
-                            FullName = $"System.Nullable`1<{type.FullName}>",
-                            IsNullable = true,
-                            UnderlyingType = type
-                        };
-                        types.Add(key, type);
-                        break;
-                    }
-                }
-            }
-            return type;
-        }
+
 
         return metadata;
+    }
+
+    static MetadataType? GetType(Dictionary<string, MetadataType> types, params string[] keys)
+    {
+        MetadataType? type = default;
+        foreach (var key in keys)
+        {
+            if (types.TryGetValue(key, out type))
+            {
+                break;
+            }
+            else if (key.StartsWith("System.Nullable`1", StringComparison.OrdinalIgnoreCase))
+            {
+                var typeName = extractType.Match(key);
+                if (typeName.Success && types.TryGetValue(typeName.Groups[1].Value, out type))
+                {
+                    type = new MetadataType(key)
+                    {
+                        AssemblyQualifiedName = type.AssemblyQualifiedName,
+                        FullName = $"System.Nullable`1<{type.FullName}>",
+                        IsNullable = true,
+                        UnderlyingType = type
+                    };
+                    types.Add(key, type);
+                    break;
+                }
+            }
+        }
+        return type;
     }
 
     private static void ProcessAvaloniaResources(IAssemblyInformation asm, ITypeInformation[] asmTypes, List<AvaresInfo> avaresValues)
@@ -625,12 +653,12 @@ public static class MetadataConverter
             xDataType = new MetadataType("DataType")
             {
                 IsXamlDirective = true,
-                Properties = { new MetadataProperty("", typeType,null, false, false, false, true)},
+                Properties = { new MetadataProperty("", typeType,null, false, false, false, true,false)},
             },
             xCompiledBindings = new MetadataType("CompileBindings")
             {
                 IsXamlDirective = true,
-                Properties = { new MetadataProperty("", boolType,null, false, false, false, true)},
+                Properties = { new MetadataProperty("", boolType,null, false, false, false, true,false)},
             },
             new MetadataType("True")
             {
@@ -795,7 +823,7 @@ public static class MetadataConverter
                 }
             }
 
-            bindingType.Properties.Add(new MetadataProperty("", dataContextType, bindingType, false, false, true, true));
+            bindingType.Properties.Add(new MetadataProperty("", dataContextType, bindingType, false, false, true, true, false));
         }
 
         if (avaloniaBaseType.TryGetValue("Avalonia.Data.TemplateBinding", out MetadataType? templBinding))
@@ -943,7 +971,7 @@ public static class MetadataConverter
             {
                 IsXamlDirective = true,
                 IsValidForXamlContextFunc = (a, t, p) => t?.IsGeneric == true,
-                Properties = { new MetadataProperty("", typeType, null, false, false, false, true) }
+                Properties = { new MetadataProperty("", typeType, null, false, false, false, true, false) }
             };
 
             metadata.AddType(Utils.Xaml2006Namespace, typeArguments);
