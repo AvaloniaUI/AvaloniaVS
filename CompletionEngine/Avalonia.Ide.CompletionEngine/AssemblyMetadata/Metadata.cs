@@ -52,6 +52,7 @@ public record MetadataType(string Name)
     public MetadataType? UnderlyingType { get; init; }
     public IEnumerable<(MetadataType Type,string Name)> TemplateParts { get; internal set; } = 
         Array.Empty<(MetadataType Type, string Name)>();
+    public bool IsAbstract { get; internal set; } = false;
 }
 
 public enum MetadataTypeCtorArgument
