@@ -276,7 +276,7 @@ public class CompletionEngine
                 }
                 completions.Add(new Completion("!--", "!---->", CompletionKind.Comment) { RecommendedCursorOffset = 3 });
 
-                completions.AddRange(_helper.FilterTypes(tagName)
+                completions.AddRange(Helper.FilterTypes(tagName)
                     .Where(kvp=>!kvp.Value.IsAbstract)
                     .Select(kvp =>
                         {
