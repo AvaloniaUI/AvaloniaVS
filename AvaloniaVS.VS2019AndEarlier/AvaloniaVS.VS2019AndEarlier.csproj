@@ -64,7 +64,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Avalonia.Remote.Protocol" Version="11.0-preview4" />
+  <PackageReference Include="Avalonia.Remote.Protocol" Version="11.0.4" />
 	<PackageReference Include="Microsoft.CodeAnalysis">
       <Version>4.7.0</Version>
     </PackageReference>
