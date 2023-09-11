@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using AvaloniaVS.Models;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Serilog;
@@ -26,6 +27,8 @@ namespace AvaloniaVS.IntelliSense
             if (_buffer.Properties.TryGetProperty<XamlBufferMetadata>(typeof(XamlBufferMetadata), out var metadata) &&
                 metadata.CompletionMetadata != null)
             {
+                session.TextView.Properties.TryGetProperty<XamlCompletionCommandHandler>(typeof(XamlCompletionCommandHandler), out var property);
+                property.Engine = _engine;
                 var sw = Stopwatch.StartNew();
                 var pos = session.TextView.Caret.Position.BufferPosition;
                 var text = pos.Snapshot.GetText();
