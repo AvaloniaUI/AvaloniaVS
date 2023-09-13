@@ -258,82 +258,7 @@ namespace AvaloniaVS.IntelliSense
                         var type = Engine.Helper.LookupType(parser.TagName);
                         if (type != null && type.Events.FirstOrDefault(x => x.Name == parser.AttributeName) != null)
                         {
-                            var componentModel = (IComponentModel)Package.GetGlobalService(typeof(SComponentModel));
-                            var dte = Package.GetGlobalService(typeof(DTE)) as DTE2;
-                            var workspace = componentModel.GetService<VisualStudioWorkspace>();
-                            ThreadHelper.ThrowIfNotOnUIThread();
-                            var currentDocumentCodeBehind = workspace.CurrentSolution.Projects.FirstOrDefault(x => x.FilePath.EndsWith(dte.ActiveDocument.ProjectItem.ContainingProject.UniqueName)).Documents.FirstOrDefault(x => x.Name == dte.ActiveDocument.Name + ".cs");
-                            var compilation = ThreadHelper.JoinableTaskFactory.Run(() => currentDocumentCodeBehind.Project.GetCompilationAsync());
-                            var root = ThreadHelper.JoinableTaskFactory.Run(() => currentDocumentCodeBehind.GetSyntaxRootAsync());
-                            var codeBehindClass = root.DescendantNodes().FirstOrDefault(x => x.IsKind(SyntaxKind.ClassDeclaration)) as ClassDeclarationSyntax;
-
-                            var currentEvent = GetAllEvents(compilation.References.Select(compilation.GetAssemblyOrModuleSymbol)
-                                .OfType<IAssemblySymbol>().Select(a => a.GetTypeByMetadataName(type.FullName))
-                                .FirstOrDefault(x => x != null))
-                                .FirstOrDefault(x => x.Name == parser.AttributeName) as IEventSymbol;
-                            var parameters = (currentEvent.Type as INamedTypeSymbol).DelegateInvokeMethod.Parameters;
-                            string[] parameterNames = new string[parameters.Length];
-                            string[] parameterTypes = new string[parameters.Length];
-                            for (int i = 0; i < parameters.Length; i++)
-                            {
-                                parameterNames[i] = parameters[i].MetadataName;
-                                parameterTypes[i] = parameters[i].Type.ToString();
-                            }
-                            var methodToInsert = GetMethodDeclarationSyntax("void", selected.InsertionText, parameterTypes, parameterNames);
-                            var duplicatingMethodIds = new List<int>();
-                            foreach (MethodDeclarationSyntax item in codeBehindClass.DescendantNodes().Where(x => x.IsKind(SyntaxKind.MethodDeclaration)))
-                            {
-                                if (item.ReturnType is PredefinedTypeSyntax predefinedTypeSyntax && 
-                                    predefinedTypeSyntax.Keyword.IsKind(SyntaxKind.VoidKeyword))
-                                {
-                                    var itemParameters = item.ParameterList.Parameters.Select(x => x.Type.ToString()).ToList();
-                                    var methodToInsertParameters = methodToInsert.ParameterList.Parameters.Select(x => x.Type.ToString()).ToList();
-                                    if (itemParameters.Count == methodToInsertParameters.Count)
-                                    {
-                                        var sameMethods = true;
-                                        for (int i = 0; i < itemParameters.Count; i++)
-                                        {
-                                            if (itemParameters[i] != methodToInsertParameters[i])
-                                            {
-                                                sameMethods = false;
-                                                break;
-                                            }
-                                        }
-
-                                        if (sameMethods)
-                                        {
-                                            var methodNameParts = item.Identifier.Text.Split('_');
-                                            if (methodNameParts.Length == 3 && int.TryParse(methodNameParts.Last(), out var methodId))
-                                            {
-                                                duplicatingMethodIds.Add(methodId);
-                                            }
-                                            else
-                                            {
-                                                duplicatingMethodIds.Add(0);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            if (duplicatingMethodIds.Count > 0)
-                            {
-                                methodToInsert = methodToInsert.WithIdentifier(SyntaxFactory.Identifier(selected.InsertionText + $"_{duplicatingMethodIds.Max() + 1}"));
-                            }
-                            var newMethodDeclaration = codeBehindClass.AddMembers(methodToInsert);
-                            var newRoot = root.ReplaceNode(codeBehindClass, newMethodDeclaration);
-                            newRoot = Formatter.Format(newRoot, Formatter.Annotation, workspace);
-                            workspace.TryApplyChanges(currentDocumentCodeBehind.WithSyntaxRoot(newRoot).Project.Solution);
-
-                            // Hack to add method id to xaml file because i can't find a way to generate it from completions
-                            // Apply these changes after adding method because otherwise workspace will fail to add method
-                            if (duplicatingMethodIds.Count > 0)
-                            {
-                                var textDocument = dte.ActiveDocument.Object() as EnvDTE.TextDocument;
-                                var editPoint = textDocument.CreateEditPoint();
-                                editPoint.MoveToAbsoluteOffset(textDocument.Selection.ActivePoint.AbsoluteCharOffset);
-                                editPoint.Insert($"_{duplicatingMethodIds.Max() + 1}");
-                            }
+                            GenerateEventHandler(type.FullName, parser.AttributeName, selected.InsertionText);
                         }
                         var isSelector = parser.AttributeName?.Equals("Selector") == true;
                         if (char.IsWhiteSpace(c))
@@ -561,6 +486,86 @@ namespace AvaloniaVS.IntelliSense
                                                      SyntaxFactory.ParseTypeName(parameterTypes[i]),
                                                      SyntaxFactory.Identifier(parameterNames[i]),
                                                      null);
+            }
+        }
+
+        private void GenerateEventHandler(string controlType, string eventName, string generatedMethodName)
+        {
+            var componentModel = (IComponentModel)Package.GetGlobalService(typeof(SComponentModel));
+            var dte = Package.GetGlobalService(typeof(DTE)) as DTE2;
+            var workspace = componentModel.GetService<VisualStudioWorkspace>();
+            ThreadHelper.ThrowIfNotOnUIThread();
+            var currentDocumentCodeBehind = workspace.CurrentSolution.Projects.FirstOrDefault(x => x.FilePath.EndsWith(dte.ActiveDocument.ProjectItem.ContainingProject.UniqueName)).Documents.FirstOrDefault(x => x.Name == dte.ActiveDocument.Name + ".cs");
+            var compilation = ThreadHelper.JoinableTaskFactory.Run(() => currentDocumentCodeBehind.Project.GetCompilationAsync());
+            var root = ThreadHelper.JoinableTaskFactory.Run(() => currentDocumentCodeBehind.GetSyntaxRootAsync());
+            var codeBehindClass = root.DescendantNodes().FirstOrDefault(x => x.IsKind(SyntaxKind.ClassDeclaration)) as ClassDeclarationSyntax;
+
+            var currentEvent = GetAllEvents(compilation.References.Select(compilation.GetAssemblyOrModuleSymbol)
+                .OfType<IAssemblySymbol>().Select(a => a.GetTypeByMetadataName(controlType))
+                .FirstOrDefault(x => x != null))
+                .FirstOrDefault(x => x.Name == eventName) as IEventSymbol;
+            var parameters = (currentEvent.Type as INamedTypeSymbol).DelegateInvokeMethod.Parameters;
+            string[] parameterNames = new string[parameters.Length];
+            string[] parameterTypes = new string[parameters.Length];
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                parameterNames[i] = parameters[i].MetadataName;
+                parameterTypes[i] = parameters[i].Type.ToString();
+            }
+            var methodToInsert = GetMethodDeclarationSyntax("void", generatedMethodName, parameterTypes, parameterNames);
+            var duplicatingMethodIds = new List<int>();
+            foreach (MethodDeclarationSyntax item in codeBehindClass.DescendantNodes().Where(x => x.IsKind(SyntaxKind.MethodDeclaration)))
+            {
+                if (item.ReturnType is PredefinedTypeSyntax predefinedTypeSyntax &&
+                    predefinedTypeSyntax.Keyword.IsKind(SyntaxKind.VoidKeyword))
+                {
+                    var itemParameters = item.ParameterList.Parameters.Select(x => x.Type.ToString()).ToList();
+                    var methodToInsertParameters = methodToInsert.ParameterList.Parameters.Select(x => x.Type.ToString()).ToList();
+                    if (itemParameters.Count == methodToInsertParameters.Count)
+                    {
+                        var sameMethods = true;
+                        for (int i = 0; i < itemParameters.Count; i++)
+                        {
+                            if (itemParameters[i] != methodToInsertParameters[i])
+                            {
+                                sameMethods = false;
+                                break;
+                            }
+                        }
+
+                        if (sameMethods)
+                        {
+                            var methodNameParts = item.Identifier.Text.Split('_');
+                            if (methodNameParts.Length == 3 && int.TryParse(methodNameParts.Last(), out var methodId))
+                            {
+                                duplicatingMethodIds.Add(methodId);
+                            }
+                            else
+                            {
+                                duplicatingMethodIds.Add(0);
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (duplicatingMethodIds.Count > 0)
+            {
+                methodToInsert = methodToInsert.WithIdentifier(SyntaxFactory.Identifier(generatedMethodName + $"_{duplicatingMethodIds.Max() + 1}"));
+            }
+            var newMethodDeclaration = codeBehindClass.AddMembers(methodToInsert);
+            var newRoot = root.ReplaceNode(codeBehindClass, newMethodDeclaration);
+            newRoot = Formatter.Format(newRoot, Formatter.Annotation, workspace);
+            workspace.TryApplyChanges(currentDocumentCodeBehind.WithSyntaxRoot(newRoot).Project.Solution);
+
+            // Hack to add method id to xaml file because i can't find a way to generate it from completions
+            // Apply these changes after adding method because otherwise workspace will fail to add method
+            if (duplicatingMethodIds.Count > 0)
+            {
+                var textDocument = dte.ActiveDocument.Object() as EnvDTE.TextDocument;
+                var editPoint = textDocument.CreateEditPoint();
+                editPoint.MoveToAbsoluteOffset(textDocument.Selection.ActivePoint.AbsoluteCharOffset);
+                editPoint.Insert($"_{duplicatingMethodIds.Max() + 1}");
             }
         }
 
