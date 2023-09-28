@@ -11,7 +11,6 @@
     </Installation>
     <Prerequisites>
         <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,)" DisplayName="Visual Studio core editor" />
-        <Prerequisite Id="Microsoft.NetCore.Component.DevelopmentTools" Version="[15.8.27729.1,17.0)" DisplayName=".NET Core development tools" />
         <Prerequisite Id="Microsoft.VisualStudio.Component.Roslyn.LanguageServices" Version="[15.0.26208.0,17.0)" DisplayName="C# and Visual Basic" />
     </Prerequisites>
     <Assets>

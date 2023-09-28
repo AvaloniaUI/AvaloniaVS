@@ -17,7 +17,7 @@ namespace AvaloniaVS.Shared.Views
     {
         private readonly IConnectionPoint _connectionPoint;
         private readonly uint _cookie;
-        private readonly Guid _xmlLanguageServiceGuid = new Guid("f6819a78-a205-47b5-be1c-675b3c7f0b8e");
+        private Guid _xmlLanguageServiceGuid = new Guid("f6819a78-a205-47b5-be1c-675b3c7f0b8e");
         private readonly IVsTextLines _textLines;
         private readonly string _fileName;
         private readonly IComponentModel _componentModel;
@@ -61,7 +61,7 @@ namespace AvaloniaVS.Shared.Views
             _connectionPoint.Unadvise(_cookie);
 
             // Set up the language service - this will activate intellisense and syntax highlighting
-            _textLines.SetLanguageServiceID(ref Unsafe.AsRef(_xmlLanguageServiceGuid));
+            _textLines.SetLanguageServiceID(ref _xmlLanguageServiceGuid);
 
             // Now we can create the IVsCodeWindow
             // If we don't wait until the text buffer is fully initialized before creating the IVsCodeWindow
