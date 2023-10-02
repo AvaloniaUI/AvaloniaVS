@@ -94,13 +94,11 @@ public static class MetadataConverter
         {
             return mt;
         }
-        var itemsType = type is null
-             ? null
-             : type.Methods
-                        .Where(m => !m.IsStatic && m.IsPublic && m.Name == "Add" && m.Parameters.Count == 1 && m.Parameters[0].Type is not null)
-                        .Select(m => GetOrCreateMetadataType(types, m.Parameters[0].Type, m.Parameters[0].QualifiedTypeFullName, m.Parameters[0].TypeFullName))
-                        .FirstOrDefault();
-        mt = ConvertTypeInfomation(type!, itemsType);
+        mt = ConvertTypeInfomation(type!, null);
+        foreach (var key in keys)
+        {
+            types[key] = mt;
+        }
         return mt;
     }
 
@@ -975,6 +973,35 @@ public static class MetadataConverter
             };
 
             metadata.AddType(Utils.Xaml2006Namespace, typeArguments);
+        }
+
+        // Valorizze items type
+
+        var metaTypes = types.Values.ToArray();
+
+        foreach (var mt in metaTypes)
+        {
+            if (mt.ItemsType is null && mt.Type is { } ti)
+            {
+                var attributes = ti.CustomAttributes;
+                if (attributes.Count > 0)
+                {
+                    if (attributes.FirstOrDefault(a => a.TypeFullName == "Avalonia.Metadata.ItemTypeAttribute") is { } attribute)
+                    {
+                        if (attribute.ConstructorArguments[0].Value is string name)
+                        {
+                            mt.ItemsType = GetOrCreateMetadataType(types, null, name);
+                        }
+                    }
+                }
+                if (mt.ItemsType is null)
+                {
+                    mt.ItemsType = ti.Methods
+                            .Where(m => !m.IsStatic && m.IsPublic && m.Name == "Add" && m.Parameters.Count == 1 && m.Parameters[0].Type is not null)
+                            .Select(m => GetOrCreateMetadataType(types, m.Parameters[0].Type, m.Parameters[0].QualifiedTypeFullName, m.Parameters[0].TypeFullName))
+                            .FirstOrDefault();
+                }
+            }
         }
     }
 }

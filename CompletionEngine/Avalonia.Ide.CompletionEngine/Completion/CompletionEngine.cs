@@ -275,7 +275,7 @@ public class CompletionEngine
                         {
                             TriggerCompletionAfterInsert = true,
                         });
-                        if (parentType?.Properties?.FirstOrDefault(p => p.IsContent) is { } contentProperty)
+                        if (parentType?.ItemsType is null && parentType?.Properties?.FirstOrDefault(p => p.IsContent) is { } contentProperty)
                         {
                             parentType = contentProperty.Type;
                         }
