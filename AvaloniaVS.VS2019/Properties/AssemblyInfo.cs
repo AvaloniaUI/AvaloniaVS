@@ -1,16 +1,14 @@
 ﻿using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Microsoft.VisualStudio.Shell;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("AvaloniaVS.VS2019AndEarlier")]
+[assembly: AssemblyTitle("AvaloniaVS.VS2019")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("AvaloniaVS.VS2019AndEarlier")]
+[assembly: AssemblyProduct("AvaloniaVS.VS2019")]
 [assembly: AssemblyCopyright("")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -32,11 +30,3 @@ using Microsoft.VisualStudio.Shell;
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
-[assembly: ProvideCodeBase(AssemblyName = "System.Memory",
-Version = "4.0.1.1", CodeBase = "$PackageFolder$\\System.Memory.dll")]
-[assembly: ProvideCodeBase(AssemblyName = "System.Buffers",
-Version = "4.0.2.0", CodeBase = "$PackageFolder$\\System.Buffers.dll")]
-[assembly: ProvideCodeBase(AssemblyName = "System.Runtime.CompilerServices.Unsafe",
-Version = "4.0.5.0", CodeBase = "$PackageFolder$\\System.Runtime.CompilerServices.Unsafe.dll")]
-[assembly: ProvideCodeBase(AssemblyName = "System.Runtime.CompilerServices.Unsafe",
-Version = "4.0.4.1", CodeBase = "$PackageFolder$\\System.Runtime.CompilerServices.Unsafe4041.dll")]

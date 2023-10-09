@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="AvaloniaForVisualStudio" Version="11.1" Language="en-US" Publisher="Avalonia Team" />
-        <DisplayName>Avalonia for Visual Studio 2019,2017</DisplayName>
+        <Identity Id="AvaloniaForVisualStudio" Version="11.2" Language="en-US" Publisher="Avalonia Team" />
+        <DisplayName>Avalonia for Visual Studio 2019</DisplayName>
         <Description xml:space="preserve">Previewer and templates for Avalonia applications and libraries.</Description>
         <Icon>icon.ico</Icon>
     </Metadata>
     <Installation>
-        <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0, 17.0)" />
+        <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[16.0, 17.0)" />
     </Installation>
     <Prerequisites>
         <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,)" DisplayName="Visual Studio core editor" />
+        <Prerequisite Id="Microsoft.NetCore.Component.DevelopmentTools" Version="[15.8.27729.1,17.0)" DisplayName=".NET Core development tools" />
         <Prerequisite Id="Microsoft.VisualStudio.Component.Roslyn.LanguageServices" Version="[15.0.26208.0,17.0)" DisplayName="C# and Visual Basic" />
     </Prerequisites>
     <Assets>
