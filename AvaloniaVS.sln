@@ -19,7 +19,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaResourceDictionaryT
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaStylesTemplate", "templates\AvaloniaStylesTemplate\AvaloniaStylesTemplate.csproj", "{9FEF480A-5A56-489D-AD89-53970FD2B2A1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaVS.VS2019AndEarlier", "AvaloniaVS.VS2019AndEarlier\AvaloniaVS.VS2019AndEarlier.csproj", "{79A4832C-9D3E-42D9-9215-D786565269B5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaVS.VS2019", "AvaloniaVS.VS2019\AvaloniaVS.VS2019.csproj", "{79A4832C-9D3E-42D9-9215-D786565269B5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaVS.VS2022", "AvaloniaVS.VS2022\AvaloniaVS.VS2022.csproj", "{1029EC08-7B2E-4018-B20D-E85CA58DEB59}"
 EndProject
