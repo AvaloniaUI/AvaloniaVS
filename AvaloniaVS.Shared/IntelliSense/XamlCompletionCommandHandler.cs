@@ -1,8 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Avalonia.Ide.CompletionEngine;
+using EnvDTE;
+using EnvDTE80;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
@@ -42,6 +52,8 @@ namespace AvaloniaVS.IntelliSense
             // Add ourselves as a command to the text view.
             textViewAdapter.AddCommandFilter(this, out _nextCommandHandler);
         }
+
+        public CompletionEngine Engine { get; set; }
 
         public int QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
         {
@@ -199,7 +211,7 @@ namespace AvaloniaVS.IntelliSense
                     var bufferPos = _textView.Caret.Position.BufferPosition;
 
                     _session.Commit();
-                    
+
                     if (selected.DeleteTextOffset is int rof)
                     {
                         var newCursorPos = bufferPos.Add(rof);
@@ -208,7 +220,7 @@ namespace AvaloniaVS.IntelliSense
                             : new(bufferPos, rof);
                         _textView.TextBuffer.Delete(deleteSpan);
                     }
-                    
+
                     if (selected?.CursorOffset > 0)
                     {
                         // Offset the cursor if necessary e.g. to place it within the quotation
@@ -243,6 +255,11 @@ namespace AvaloniaVS.IntelliSense
                     if (state == XmlParser.ParserState.AttributeValue ||
                         state == XmlParser.ParserState.AfterAttributeValue)
                     {
+                        var type = Engine.Helper.LookupType(parser.TagName);
+                        if (type != null && type.Events.FirstOrDefault(x => x.Name == parser.AttributeName) != null)
+                        {
+                            GenerateEventHandler(type.FullName, parser.AttributeName, selected.InsertionText);
+                        }
                         var isSelector = parser.AttributeName?.Equals("Selector") == true;
                         if (char.IsWhiteSpace(c))
                         {
@@ -261,7 +278,7 @@ namespace AvaloniaVS.IntelliSense
                             if (parser.AttributeValue?.StartsWith("{") == true)
                             {
                                 // If press Tab or CR in expression ignore it in completation session
-                                if(c is '\t' or '\n')
+                                if (c is '\t' or '\n')
                                 {
                                     return true;
                                 }
@@ -458,6 +475,122 @@ namespace AvaloniaVS.IntelliSense
         {
             _session.Dismissed -= SessionDismissed;
             _session = null;
+        }
+
+        private IEnumerable<ParameterSyntax> GetParametersList(string[] parameterTypes, string[] parameterNames)
+        {
+            for (int i = 0; i < parameterTypes.Length; i++)
+            {
+                yield return SyntaxFactory.Parameter(SyntaxFactory.List<AttributeListSyntax>(),
+                                                     SyntaxFactory.TokenList(),
+                                                     SyntaxFactory.ParseTypeName(parameterTypes[i]),
+                                                     SyntaxFactory.Identifier(parameterNames[i]),
+                                                     null);
+            }
+        }
+
+        private void GenerateEventHandler(string controlType, string eventName, string generatedMethodName)
+        {
+            var componentModel = (IComponentModel)Package.GetGlobalService(typeof(SComponentModel));
+            var dte = Package.GetGlobalService(typeof(DTE)) as DTE2;
+            var workspace = componentModel.GetService<VisualStudioWorkspace>();
+            ThreadHelper.ThrowIfNotOnUIThread();
+            var currentDocumentCodeBehind = workspace.CurrentSolution.Projects.FirstOrDefault(x => x.FilePath.EndsWith(dte.ActiveDocument.ProjectItem.ContainingProject.UniqueName)).Documents.FirstOrDefault(x => x.Name == dte.ActiveDocument.Name + ".cs");
+            var compilation = ThreadHelper.JoinableTaskFactory.Run(() => currentDocumentCodeBehind.Project.GetCompilationAsync());
+            var root = ThreadHelper.JoinableTaskFactory.Run(() => currentDocumentCodeBehind.GetSyntaxRootAsync());
+            var codeBehindClass = root.DescendantNodes().FirstOrDefault(x => x.IsKind(SyntaxKind.ClassDeclaration)) as ClassDeclarationSyntax;
+
+            var currentEvent = GetAllEvents(compilation.References.Select(compilation.GetAssemblyOrModuleSymbol)
+                .OfType<IAssemblySymbol>().Select(a => a.GetTypeByMetadataName(controlType))
+                .FirstOrDefault(x => x != null))
+                .FirstOrDefault(x => x.Name == eventName) as IEventSymbol;
+            var parameters = (currentEvent.Type as INamedTypeSymbol).DelegateInvokeMethod.Parameters;
+            string[] parameterNames = new string[parameters.Length];
+            string[] parameterTypes = new string[parameters.Length];
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                parameterNames[i] = parameters[i].MetadataName;
+                parameterTypes[i] = parameters[i].Type.ToString();
+            }
+            var methodToInsert = GetMethodDeclarationSyntax("void", generatedMethodName, parameterTypes, parameterNames);
+            var duplicatingMethodIds = new List<int>();
+            foreach (MethodDeclarationSyntax item in codeBehindClass.DescendantNodes().Where(x => x.IsKind(SyntaxKind.MethodDeclaration)))
+            {
+                if (item.ReturnType is PredefinedTypeSyntax predefinedTypeSyntax &&
+                    predefinedTypeSyntax.Keyword.IsKind(SyntaxKind.VoidKeyword))
+                {
+                    var itemParameters = item.ParameterList.Parameters.Select(x => x.Type.ToString()).ToList();
+                    var methodToInsertParameters = methodToInsert.ParameterList.Parameters.Select(x => x.Type.ToString()).ToList();
+                    if (itemParameters.Count == methodToInsertParameters.Count)
+                    {
+                        var sameMethods = true;
+                        for (int i = 0; i < itemParameters.Count; i++)
+                        {
+                            if (itemParameters[i] != methodToInsertParameters[i])
+                            {
+                                sameMethods = false;
+                                break;
+                            }
+                        }
+
+                        if (sameMethods)
+                        {
+                            var methodNameParts = item.Identifier.Text.Split('_');
+                            if (methodNameParts.Length == 3 && int.TryParse(methodNameParts.Last(), out var methodId))
+                            {
+                                duplicatingMethodIds.Add(methodId);
+                            }
+                            else
+                            {
+                                duplicatingMethodIds.Add(0);
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (duplicatingMethodIds.Count > 0)
+            {
+                methodToInsert = methodToInsert.WithIdentifier(SyntaxFactory.Identifier(generatedMethodName + $"_{duplicatingMethodIds.Max() + 1}"));
+            }
+            var newMethodDeclaration = codeBehindClass.AddMembers(methodToInsert);
+            var newRoot = root.ReplaceNode(codeBehindClass, newMethodDeclaration);
+            newRoot = Formatter.Format(newRoot, Formatter.Annotation, workspace);
+            workspace.TryApplyChanges(currentDocumentCodeBehind.WithSyntaxRoot(newRoot).Project.Solution);
+
+            // Hack to add method id to xaml file because i can't find a way to generate it from completions
+            // Apply these changes after adding method because otherwise workspace will fail to add method
+            if (duplicatingMethodIds.Count > 0)
+            {
+                var textDocument = dte.ActiveDocument.Object() as EnvDTE.TextDocument;
+                var editPoint = textDocument.CreateEditPoint();
+                editPoint.MoveToAbsoluteOffset(textDocument.Selection.ActivePoint.AbsoluteCharOffset);
+                editPoint.Insert($"_{duplicatingMethodIds.Max() + 1}");
+            }
+        }
+
+        private MethodDeclarationSyntax GetMethodDeclarationSyntax(string returnTypeName, string methodName, string[] parameterTypes, string[] paramterNames)
+        {
+            var parameterList = SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(GetParametersList(parameterTypes, paramterNames)));
+            return SyntaxFactory.MethodDeclaration(SyntaxFactory.List<AttributeListSyntax>(),
+                                                   SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)),
+                                                   SyntaxFactory.ParseTypeName(returnTypeName),
+                                                   null,
+                                                   SyntaxFactory.Identifier(methodName),
+                                                   null,
+                                                   parameterList,
+                                                   SyntaxFactory.List<TypeParameterConstraintClauseSyntax>(),
+                                                   SyntaxFactory.Block(),
+                                                   SyntaxFactory.Token(SyntaxKind.None)).WithAdditionalAnnotations(Formatter.Annotation);
+        }
+
+        private static IEnumerable<ISymbol> GetAllEvents(INamedTypeSymbol t)
+        {
+            foreach (var p in t.GetMembers().Where(x => x.Kind == SymbolKind.Event))
+                yield return p;
+            if (t.BaseType != null)
+                foreach (var p in GetAllEvents(t.BaseType))
+                    yield return p;
         }
 
         private static bool TryGetChar(ref Guid pguidCmdGroup, uint nCmdID, IntPtr pvaIn, out char c)
