@@ -9,11 +9,14 @@ Avalonia Visual Studio extension adds such capabilities to your Visual Studio:
 - Icons for axaml files.
 
 ### VSIX packages for Visual Studio
-| [VS2019/VS2017](https://marketplace.visualstudio.com/items?itemName=AvaloniaTeam.AvaloniaforVisualStudio) | 
+| [VS2019](https://marketplace.visualstudio.com/items?itemName=AvaloniaTeam.AvaloniaforVisualStudio) | 
 | ------------- |
 
 | [VS2022](https://marketplace.visualstudio.com/items?itemName=AvaloniaTeam.AvaloniaVS) |
 | ------------- |
+
+**Note:** Latest Release supporting VS2017 is **11.2**
+
 
 # Debugging
 If you want to debug Avalonia previewer extension the *easiest* way to do that is [VS Experimental instance](https://docs.microsoft.com/en-us/visualstudio/extensibility/the-experimental-instance?view=vs-2019).
