@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -45,8 +46,12 @@ internal class AssemblyWrapper : IAssemblyInformation
 internal class TypeWrapper : ITypeInformation
 {
     private readonly TypeDef _type;
+    private readonly static ConcurrentDictionary<TypeDef, TypeWrapper> _typeCache = new();
 
-    public static TypeWrapper? FromDef(TypeDef def) => def == null ? null : new TypeWrapper(def);
+    public static TypeWrapper? FromDef(TypeDef def) =>
+        def is null
+        ? null
+        : _typeCache.GetOrAdd(def, new TypeWrapper(def));
 
     private TypeWrapper(TypeDef type)
     {
@@ -63,11 +68,11 @@ internal class TypeWrapper : ITypeInformation
     public string Namespace => _type.Namespace;
     public ITypeInformation? GetBaseType() => FromDef(_type.GetBaseType().ResolveTypeDef());
 
-    public IEnumerable<IEventInformation> Events => _type.Events.Select(e => new EventWrapper(e));
+    public IEnumerable<IEventInformation> Events => _type.Events.Select(EventWrapper.FromDef);
 
-    public IEnumerable<IMethodInformation> Methods => _type.GetMethodsHierarchy().Select(m => new MethodWrapper(m));
+    public IEnumerable<IMethodInformation> Methods => _type.GetMethodsHierarchy().Select(MethodWrapper.FromDef);
 
-    public IEnumerable<IFieldInformation> Fields => _type.Fields.Select(f => new FieldWrapper(f));
+    public IEnumerable<IFieldInformation> Fields => _type.Fields.Select(FieldWrapper.FromDef);
 
     public IEnumerable<IPropertyInformation> Properties => _type.Properties
         //Filter indexer properties
@@ -76,7 +81,7 @@ internal class TypeWrapper : ITypeInformation
             || (p.SetMethod?.IsPublicOrInternal() == true && p.SetMethod.Parameters.Count == (p.SetMethod.IsStatic ? 1 : 2)))
         // Filter property overrides
         .Where(p => !p.Name.Contains("."))
-        .Select(p => new PropertyWrapper(p));
+        .Select(PropertyWrapper.FromDef);
     public bool IsEnum => _type.IsEnum;
     public bool IsStatic => _type.IsAbstract && _type.IsSealed;
     public bool IsInterface => _type.IsInterface;
@@ -201,8 +206,12 @@ internal class PropertyWrapper : IPropertyInformation
 {
     private readonly PropertyDef _prop;
     private readonly Func<PropertyDef, IAssemblyInformation, bool> _isVisbleTo;
+    private readonly static ConcurrentDictionary<PropertyDef, PropertyWrapper> _propertiesCache = new();
 
-    public PropertyWrapper(PropertyDef prop)
+    public static PropertyWrapper FromDef(PropertyDef def) =>
+        _propertiesCache.GetOrAdd(def, new PropertyWrapper(def));
+
+    private PropertyWrapper(PropertyDef prop)
     {
         Name = prop.Name;
 
@@ -313,7 +322,12 @@ internal class PropertyWrapper : IPropertyInformation
 
 internal class FieldWrapper : IFieldInformation
 {
-    public FieldWrapper(FieldDef f)
+    static readonly ConcurrentDictionary<FieldDef, FieldWrapper> _fieldsCanche = new();
+
+    public static FieldWrapper FromDef(FieldDef def) =>
+        _fieldsCanche.GetOrAdd(def, new FieldWrapper(def));
+
+    private FieldWrapper(FieldDef f)
     {
         IsStatic = f.IsStatic;
         IsPublic = f.IsPublic || f.IsAssembly;
@@ -349,7 +363,12 @@ internal class FieldWrapper : IFieldInformation
 
 internal class EventWrapper : IEventInformation
 {
-    public EventWrapper(EventDef @event)
+    readonly static ConcurrentDictionary<EventDef, EventWrapper> _eventsCache = new();
+
+    public static EventWrapper FromDef(EventDef def) =>
+             _eventsCache.GetOrAdd(def, new EventWrapper(def));
+
+    private EventWrapper(EventDef @event)
     {
         Name = @event.Name;
         TypeFullName = @event.EventType.FullName;
@@ -370,8 +389,12 @@ internal class MethodWrapper : IMethodInformation
 {
     private readonly MethodDef _method;
     private readonly Lazy<IList<IParameterInformation>> _parameters;
+    private static readonly ConcurrentDictionary<MethodDef, MethodWrapper> _methodsCache = new();
 
-    public MethodWrapper(MethodDef method)
+    public static MethodWrapper FromDef(MethodDef def) =>
+            _methodsCache.GetOrAdd(def, new MethodWrapper(def));
+
+    private MethodWrapper(MethodDef method)
     {
         _method = method;
         _parameters = new Lazy<IList<IParameterInformation>>(() =>
