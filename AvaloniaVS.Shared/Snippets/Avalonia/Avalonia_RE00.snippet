@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+    <CodeSnippet Format="1.0.0">
+        <Header>
+            <SnippetTypes>
+                <SnippetType>Expansion</SnippetType>
+            </SnippetTypes>
+            <Title>01 -- RoutedEvent</Title>
+            <Shortcut>are</Shortcut>
+            <Description>Define RoutedEvent.</Description>
+            <Author>Avalonia Team</Author>
+        </Header>
+        <Snippet>
+            <Declarations>
+                <Literal>
+                    <ID>event</ID>
+                    <ToolTip>Name of RoutedEvent</ToolTip>
+                    <Default>My</Default>
+                </Literal>
+                <Literal>
+                    <ID>ownerclass</ID>
+                    <ToolTip>The owning class of this event (which is typically the class in which it is declared).</ToolTip>
+                    <Default>ownerclass</Default>
+                    <Function>ClassName()</Function>
+                </Literal>
+                <Literal>
+                    <ID>eventArgs</ID>
+                    <ToolTip>EventArgs Type</ToolTip>
+                    <Default>RoutedEventArgs</Default>
+                </Literal>
+                <Literal>
+                    <ID>strategies</ID>
+                    <ToolTip>Routed events use one of three routing strategies.</ToolTip>
+                    <Default>Bubble</Default>
+                </Literal>
+                <Literal Editable="true">
+                    <ID>desc</ID>
+                    <ToolTip>A description for the RoutedEvent.</ToolTip>
+                    <Default>...</Default>
+                    <Function></Function>
+                </Literal>
+            </Declarations>
+            <Code Language="csharp">
+                <![CDATA[
+        /// <summary>
+        /// $event$Event is raise when $desc$.
+        /// </summary>
+        public static readonly RoutedEvent<$eventArgs$> $event$Event =
+            RoutedEvent.Register<$eventArgs$>(
+                "$event$", RoutingStrategies.$strategies$, typeof($ownerclass$));
+        $end$]]>
+            </Code>
+            <Imports>
+                <Import>
+                    <Namespace>System</Namespace>
+                    <Namespace>Avalonia.Interactivity</Namespace>
+                </Import>
+            </Imports>
+        </Snippet>
+    </CodeSnippet>
+</CodeSnippets>
