@@ -10,7 +10,7 @@ namespace Avalonia.Ide.CompletionEngine;
 
 public class CompletionEngine
 {
-    private class MetadataHelper
+    public class MetadataHelper
     {
         private Metadata? _metadata;
         public Metadata? Metadata => _metadata;
@@ -169,7 +169,7 @@ public class CompletionEngine
             => LookupType(typeName)?.Properties?.FirstOrDefault(p => p.Name == propName);
     }
 
-    private readonly MetadataHelper _helper = new();
+    public MetadataHelper Helper { get; set; } = new MetadataHelper();
 
     private static Dictionary<string, string> GetNamespaceAliases(string xml)
     {
@@ -216,9 +216,9 @@ public class CompletionEngine
     public CompletionSet? GetCompletions(Metadata metadata, string fullText, int pos, string? currentAssemblyName = null)
     {
         var textToCursor = fullText.Substring(0, pos);
-        _helper.SetMetadata(metadata, textToCursor, currentAssemblyName);
+        Helper.SetMetadata(metadata, textToCursor, currentAssemblyName);
 
-        if (_helper.Metadata == null)
+        if (Helper.Metadata == null)
             return null;
 
         if (fullText.Length == 0 || pos == 0)
@@ -255,7 +255,7 @@ public class CompletionEngine
 
                 var sameType = state.GetParentTagName(1) == typeName;
 
-                completions.AddRange(_helper.FilterPropertyNames(typeName, compName, attached: sameType ? (bool?)null : true, hasSetter: false)
+                completions.AddRange(Helper.FilterPropertyNames(typeName, compName, attached: sameType ? (bool?)null : true, hasSetter: false)
                     .Select(p => new Completion(p, sameType ? CompletionKind.Property : CompletionKind.AttachedProperty)));
             }
             else
@@ -276,7 +276,7 @@ public class CompletionEngine
                 }
                 completions.Add(new Completion("!--", "!---->", CompletionKind.Comment) { RecommendedCursorOffset = 3 });
 
-                completions.AddRange(_helper.FilterTypes(tagName)
+                completions.AddRange(Helper.FilterTypes(tagName)
                     .Where(kvp=>!kvp.Value.IsAbstract)
                     .Select(kvp =>
                         {
@@ -314,15 +314,15 @@ public class CompletionEngine
                 var dotPos = attributeName.IndexOf('.');
                 curStart += dotPos + 1;
                 var split = attributeName.Split(new[] { '.' }, 2);
-                completions.AddRange(_helper.FilterPropertyNames(split[0], split[1], attached: true, hasSetter: true)
+                completions.AddRange(Helper.FilterPropertyNames(split[0], split[1], attached: true, hasSetter: true)
                     .Select(x => new Completion(x, x + attributeSuffix, x, CompletionKind.AttachedProperty, x.Length + attributeOffset)));
 
-                completions.AddRange(_helper.FilterEventNames(split[0], split[1], attached: true)
+                completions.AddRange(Helper.FilterEventNames(split[0], split[1], attached: true)
                     .Select(v => new Completion(v, v + attributeSuffix, v, CompletionKind.AttachedEvent, v.Length + attributeOffset)));
             }
             else if (state.TagName is not null)
             {
-                completions.AddRange(_helper.FilterPropertyNames(state.TagName, attributeName, attached: false, hasSetter: true)
+                completions.AddRange(Helper.FilterPropertyNames(state.TagName, attributeName, attached: false, hasSetter: true)
                     .Select(x => new Completion(x, x + attributeSuffix, x, CompletionKind.Property, x.Length + attributeOffset)));
 
                 // Special case for "<On " here, 'Options' property is get only list property
@@ -336,14 +336,14 @@ public class CompletionEngine
                         CompletionKind.Property, 9 /*recommendedCursorOffset*/));
                 }
 
-                completions.AddRange(_helper.FilterEventNames(state.TagName, attributeName, attached: false)
+                completions.AddRange(Helper.FilterEventNames(state.TagName, attributeName, attached: false)
                     .Select(v => new Completion(v, v + attributeSuffix, v, CompletionKind.Event, v.Length + attributeOffset)));
 
-                var targetType = _helper.LookupType(state.TagName);
+                var targetType = Helper.LookupType(state.TagName);
                 if (targetType is not null)
                 {
                     completions.AddRange(
-                        _helper.FilterTypes(attributeName, xamlDirectiveOnly: true)
+                        Helper.FilterTypes(attributeName, xamlDirectiveOnly: true)
                             .Where(t => t.Value.IsValidForXamlContextFunc?.Invoke(currentAssemblyName, targetType, null) ?? true)
                             .Select(v => new Completion(v.Key, v.Key + attributeSuffix, v.Key, CompletionKind.Class, v.Key.Length + attributeOffset)));
 
@@ -354,7 +354,7 @@ public class CompletionEngine
                             completions.Add(new("xmlns:", CompletionKind.Class));
                         }
                         completions.AddRange(
-                            _helper.FilterTypeNames(attributeName, withAttachedPropertiesOrEventsOnly: true)
+                            Helper.FilterTypeNames(attributeName, withAttachedPropertiesOrEventsOnly: true)
                                 .Select(v => new Completion(v, v + ".", v, CompletionKind.Class)));
                     }
                 }
@@ -362,15 +362,17 @@ public class CompletionEngine
         }
         else if (state.State == XmlParser.ParserState.AttributeValue)
         {
+            var type = Helper.LookupType(state.TagName);
+
             MetadataProperty? prop = null;
             if (state.AttributeName?.Contains('.') == true)
             {
                 //Attached property
                 var split = state.AttributeName.Split('.');
-                prop = _helper.LookupProperty(split[0], split[1]);
+                prop = Helper.LookupProperty(split[0], split[1]);
             }
             else if (state.TagName is not null)
-                prop = _helper.LookupProperty(state.TagName, state.AttributeName);
+                prop = Helper.LookupProperty(state.TagName, state.AttributeName);
 
             //Markup extension, ignore everything else
             if (state.AttributeValue?.StartsWith("{") == true && state.CurrentValueStart.HasValue)
@@ -379,9 +381,13 @@ public class CompletionEngine
                            BuildCompletionsForMarkupExtension(prop, completions, fullText, state,
                                textToCursor.Substring(state.CurrentValueStart.Value), currentAssemblyName);
             }
+            else if (type != null && type.Events.FirstOrDefault(x => x.Name == state.AttributeName) != null)
+            {
+                completions.Add(new Completion("<New Event Handler>", $"{state.TagName}_{state.AttributeName}", CompletionKind.StaticProperty));
+            }
             else
             {
-                prop ??= _helper.LookupType(state.AttributeName)?.Properties.FirstOrDefault(p => string.IsNullOrEmpty(p.Name));
+                prop ??= Helper.LookupType(state.AttributeName)?.Properties.FirstOrDefault(p => string.IsNullOrEmpty(p.Name));
 
                 if (prop?.Type?.HasHintValues == true && state.CurrentValueStart.HasValue)
                 {
@@ -419,7 +425,7 @@ public class CompletionEngine
                         cKind |= CompletionKind.TargetTypeClass;
                     }
 
-                    completions.AddRange(_helper.FilterTypeNames(state?.AttributeValue)
+                    completions.AddRange(Helper.FilterTypeNames(state?.AttributeValue)
                         .Select(x => new Completion(x, x, x, cKind)));
                 }
                 else if ((state.AttributeName == "xmlns" || state.AttributeName?.Contains("xmlns:") == true)
@@ -458,10 +464,10 @@ public class CompletionEngine
                 }
                 else if (state.AttributeName?.EndsWith(":Class") == true && state.AttributeValue is not null)
                 {
-                    if (_helper.Aliases?.TryGetValue(state.AttributeName.Replace(":Class", ""), out var ns) == true && ns == Utils.Xaml2006Namespace)
+                    if (Helper.Aliases?.TryGetValue(state.AttributeName.Replace(":Class", ""), out var ns) == true && ns == Utils.Xaml2006Namespace)
                     {
                         var asmKey = $";assembly={currentAssemblyName}";
-                        var fullClassNames = _helper.Metadata.Namespaces.Where(v => v.Key.EndsWith(asmKey))
+                        var fullClassNames = Helper.Metadata.Namespaces.Where(v => v.Key.EndsWith(asmKey))
                                                                         .SelectMany(v => v.Value.Values.Where(t => t.IsAvaloniaObjectType))
                                                                         .Select(v => v.FullName);
                         completions.AddRange(
@@ -508,7 +514,7 @@ public class CompletionEngine
                         var typeName = propertyTag.Substring(0, dotPos);
                         var compName = propertyTag.Substring(dotPos + 1);
 
-                        var property = _helper.LookupProperty(typeName, compName);
+                        var property = Helper.LookupProperty(typeName, compName);
 
                         if (property?.Type?.HasHintValues == true)
                         {
@@ -594,15 +600,15 @@ public class CompletionEngine
 
                 var sameType = state.GetParentTagName(1) == typeName;
 
-                completions.AddRange(_helper.FilterPropertyNames(typeName, compName, attached: true, hasSetter: true)
+                completions.AddRange(Helper.FilterPropertyNames(typeName, compName, attached: true, hasSetter: true)
                                 .Select(p => new Completion(p, p, p, CompletionKind.AttachedProperty)));
             }
             else
             {
-                completions.AddRange(_helper.FilterPropertyNames(selectorTypeName, value, attached: false, hasSetter: true)
+                completions.AddRange(Helper.FilterPropertyNames(selectorTypeName, value, attached: false, hasSetter: true)
                         .Select(x => new Completion(x, CompletionKind.Property)));
 
-                completions.AddRange(_helper.FilterTypeNames(value, withAttachedPropertiesOrEventsOnly: true).Select(x => new Completion(x, CompletionKind.Class)));
+                completions.AddRange(Helper.FilterTypeNames(value, withAttachedPropertiesOrEventsOnly: true).Select(x => new Completion(x, CompletionKind.Class)));
             }
 
         }
@@ -618,7 +624,7 @@ public class CompletionEngine
                     setterProperty = vals[1];
                 }
 
-                var setterProp = _helper.LookupProperty(selectorTypeName, setterProperty);
+                var setterProp = Helper.LookupProperty(selectorTypeName, setterProperty);
                 if (setterProp?.Type?.HasHintValues == true && state.AttributeValue is not null)
                 {
                     completions.AddRange(GetHintCompletions(setterProp.Type, state.AttributeValue, currentAssemblyName));
@@ -674,7 +680,7 @@ public class CompletionEngine
         }
 
         IEnumerable<Completion> forProperties(string? filterType, string? filter, Func<string, string>? fmtInsertText = null)
-                => forPropertiesFromType(_helper.LookupType(filterType ?? ""), filter, fmtInsertText);
+                => forPropertiesFromType(Helper.LookupType(filterType ?? ""), filter, fmtInsertText);
 
         if (string.IsNullOrEmpty(entered))
             return forProperties(state.FindParentAttributeValue("(x\\:)?DataType"), entered);
@@ -685,7 +691,7 @@ public class CompletionEngine
         {
             if (values[0].StartsWith("$parent["))
             {
-                return _helper.FilterTypes(entered.Substring("$parent[".Length))
+                return Helper.FilterTypes(entered.Substring("$parent[".Length))
                     .Select(v => new Completion(v.Key, $"$parent[{v.Key}].", v.Key, CompletionKind.Class));
             }
             else if (values[0].StartsWith("#"))
@@ -741,7 +747,7 @@ public class CompletionEngine
             type = state.FindParentAttributeValue("(x\\:)?DataType");
         }
 
-        var mdType = _helper.LookupType(type ?? "");
+        var mdType = Helper.LookupType(type ?? "");
 
         while (mdType != null && i < values.Length - 1 && !string.IsNullOrEmpty(values[i]))
         {
@@ -749,7 +755,7 @@ public class CompletionEngine
             {
                 //assume parent.datacontext is x:datatype so we have some intelisence
                 type = state.FindParentAttributeValue("(x\\:)?DataType");
-                mdType = type is not null ? _helper.LookupType(type) : null;
+                mdType = type is not null ? Helper.LookupType(type) : null;
             }
             else
             {
@@ -782,11 +788,11 @@ public class CompletionEngine
         var ext = MarkupExtensionParser.Parse(data);
 
         var transformedName = (ext.ElementName ?? "").Trim();
-        if (_helper.LookupType(transformedName)?.IsMarkupExtension != true)
+        if (Helper.LookupType(transformedName)?.IsMarkupExtension != true)
             transformedName += "Extension";
 
         if (ext.State == MarkupExtensionParser.ParserStateType.StartElement)
-            completions.AddRange(_helper.FilterTypeNames(ext.ElementName, markupExtensionsOnly: true)
+            completions.AddRange(Helper.FilterTypeNames(ext.ElementName, markupExtensionsOnly: true)
                 .Select(t => t.EndsWith("Extension") ? t.Substring(0, t.Length - "Extension".Length) : t)
                 .Select(t => new Completion(t, CompletionKind.MarkupExtension)));
         if (ext.State == MarkupExtensionParser.ParserStateType.StartAttribute ||
@@ -837,7 +843,7 @@ public class CompletionEngine
                 }
                 else
                 {
-                    var prop = _helper.LookupProperty(state?.TagName, state?.AttributeName);
+                    var prop = Helper.LookupProperty(state?.TagName, state?.AttributeName);
                     if (prop?.Type?.HasHintValues == true)
                     {
                         completions.AddRange(GetHintCompletions(prop.Type, null, currentAssemblyName));
@@ -847,11 +853,11 @@ public class CompletionEngine
                 return forcedStart ?? ext.CurrentValueStart;
             }
 
-            completions.AddRange(_helper.FilterPropertyNames(transformedName, ext.AttributeName ?? "", attached: false, hasSetter: true)
+            completions.AddRange(Helper.FilterPropertyNames(transformedName, ext.AttributeName ?? "", attached: false, hasSetter: true)
                 .Select(x => new Completion(x, x + "=", x, CompletionKind.Property)));
 
             var attribName = ext.AttributeName ?? "";
-            var t = _helper.LookupType(transformedName);
+            var t = Helper.LookupType(transformedName);
 
             var ctorArgument = ext.AttributesCount == 0;
             //skip ctor hints when some property is already set
@@ -872,20 +878,20 @@ public class CompletionEngine
                         var type = split[0];
                         var prop = split[1];
 
-                        var mType = _helper.LookupType(type);
+                        var mType = Helper.LookupType(type);
                         if (mType != null && t.SupportCtorArgument == MetadataTypeCtorArgument.HintValues)
                         {
                             var hints = FilterHintValues(mType, prop, currentAssemblyName, state);
                             completions.AddRange(hints.Select(x => new Completion(x, $"{type}.{x}", x, GetCompletionKindForHintValues(mType))));
                         }
 
-                        var props = _helper.FilterPropertyNames(type, prop, attached: false, hasSetter: false, staticGetter: true);
+                        var props = Helper.FilterPropertyNames(type, prop, attached: false, hasSetter: false, staticGetter: true);
                         completions.AddRange(props.Select(x => new Completion(x, $"{type}.{x}", x, CompletionKind.StaticProperty)));
                     }
                 }
                 else
                 {
-                    var types = _helper.FilterTypeNames(attribName,
+                    var types = Helper.FilterTypeNames(attribName,
                         staticGettersOnly: t.SupportCtorArgument == MetadataTypeCtorArgument.Object);
 
                     completions.AddRange(types.Select(x => new Completion(x, x, x, CompletionKind.Class)));
@@ -913,11 +919,11 @@ public class CompletionEngine
             if (elementName?.Equals("OnPlatform") == true ||
                 elementName?.Equals("OnFormFactor") == true)
             {
-                prop = _helper.LookupProperty(state.TagName, state.AttributeName);
+                prop = Helper.LookupProperty(state.TagName, state.AttributeName);
             }
             else
             {
-                prop = _helper.LookupProperty(transformedName, ext.AttributeName);
+                prop = Helper.LookupProperty(transformedName, ext.AttributeName);
             }
 
             if (prop?.Type?.HasHintValues == true)
@@ -967,7 +973,7 @@ public class CompletionEngine
                     }
                     if (isEmptyTn)
                     {
-                        var pseudoClasses = _helper.FilterTypes(default)
+                        var pseudoClasses = Helper.FilterTypes(default)
                             .Select(kvp => kvp.Value)
                             .Where(m => m.HasPseudoClasses)
                             .SelectMany(m => m.PseudoClasses)
@@ -977,14 +983,14 @@ public class CompletionEngine
                     else
                     {
                         var typeFullName = GetFullName(parser);
-                        if (_helper.LookupType(typeFullName) is MetadataType { HasPseudoClasses: true } type)
+                        if (Helper.LookupType(typeFullName) is MetadataType { HasPseudoClasses: true } type)
                         {
                             completions.AddRange(type.PseudoClasses.Select(v => new Completion(v, CompletionKind.Selector | CompletionKind.Enum)));
                         }
                     }
                     if (fn == "is")
                     {
-                        var types = _helper.FilterTypes(default)
+                        var types = Helper.FilterTypes(default)
                                .Where(t => t.Value.IsAvaloniaObjectType)
                                .Select(t => t.Value);
                         if (types?.Any() == true)
@@ -1011,7 +1017,7 @@ public class CompletionEngine
                         if (!string.IsNullOrEmpty(ton))
                         {
                             //If it hat TemplateOwner 
-                            if (_helper.FilterTypes(ton)
+                            if (Helper.FilterTypes(ton)
                                 .Where(kvp => kvp.Value.TemplateParts.Any())
                                 .Select(kvp => kvp.Value)
                                 .FirstOrDefault() is MetadataType ownerType)
@@ -1020,7 +1026,7 @@ public class CompletionEngine
                                 var fullName = GetFullName(parser);
                                 var partType = string.IsNullOrEmpty(fullName)
                                     ? default(MetadataType?)
-                                    : _helper.FilterTypes(fullName)
+                                    : Helper.FilterTypes(fullName)
                                         .Select(kvp => kvp.Value)
                                         .FirstOrDefault();
                                 if (partType is not null)
@@ -1086,8 +1092,8 @@ public class CompletionEngine
                             {
                                 var ns = typeFullName.Substring(0, len - 1);
 
-                                if (_helper.Aliases?.TryGetValue(ns!, out var ans) == true
-                                    && _helper.Metadata?.Namespaces.TryGetValue(ans, out var types) == true)
+                                if (Helper.Aliases?.TryGetValue(ns!, out var ans) == true
+                                    && Helper.Metadata?.Namespaces.TryGetValue(ans, out var types) == true)
                                 {
                                     IEnumerable<MetadataType> ft = types.Values;
                                     ft = ft
@@ -1098,7 +1104,7 @@ public class CompletionEngine
                                     parsered = (parser.LastParsedPosition ?? 0) - (tn?.Length ?? 0);
                                 }
                             }
-                            else if (_helper.FilterTypes(typeFullName).Select(kvp => kvp.Value) is { } types)
+                            else if (Helper.FilterTypes(typeFullName).Select(kvp => kvp.Value) is { } types)
                             {
                                 types = types
                                         .Where(t => t.IsGeneric == false)
@@ -1118,7 +1124,7 @@ public class CompletionEngine
             case SelectorStatement.Property:
                 {
                     var typeFullName = GetFullName(parser);
-                    if (_helper.LookupType(typeFullName) is MetadataType type)
+                    if (Helper.LookupType(typeFullName) is MetadataType type)
                     {
                         var propertyName = parser.PropertyName;
                         var selectorElementProperties = MetadataHelper.FilterProperty(type,
@@ -1137,7 +1143,7 @@ public class CompletionEngine
             case SelectorStatement.AttachedProperty:
                 {
                     var typeFullName = GetFullName(parser);
-                    if (_helper.LookupType(typeFullName) is { HasAttachedProperties: true } type)
+                    if (Helper.LookupType(typeFullName) is { HasAttachedProperties: true } type)
                     {
                         var propertyName = parser.PropertyName;
                         var selectorElementProperties = MetadataHelper.FilterProperty(type,
@@ -1157,7 +1163,7 @@ public class CompletionEngine
                     }
                     else
                     {
-                        var types = _helper.FilterTypes(default)
+                        var types = Helper.FilterTypes(default)
                              .Where(t => t.Value.HasAttachedProperties)
                              .Select(t => t.Value);
                         if (types?.Any() == true)
@@ -1195,7 +1201,7 @@ public class CompletionEngine
                         completions.Add(new Completion(":nth-child()", ":nth-child(", CompletionKind.Selector | CompletionKind.Enum));
                         completions.Add(new Completion(":nth-last-child()", ":nth-last-child(", CompletionKind.Selector | CompletionKind.Enum));
                         completions.Add(new Completion("/template/", "/template/", CompletionKind.Selector | CompletionKind.Enum));
-                        var types = _helper.FilterTypes(default)
+                        var types = Helper.FilterTypes(default)
                             .Where(t => t.Value.IsAvaloniaObjectType || t.Value.HasAttachedProperties)
                             .Select(t => new Completion(t.Value.Name.Replace(":", "|"), CompletionKind.Class | CompletionKind.TargetTypeClass));
                         completions.AddRange(types);
@@ -1205,7 +1211,7 @@ public class CompletionEngine
             case SelectorStatement.Value:
                 {
                     var typeFullName = GetFullName(parser);
-                    if (_helper.LookupType(typeFullName) is MetadataType type)
+                    if (Helper.LookupType(typeFullName) is MetadataType type)
                     {
                         var propertyName = parser.PropertyName;
                         var prop = MetadataHelper.FilterProperty(type,
@@ -1258,10 +1264,10 @@ public class CompletionEngine
 
         string GetXmlnsFullName(MetadataType type, char namespaceSeparator = '|')
         {
-            if (_helper.Metadata?.InverseNamespace.TryGetValue(type.FullName, out var ns) == true
+            if (Helper.Metadata?.InverseNamespace.TryGetValue(type.FullName, out var ns) == true
                 && !string.IsNullOrEmpty(ns))
             {
-                var alias = _helper.Aliases?.FirstOrDefault(a => Equals(a.Value, ns));
+                var alias = Helper.Aliases?.FirstOrDefault(a => Equals(a.Value, ns));
                 if (alias is not null && !string.IsNullOrEmpty(alias.Value.Key))
                 {
                     return $"{alias.Value.Key}{namespaceSeparator}{type.Name}";
