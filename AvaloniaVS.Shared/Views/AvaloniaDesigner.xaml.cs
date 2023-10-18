@@ -644,7 +644,6 @@ namespace AvaloniaVS.Views
             previewer.error.Visibility = Visibility.Visible;
             previewer.errorHeading.Text = heading;
             previewer.errorMessage.Text = message;
-            previewer.previewScroller.Visibility = Visibility.Hidden;
         }
 
         private void ShowPreview()
