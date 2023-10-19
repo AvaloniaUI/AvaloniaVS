@@ -8,15 +8,17 @@ namespace Avalonia.Ide.CompletionEngine;
 public class Metadata
 {
     readonly Dictionary<string, Dictionary<string, MetadataType>> _namespaces = new();
-    readonly Dictionary<string, string> _inverseNamespace = new();
+    readonly Dictionary<string, ISet<string>> _inverseNamespace = new();
 
     public IReadOnlyDictionary<string, Dictionary<string, MetadataType>> Namespaces => _namespaces;
-    public IReadOnlyDictionary<string, string> InverseNamespace => _inverseNamespace;
+    public IReadOnlyDictionary<string, ISet<string>> InverseNamespace => _inverseNamespace;
 
     public void AddType(string ns, MetadataType type)
     {
         _namespaces.GetOrCreate(ns)[type.Name] = type;
-        _inverseNamespace[type.FullName] = ns;
+
+        var namespaces = _inverseNamespace.GetOrCreate(type.FullName, _ => new HashSet<string>());
+        namespaces.Add(ns);
     }
 }
 

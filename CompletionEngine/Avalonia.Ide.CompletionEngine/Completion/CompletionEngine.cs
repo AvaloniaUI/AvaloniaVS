@@ -307,7 +307,7 @@ public class CompletionEngine
                 completions.AddRange(candidateTypes
                     .Select(t =>
                         {
-                            var xamlName = t.Name;
+                            var xamlName = GetXmlnsFullName(t, ':');
                             if (t.IsMarkupExtension)
                             {
                                 if (xamlName.EndsWith("extension", StringComparison.OrdinalIgnoreCase))
@@ -1288,20 +1288,6 @@ public class CompletionEngine
             return typeFullName ?? string.Empty;
         }
 
-        string GetXmlnsFullName(MetadataType type, char namespaceSeparator = '|')
-        {
-            if (Helper.Metadata?.InverseNamespace.TryGetValue(type.FullName, out var ns) == true
-                && !string.IsNullOrEmpty(ns))
-            {
-                var alias = Helper.Aliases?.FirstOrDefault(a => Equals(a.Value, ns));
-                if (alias is not null && !string.IsNullOrEmpty(alias.Value.Key))
-                {
-                    return $"{alias.Value.Key}{namespaceSeparator}{type.Name}";
-                }
-            }
-            return type.Name!;
-        }
-
         string? GetTypeFromControlTheme()
         {
             if (state.GetParentTagName(1)?.Equals("ControlTheme") == true)
@@ -1313,5 +1299,23 @@ public class CompletionEngine
             }
             return default;
         }
+    }
+
+    string GetXmlnsFullName(MetadataType type, char namespaceSeparator = '|')
+    {
+        if (Helper.Metadata?.InverseNamespace.TryGetValue(type.FullName, out var namespaces) == true
+            && namespaces.Count > 0)
+        {
+            foreach (var ns in namespaces)
+            {
+                var alias = Helper.Aliases?.FirstOrDefault(a => string.Equals(a.Value, ns, StringComparison.OrdinalIgnoreCase));
+                if (alias is not null && !string.IsNullOrEmpty(alias.Value.Key))
+                {
+                    return $"{alias.Value.Key}{namespaceSeparator}{type.Name}";
+                }
+
+            }
+        }
+        return type.Name!;
     }
 }
