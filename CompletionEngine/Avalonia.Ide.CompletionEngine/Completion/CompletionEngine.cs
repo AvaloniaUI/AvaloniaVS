@@ -297,7 +297,7 @@ public class CompletionEngine
 
                 var candidateTypes = Helper.FilterTypes(tagName).Select(kv => kv.Value);
 
-                if ((parentType?.ItemsType ?? parentType) is { } itemType)
+                if ((parentType?.ItemsType ?? parentType) is { FullName: not "System.Object" } itemType)
                 {
                     candidateTypes = candidateTypes.Where(t => t.IsSubclassOf(itemType));
                 }
