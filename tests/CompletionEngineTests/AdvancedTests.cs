@@ -534,6 +534,17 @@ namespace CompletionEngineTests
                             "Underline",
                         },
                 };
+            yield return new object[]
+            {
+                        "<UserControl xmlns:local=\"clr-namespace:CompletionEngineTests.Models\"><local:MyListBox><",
+                        new string[]
+                        {
+                            "!--",
+                            "/local:MyListBox>",
+                            "local:MyListBox",
+                            "local:MyListBoxItem",
+                        },
+            };
         }
 
         public static IEnumerable<object[]> GetStyleSelectors()
