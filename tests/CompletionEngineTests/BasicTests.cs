@@ -154,5 +154,17 @@ namespace CompletionEngineTests
             Assert.Equal("SelectableTextBlock", compl.Completions[1].DisplayText);
             Assert.Equal("SelectingItemsControl", compl.Completions[2].DisplayText);
         }
+
+        [Fact]
+        public void GenericType_Should_Transform_TypeArguments()
+        {
+            var compl = GetCompletionsFor("<FuncDataTemplate");
+
+            Assert.Equal(2, compl.Completions.Count);
+            Assert.Equal("FuncDataTemplate", compl.Completions[0].DisplayText);
+            Assert.Equal("FuncDataTemplate", compl.Completions[0].InsertText);
+            Assert.Equal("FuncDataTemplate<T>", compl.Completions[1].DisplayText);
+            Assert.Equal("FuncDataTemplate x:TypeArguments=\"\"", compl.Completions[1].InsertText);
+        }
     }
 }
