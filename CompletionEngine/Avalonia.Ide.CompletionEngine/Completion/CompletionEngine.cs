@@ -279,20 +279,15 @@ public class CompletionEngine
                     completions.Add(new Completion("!--", "!---->", CompletionKind.Comment) { RecommendedCursorOffset = 3 });
                 }
                 completions.AddRange(Helper.FilterTypes(tagName)
-                    .Where(kvp=>!kvp.Value.IsAbstract)
+                    .Where(kvp => !kvp.Value.IsAbstract)
                     .Select(kvp =>
                         {
-                            if (kvp.Value.IsMarkupExtension)
+                            var ci = GetElementCompletation(kvp.Key, kvp.Value);
+                            return new Completion(ci.DisplayText, ci.InsertText, CompletionKind.Class)
                             {
-                                var xamlName = kvp.Key;
-                                if (xamlName.EndsWith("extension", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    xamlName = xamlName.Substring(0, kvp.Key.Length - 9 /* length of "extension" */);
-                                }
-                                return new Completion(xamlName, CompletionKind.Class);
-                            }
-
-                            return new Completion(kvp.Key, CompletionKind.Class);
+                                RecommendedCursorOffset = ci.RecommendedCursorOffset,
+                                TriggerCompletionAfterInsert = ci.TriggerCompletionAfterInsert,
+                            };
                         }));
             }
         }
@@ -531,6 +526,68 @@ public class CompletionEngine
             return new CompletionSet() { Completions = SortCompletions(completions), StartPosition = curStart };
 
         return null;
+
+        static (string DisplayText, string InsertText, string? Suffix, int? RecommendedCursorOffset, bool TriggerCompletionAfterInsert) GetElementCompletation(string key,
+            MetadataType? type)
+        {
+            var xamlName = key;
+            var insretText = xamlName;
+            var recommendedCursorOffset = default(int?);
+            var triggerCompletionAfterInsert = false;
+            if (type is not null)
+            {
+                if (type.IsMarkupExtension)
+                {
+                    if (xamlName.EndsWith("extension", StringComparison.OrdinalIgnoreCase))
+                    {
+                        xamlName = xamlName.Substring(0, key.Length - 9 /* length of "extension" */);
+                    }
+                }
+                insretText = xamlName;
+                if (type.IsGeneric)
+                {
+                    var targsStart = xamlName.IndexOf('`');
+                    if (targsStart > -1)
+                    {
+                        var xamlNameBuilder = new System.Text.StringBuilder();
+                        var insertTextBuilder = new System.Text.StringBuilder();
+                        xamlNameBuilder.Append(xamlName, 0, targsStart);
+                        insertTextBuilder.Append(xamlName, 0, targsStart);
+                        var args = xamlName.Substring(targsStart + 1);
+                        if (int.TryParse(args
+                            , System.Globalization.NumberStyles.Number
+                            , System.Globalization.CultureInfo.InvariantCulture, out var nargs))
+                        {
+                            if (nargs == 1)
+                            {
+                                xamlNameBuilder.Append("<T>");
+                                insertTextBuilder.Append(" x:TypeArguments=\"\"");
+                                recommendedCursorOffset = insertTextBuilder.Length - 1;
+                            }
+                            else
+                            {
+                                xamlNameBuilder.Append('<');
+                                insertTextBuilder.Append(" x:TypeArguments=\"");
+                                recommendedCursorOffset = insertTextBuilder.Length - 1;
+                                for (int i = 0; i < nargs; i++)
+                                {
+                                    xamlNameBuilder.Append('T');
+                                    xamlNameBuilder.Append(i + 1);
+                                    xamlNameBuilder.Append(',');
+                                    insertTextBuilder.Append(',');
+                                }
+                                xamlNameBuilder[xamlNameBuilder.Length - 1] = '>';
+                                insertTextBuilder[insertTextBuilder.Length - 1] = '"';
+                            }
+                            xamlName = xamlNameBuilder.ToString();
+                            insretText = insertTextBuilder.ToString();
+                            triggerCompletionAfterInsert = true;
+                        }
+                    }
+                }
+            }
+            return (xamlName, insretText, default, recommendedCursorOffset, triggerCompletionAfterInsert);
+        }
     }
 
     private static List<Completion> SortCompletions(List<Completion> completions)
