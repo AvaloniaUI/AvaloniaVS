@@ -260,22 +260,24 @@ public class CompletionEngine
             }
             else
             {
-                if (state.GetParentTagName(1) is string parentTag)
+                if (tagName.Length == 0)
                 {
-                    if (!state.IsInClosingTag)
+                    if (state.GetParentTagName(1) is string parentTag)
                     {
-                        completions.Add(new Completion("/" + parentTag + ">", CompletionKind.Class, priority: 0));
-                    }
-                    if (parentTag.IndexOf('.') == -1)
-                    {
-                        completions.Add(new Completion(parentTag, $"{parentTag}.", CompletionKind.Class, priority: 1)
+                        if (!state.IsInClosingTag)
                         {
-                            TriggerCompletionAfterInsert = true,
-                        });
+                            completions.Add(new Completion("/" + parentTag + ">", CompletionKind.Class, priority: 0));
+                        }
+                        if (parentTag.IndexOf('.') == -1)
+                        {
+                            completions.Add(new Completion(parentTag, $"{parentTag}.", CompletionKind.Class, priority: 1)
+                            {
+                                TriggerCompletionAfterInsert = true,
+                            });
+                        }
                     }
+                    completions.Add(new Completion("!--", "!---->", CompletionKind.Comment) { RecommendedCursorOffset = 3 });
                 }
-                completions.Add(new Completion("!--", "!---->", CompletionKind.Comment) { RecommendedCursorOffset = 3 });
-
                 completions.AddRange(Helper.FilterTypes(tagName)
                     .Where(kvp=>!kvp.Value.IsAbstract)
                     .Select(kvp =>
