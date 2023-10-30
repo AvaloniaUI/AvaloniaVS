@@ -171,7 +171,7 @@ public class CompletionEngine
 
     public MetadataHelper Helper { get; set; } = new MetadataHelper();
 
-    private static Dictionary<string, string> GetNamespaceAliases(string xml)
+    public static Dictionary<string, string> GetNamespaceAliases(string xml)
     {
         var rv = new Dictionary<string, string>();
         try

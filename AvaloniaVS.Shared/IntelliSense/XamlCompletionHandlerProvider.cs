@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.Composition;
 using AvaloniaVS.Models;
+using AvaloniaVS.Shared.IntelliSense;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell;
@@ -22,16 +23,19 @@ namespace AvaloniaVS.IntelliSense
         private readonly IServiceProvider _serviceProvider;
         private readonly IVsEditorAdaptersFactoryService _adapterService;
         private readonly ICompletionBroker _completionBroker;
+        private readonly CompletionEngineSource _completionEngineSource;
 
         [ImportingConstructor]
         public XamlCompletionHandlerProvider(
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             IVsEditorAdaptersFactoryService adapterService,
-            ICompletionBroker completionBroker)
+            ICompletionBroker completionBroker,
+            CompletionEngineSource completionEngineSource)
         {
             _serviceProvider = serviceProvider;
             _adapterService = adapterService;
             _completionBroker = completionBroker;
+            _completionEngineSource = completionEngineSource;
         }
 
         public void VsTextViewCreated(IVsTextView textViewAdapter)
@@ -46,7 +50,8 @@ namespace AvaloniaVS.IntelliSense
                         _serviceProvider,
                         _completionBroker,
                         textView,
-                        textViewAdapter));
+                        textViewAdapter,
+                        _completionEngineSource.CompletionEngine));
             }
         }
     }
