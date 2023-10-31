@@ -10,6 +10,8 @@ namespace Avalonia.Ide.CompletionEngine;
 
 public class CompletionEngine
 {
+    private record struct ElementCompletationInfo(string DisplayText, string InsertText, string? Suffix, int? RecommendedCursorOffset, bool TriggerCompletionAfterInsert);
+
     public class MetadataHelper
     {
         private Metadata? _metadata;
@@ -171,7 +173,7 @@ public class CompletionEngine
 
     public MetadataHelper Helper { get; set; } = new MetadataHelper();
 
-    private static Dictionary<string, string> GetNamespaceAliases(string xml)
+    public static Dictionary<string, string> GetNamespaceAliases(string xml)
     {
         var rv = new Dictionary<string, string>();
         try
@@ -261,20 +263,24 @@ public class CompletionEngine
             else
             {
                 MetadataType? parentType = null;
+                var isTagEmpty = tagName.Length == 0;
                 if (state.GetParentTagName(1) is string parentTag)
                 {
                     var propertySeparatorIndex = parentTag.IndexOf('.');
-                    if (!state.IsInClosingTag)
+                    if (!state.IsInClosingTag && isTagEmpty)
                     {
                         completions.Add(new Completion("/" + parentTag + ">", CompletionKind.Class, priority: 0));
                     }
                     if (propertySeparatorIndex == -1)
                     {
                         parentType = Helper.LookupType(parentTag);
-                        completions.Add(new Completion(parentTag, $"{parentTag}.", CompletionKind.Class, priority: 1)
+                        if (isTagEmpty)
                         {
-                            TriggerCompletionAfterInsert = true,
-                        });
+                            completions.Add(new Completion(parentTag, $"{parentTag}.", CompletionKind.Class, priority: 1)
+                            {
+                                TriggerCompletionAfterInsert = true,
+                            });
+                        }
                         if (parentType?.ItemsType is null && parentType?.Properties?.FirstOrDefault(p => p.IsContent) is { } contentProperty)
                         {
                             parentType = contentProperty.Type;
@@ -293,30 +299,29 @@ public class CompletionEngine
                     }
 
                 }
-                completions.Add(new Completion("!--", "!---->", CompletionKind.Comment) { RecommendedCursorOffset = 3 });
+                if(isTagEmpty)
+                {
+                    completions.Add(new Completion("!--", "!---->", CompletionKind.Comment) { RecommendedCursorOffset = 3 });
+                }
 
-                var candidateTypes = Helper.FilterTypes(tagName).Select(kv => kv.Value);
+                var candidateTypes = Helper.FilterTypes(tagName);
 
                 if ((parentType?.ItemsType ?? parentType) is { FullName: not "System.Object" } itemType)
                 {
-                    candidateTypes = candidateTypes.Where(t => t.IsSubclassOf(itemType));
+                    candidateTypes = candidateTypes.Where(kv => kv.Value.IsSubclassOf(itemType));
                 }
 
-                candidateTypes = candidateTypes!.Where(t => !t.IsAbstract);
+                candidateTypes = candidateTypes!.Where(kv => !kv.Value.IsAbstract);
 
                 completions.AddRange(candidateTypes
-                    .Select(t =>
+                    .Select(kv =>
                         {
-                            var xamlName = GetXmlnsFullName(t, ':');
-                            if (t.IsMarkupExtension)
+                            var ci = GetElementCompletationInfo(kv.Key, kv.Value);
+                            return new Completion(ci.DisplayText, ci.InsertText, CompletionKind.Class)
                             {
-                                if (xamlName.EndsWith("extension", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    xamlName = xamlName.Substring(0, xamlName.Length - 9 /* length of "extension" */);
-                                }
-                                return new Completion(xamlName, CompletionKind.Class);
-                            }
-                            return new Completion(xamlName, CompletionKind.Class);
+                                RecommendedCursorOffset = ci.RecommendedCursorOffset,
+                                TriggerCompletionAfterInsert = ci.TriggerCompletionAfterInsert,
+                            };
                         }));
             }
         }
@@ -555,6 +560,7 @@ public class CompletionEngine
             return new CompletionSet() { Completions = SortCompletions(completions), StartPosition = curStart };
 
         return null;
+
     }
 
     private static List<Completion> SortCompletions(List<Completion> completions)
@@ -585,6 +591,68 @@ public class CompletionEngine
             CompletionKind.None => 9,
             _ => (int)kind
         };
+    }
+
+    static ElementCompletationInfo GetElementCompletationInfo(string key,
+        MetadataType? type)
+    {
+        var xamlName = key;
+        var insretText = xamlName;
+        var recommendedCursorOffset = default(int?);
+        var triggerCompletionAfterInsert = false;
+        if (type is not null)
+        {
+            if (type.IsMarkupExtension)
+            {
+                if (xamlName.EndsWith("extension", StringComparison.OrdinalIgnoreCase))
+                {
+                    xamlName = xamlName.Substring(0, key.Length - 9 /* length of "extension" */);
+                }
+            }
+            insretText = xamlName;
+            if (type.IsGeneric)
+            {
+                var targsStart = xamlName.IndexOf('`');
+                if (targsStart > -1)
+                {
+                    var xamlNameBuilder = new System.Text.StringBuilder();
+                    var insertTextBuilder = new System.Text.StringBuilder();
+                    xamlNameBuilder.Append(xamlName, 0, targsStart);
+                    insertTextBuilder.Append(xamlName, 0, targsStart);
+                    var args = xamlName.Substring(targsStart + 1);
+                    if (int.TryParse(args
+                        , System.Globalization.NumberStyles.Number
+                        , System.Globalization.CultureInfo.InvariantCulture, out var nargs))
+                    {
+                        if (nargs == 1)
+                        {
+                            xamlNameBuilder.Append("<T>");
+                            insertTextBuilder.Append(" x:TypeArguments=\"\"");
+                            recommendedCursorOffset = insertTextBuilder.Length - 1;
+                        }
+                        else
+                        {
+                            xamlNameBuilder.Append('<');
+                            insertTextBuilder.Append(" x:TypeArguments=\"");
+                            recommendedCursorOffset = insertTextBuilder.Length - 1;
+                            for (int i = 0; i < nargs; i++)
+                            {
+                                xamlNameBuilder.Append('T');
+                                xamlNameBuilder.Append(i + 1);
+                                xamlNameBuilder.Append(',');
+                                insertTextBuilder.Append(',');
+                            }
+                            xamlNameBuilder[xamlNameBuilder.Length - 1] = '>';
+                            insertTextBuilder[insertTextBuilder.Length - 1] = '"';
+                        }
+                        xamlName = xamlNameBuilder.ToString();
+                        insretText = insertTextBuilder.ToString();
+                        triggerCompletionAfterInsert = true;
+                    }
+                }
+            }
+        }
+        return new (xamlName, insretText, default, recommendedCursorOffset, triggerCompletionAfterInsert);
     }
 
     private void ProcessStyleSetter(string setterPropertyName, XmlParser state, List<Completion> completions, string? currentAssemblyName)
