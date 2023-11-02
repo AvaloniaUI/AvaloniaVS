@@ -142,14 +142,14 @@ namespace AvaloniaVS.Views
             {
                 return;
             }
-            if (bitmap is null && _lastBitmap.TryGetTarget(out bitmap))
+            if (bitmap is null)
             {
-
+                _lastBitmap.TryGetTarget(out bitmap);
             }
             
             preview.Source = bitmap;
 
-            if (bitmap != null)
+            if (bitmap is not null)
             {
                 var scaling = VisualTreeHelper.GetDpi(this).DpiScaleX;
 
