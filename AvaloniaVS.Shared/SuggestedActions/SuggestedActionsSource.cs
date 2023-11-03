@@ -157,7 +157,7 @@ namespace AvaloniaVS.Shared.SuggestedActions
                     .FirstOrDefault();
 
                 // Exclude all classes from avaloniaui namespace because controls from this namespace are included by default.
-                if (targetClassMetadata.Value != null && targetClassMetadata.Key != null 
+                if (targetClassMetadata is not null && targetClassMetadata.Value != null && targetClassMetadata.Key != null 
                     && !metadata.CompletionMetadata.Namespaces.First(x => x.Key == "https://github.com/avaloniaui").Value.ContainsKey(targetClassName))
                 {
                     if (!CompletionEngine.GetNamespaceAliases(span.TextBuffer.CurrentSnapshot.GetText()).ContainsValue(targetClassMetadata.Value))
