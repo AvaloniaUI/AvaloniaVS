@@ -1,25 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using AvaloniaVS.Models;
+using AvaloniaVS.Shared.IntelliSense;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Serilog;
-using CompletionEngine = Avalonia.Ide.CompletionEngine.CompletionEngine;
 
 namespace AvaloniaVS.IntelliSense
 {
     internal class XamlCompletionSource : ICompletionSource
     {
         private readonly ITextBuffer _buffer;
-        private readonly CompletionEngine _engine;
+        private readonly CompletionEngineSource _engine;
 
-        public XamlCompletionSource(ITextBuffer textBuffer)
+        public XamlCompletionSource(ITextBuffer textBuffer, CompletionEngineSource completionEngineSource)
         {
             _buffer = textBuffer;
-            _engine = new CompletionEngine();
+            _engine = completionEngineSource;
         }
 
         public void AugmentCompletionSession(ICompletionSession session, IList<CompletionSet> completionSets)
@@ -27,13 +26,11 @@ namespace AvaloniaVS.IntelliSense
             if (_buffer.Properties.TryGetProperty<XamlBufferMetadata>(typeof(XamlBufferMetadata), out var metadata) &&
                 metadata.CompletionMetadata != null)
             {
-                session.TextView.Properties.TryGetProperty<XamlCompletionCommandHandler>(typeof(XamlCompletionCommandHandler), out var property);
-                property.Engine = _engine;
                 var sw = Stopwatch.StartNew();
                 var pos = session.TextView.Caret.Position.BufferPosition;
                 var text = pos.Snapshot.GetText();
                 _buffer.Properties.TryGetProperty("AssemblyName", out string assemblyName);
-                var completions = _engine.GetCompletions(metadata.CompletionMetadata, text, pos, assemblyName);
+                var completions = _engine.CompletionEngine.GetCompletions(metadata.CompletionMetadata, text, pos, assemblyName);
 
                 if (completions?.Completions.Count > 0)
                 {

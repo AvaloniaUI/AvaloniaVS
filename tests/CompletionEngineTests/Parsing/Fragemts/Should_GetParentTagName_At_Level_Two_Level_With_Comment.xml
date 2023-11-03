@@ -1,0 +1,9 @@
+﻿<Window xmlns="/"
+        >
+  <!--Start Here-->
+  <Window.Styles>
+    <!--Styles-->
+    <Style/>
+    
+  </Window.Styles>
+</Window>
