@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="AvaloniaForVisualStudio" Version="11.4" Language="en-US" Publisher="Avalonia Team" />
+        <Identity Id="AvaloniaForVisualStudio" Version="11.5" Language="en-US" Publisher="Avalonia Team" />
         <DisplayName>Avalonia for Visual Studio 2019</DisplayName>
         <Description xml:space="preserve">Previewer and templates for Avalonia applications and libraries.</Description>
         <Icon>icon.ico</Icon>
@@ -29,5 +29,6 @@
         <Asset Type="Microsoft.VisualStudio.ItemTemplate" d:Source="Project" d:ProjectName="AvaloniaTemplatedControlTemplate" d:TargetPath="|AvaloniaTemplatedControlTemplate;TemplateProjectOutputGroup|" Path="ItemTemplates" d:VsixSubPath="ItemTemplates" />
         <Asset Type="Microsoft.VisualStudio.ItemTemplate" d:Source="Project" d:ProjectName="AvaloniaResourceDictionaryTemplate" d:TargetPath="|AvaloniaResourceDictionaryTemplate;TemplateProjectOutputGroup|" Path="ItemTemplates" d:VsixSubPath="ItemTemplates" />
         <Asset Type="Microsoft.VisualStudio.ItemTemplate" d:Source="Project" d:ProjectName="AvaloniaStylesTemplate" d:TargetPath="|AvaloniaStylesTemplate;TemplateProjectOutputGroup|" Path="ItemTemplates" d:VsixSubPath="ItemTemplates" />
+        <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="File" Path="Snippets\snippets.pkgdef" />
     </Assets>
 </PackageManifest>

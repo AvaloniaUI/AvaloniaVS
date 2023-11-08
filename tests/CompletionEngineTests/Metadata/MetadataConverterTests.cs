@@ -212,6 +212,6 @@ namespace CompletionEngineTests
         };
 
         private static Metadata Metadata = new MetadataReader(new DnlibMetadataProvider())
-            .GetForTargetAssembly(typeof(XamlCompletionTestBase).Assembly.GetModules()[0].FullyQualifiedName);
+            .GetForTargetAssembly(new FolderAssemblyProvider(typeof(XamlCompletionTestBase).Assembly.GetModules()[0].FullyQualifiedName));
     }
 }

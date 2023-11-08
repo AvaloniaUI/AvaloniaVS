@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+    <CodeSnippet Format="1.0.0">
+        <Header>
+            <SnippetTypes>
+                <SnippetType>Expansion</SnippetType>
+            </SnippetTypes>
+            <Title>02 -- AttachedProperty with default value</Title>
+            <Shortcut>attachedAvaloniaProperty</Shortcut>
+            <Description>Define AttachedProperty.</Description>
+            <Author>Avalonia Team</Author>
+        </Header>
+        <Snippet>
+            <Declarations>
+                <Literal>
+                    <ID>property</ID>
+                    <ToolTip>AttachedProperty Name</ToolTip>
+                    <Default>IsCapable</Default>
+                </Literal>
+                <Literal>
+                    <ID>type</ID>
+                    <ToolTip>AttachedProperty Type</ToolTip>
+                    <Default>bool</Default>
+                </Literal>
+                <Literal>
+                    <ID>ownerclass</ID>
+                    <ToolTip>The owning class of this property (which is typically the class in which it is declared).</ToolTip>
+                    <Default>ownerclass</Default>
+                    <Function>ClassName()</Function>
+                </Literal>
+                <Literal>
+                    <ID>hostclass</ID>
+                    <ToolTip>The type of the class that the property is to be registered on.</ToolTip>
+                    <Default>StyledElement</Default>
+                </Literal>
+                <Literal>
+                    <ID>defaultvalue</ID>
+                    <ToolTip>The default value for this property.</ToolTip>
+                    <Default>default</Default>
+                </Literal>
+                <Literal Editable="true">
+                    <ID>desc</ID>
+                    <ToolTip>A description for the property.</ToolTip>
+                    <Default>...</Default>
+                    <Function></Function>
+                </Literal>
+            </Declarations>
+            <Code Language="csharp">
+                <![CDATA[
+        /// <summary>
+        /// $property$ AttachedProperty definition
+        /// indicates $desc$.
+        /// </summary>
+                public static readonly AttachedProperty<$type$> $property$Property =
+                    AvaloniaProperty.RegisterAttached<$ownerclass$, $hostclass$ ,$type$>("$property$",$defaultvalue$);
+
+        /// <summary>
+        /// Accessor for Attached property <see cref="$property$Property"/>.
+        /// </summary>
+        /// <param name="element">Target element</param>
+        /// <param name="value">The value to set <see cref="$property$Property"/>.</param>
+        public static void Set$property$($hostclass$ element, $type$ value) =>
+            element.SetValue($property$Property, value);
+
+        /// <summary>
+        /// Accessor for Attached property <see cref="$property$Property"/>.
+        /// </summary>
+        /// <param name="element">Target element</param>
+        public static $type$ Get$property$($hostclass$ element) =>
+            element.GetValue($property$Property);
+
+        $end$]]>
+            </Code>
+            <Imports>
+                <Import>
+                    <Namespace>Avalonia</Namespace>
+                </Import>
+            </Imports>
+        </Snippet>
+    </CodeSnippet>
+</CodeSnippets>

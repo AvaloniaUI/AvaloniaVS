@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using Avalonia.Ide.CompletionEngine;
@@ -8,6 +10,30 @@ using Xunit;
 
 namespace CompletionEngineTests
 {
+    public class FolderAssemblyProvider : IAssemblyProvider
+    {
+        private readonly string _path;
+
+        public FolderAssemblyProvider(string path)
+        {
+            _path = path;
+        }
+
+        public IEnumerable<string> GetAssemblies()
+        {
+            if (Path.GetDirectoryName(_path) is not { } directory)
+            {
+                return Array.Empty<string>();
+            }
+
+            var depsPath = Path.Combine(directory,
+                Path.GetFileNameWithoutExtension(_path) + ".deps.json");
+            if (File.Exists(depsPath))
+                return DepsJsonAssemblyListLoader.ParseFile(depsPath);
+            return Directory.GetFiles(directory).Where(f => f.EndsWith(".dll") || f.EndsWith(".exe"));
+        }
+    }
+
     public class XamlCompletionTestBase
     {
         private static readonly string Prologue = @"<UserControl xmlns='https://github.com/avaloniaui'
@@ -17,7 +43,7 @@ namespace CompletionEngineTests
 
 
         private static Metadata Metadata = new MetadataReader(new DnlibMetadataProvider())
-            .GetForTargetAssembly(typeof(XamlCompletionTestBase).Assembly.GetModules()[0].FullyQualifiedName);
+            .GetForTargetAssembly(new FolderAssemblyProvider(typeof(XamlCompletionTestBase).Assembly.GetModules()[0].FullyQualifiedName));
 
         CompletionSet TransformCompletionSet(CompletionSet set)
         {
@@ -31,7 +57,7 @@ namespace CompletionEngineTests
             };
         }
 
-        protected CompletionSet GetCompletionsFor(string xaml, string xamlAfterCursor ="")
+        protected CompletionSet GetCompletionsFor(string xaml, string xamlAfterCursor = "")
         {
             xaml = Prologue + xaml;
             var engine = new CompletionEngine();

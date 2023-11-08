@@ -37,23 +37,24 @@ namespace AvaloniaVS.IntelliSense
         private readonly ICompletionBroker _completionBroker;
         private readonly IOleCommandTarget _nextCommandHandler;
         private readonly ITextView _textView;
+        private readonly CompletionEngine _engine;
         private ICompletionSession _session;
 
         public XamlCompletionCommandHandler(
             IServiceProvider serviceProvider,
             ICompletionBroker completionBroker,
             ITextView textView,
-            IVsTextView textViewAdapter)
+            IVsTextView textViewAdapter,
+            CompletionEngine completionEngine)
         {
             _serviceProvider = serviceProvider;
             _completionBroker = completionBroker;
             _textView = textView;
+            _engine = completionEngine;
 
             // Add ourselves as a command to the text view.
             textViewAdapter.AddCommandFilter(this, out _nextCommandHandler);
         }
-
-        public CompletionEngine Engine { get; set; }
 
         public int QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
         {
@@ -255,7 +256,7 @@ namespace AvaloniaVS.IntelliSense
                     if (state == XmlParser.ParserState.AttributeValue ||
                         state == XmlParser.ParserState.AfterAttributeValue)
                     {
-                        var type = Engine.Helper.LookupType(parser.TagName);
+                        var type = _engine.Helper.LookupType(parser.TagName);
                         if (type != null && type.Events.FirstOrDefault(x => x.Name == parser.AttributeName) != null)
                         {
                             GenerateEventHandler(type.FullName, parser.AttributeName, selected.InsertionText);
