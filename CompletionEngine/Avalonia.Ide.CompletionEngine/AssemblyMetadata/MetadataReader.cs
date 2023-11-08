@@ -7,15 +7,12 @@ namespace Avalonia.Ide.CompletionEngine.AssemblyMetadata;
 public class MetadataReader
 {
     private readonly IMetadataProvider _provider;
+    private readonly IAssemblyProvider _assemblyProvider;
 
-    public MetadataReader(IMetadataProvider provider)
+    public MetadataReader(IMetadataProvider provider, IAssemblyProvider assemblyProvider)
     {
         _provider = provider;
-    }
-
-    private static IEnumerable<string> GetAssemblies(string path)
-    {
-        return File.ReadAllText(path).Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+        _assemblyProvider = assemblyProvider;
     }
 
     public Metadata? GetForTargetAssembly(string path)
@@ -23,7 +20,7 @@ public class MetadataReader
         if (!File.Exists(path))
             return null;
 
-        using var session = _provider.GetMetadata(GetAssemblies(path));
+        using var session = _provider.GetMetadata(_assemblyProvider.GetAssemblies(path));
         return MetadataConverter.ConvertMetadata(session);
     }
 }

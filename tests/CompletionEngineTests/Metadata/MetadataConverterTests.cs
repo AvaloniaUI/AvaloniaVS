@@ -211,7 +211,7 @@ namespace CompletionEngineTests
             nameof(Models.InternalClass.PublicProperty),
         };
 
-        private static Metadata Metadata = new MetadataReader(new DnlibMetadataProvider())
+        private static Metadata Metadata = new MetadataReader(new DnlibMetadataProvider(), new FolderAssemblyProvider())
             .GetForTargetAssembly(typeof(XamlCompletionTestBase).Assembly.GetModules()[0].FullyQualifiedName);
     }
 }
