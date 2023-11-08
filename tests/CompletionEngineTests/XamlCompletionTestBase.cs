@@ -12,15 +12,22 @@ namespace CompletionEngineTests
 {
     public class FolderAssemblyProvider : IAssemblyProvider
     {
-        public IEnumerable<string> GetAssemblies(string path)
+        private readonly string _path;
+
+        public FolderAssemblyProvider(string path)
         {
-            if (Path.GetDirectoryName(path) is not { } directory)
+            _path = path;
+        }
+
+        public IEnumerable<string> GetAssemblies()
+        {
+            if (Path.GetDirectoryName(_path) is not { } directory)
             {
                 return Array.Empty<string>();
             }
 
             var depsPath = Path.Combine(directory,
-                Path.GetFileNameWithoutExtension(path) + ".deps.json");
+                Path.GetFileNameWithoutExtension(_path) + ".deps.json");
             if (File.Exists(depsPath))
                 return DepsJsonAssemblyListLoader.ParseFile(depsPath);
             return Directory.GetFiles(directory).Where(f => f.EndsWith(".dll") || f.EndsWith(".exe"));
@@ -35,8 +42,8 @@ namespace CompletionEngineTests
         xmlns:local='clr-namespace:CompletionEngineTests.Models;assembly=CompletionEngineTests'>".Replace("'", "\"");
 
 
-        private static Metadata Metadata = new MetadataReader(new DnlibMetadataProvider(), new FolderAssemblyProvider())
-            .GetForTargetAssembly(typeof(XamlCompletionTestBase).Assembly.GetModules()[0].FullyQualifiedName);
+        private static Metadata Metadata = new MetadataReader(new DnlibMetadataProvider())
+            .GetForTargetAssembly(new FolderAssemblyProvider(typeof(XamlCompletionTestBase).Assembly.GetModules()[0].FullyQualifiedName));
 
         CompletionSet TransformCompletionSet(CompletionSet set)
         {

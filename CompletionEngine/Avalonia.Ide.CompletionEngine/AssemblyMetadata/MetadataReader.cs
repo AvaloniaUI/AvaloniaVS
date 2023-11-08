@@ -1,26 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-
-namespace Avalonia.Ide.CompletionEngine.AssemblyMetadata;
+﻿namespace Avalonia.Ide.CompletionEngine.AssemblyMetadata;
 
 public class MetadataReader
 {
     private readonly IMetadataProvider _provider;
-    private readonly IAssemblyProvider _assemblyProvider;
 
-    public MetadataReader(IMetadataProvider provider, IAssemblyProvider assemblyProvider)
+    public MetadataReader(IMetadataProvider provider)
     {
         _provider = provider;
-        _assemblyProvider = assemblyProvider;
     }
 
-    public Metadata? GetForTargetAssembly(string path)
+    public Metadata? GetForTargetAssembly(IAssemblyProvider assemblyProvider)
     {
-        if (!File.Exists(path))
-            return null;
-
-        using var session = _provider.GetMetadata(_assemblyProvider.GetAssemblies(path));
+        using var session = _provider.GetMetadata(assemblyProvider.GetAssemblies());
         return MetadataConverter.ConvertMetadata(session);
     }
 }

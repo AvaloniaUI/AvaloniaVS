@@ -4,6 +4,6 @@ namespace Avalonia.Ide.CompletionEngine.AssemblyMetadata
 {
     public interface IAssemblyProvider
     {
-        IEnumerable<string> GetAssemblies(string path);
+        IEnumerable<string> GetAssemblies();
     }
 }

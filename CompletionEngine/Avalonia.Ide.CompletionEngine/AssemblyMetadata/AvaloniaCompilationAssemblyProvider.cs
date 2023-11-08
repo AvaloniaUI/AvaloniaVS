@@ -6,9 +6,18 @@ namespace Avalonia.Ide.CompletionEngine.AssemblyMetadata
 {
     public class AvaloniaCompilationAssemblyProvider : IAssemblyProvider
     {
-        public IEnumerable<string> GetAssemblies(string path)
+        private readonly string _path;
+
+        public AvaloniaCompilationAssemblyProvider(string path)
         {
-            return File.ReadAllText(path).Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+            if (string.IsNullOrEmpty(path))
+                throw new ArgumentNullException(nameof(path));
+            _path = path;
+        }
+
+        public IEnumerable<string> GetAssemblies()
+        {
+            return File.ReadAllText(_path).Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
         }
     }
 }

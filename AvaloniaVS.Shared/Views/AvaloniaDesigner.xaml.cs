@@ -568,8 +568,8 @@ namespace AvaloniaVS.Views
                 {
                     metadataLoad = Task.Run(() =>
                                     {
-                                        var metadataReader = new MetadataReader(new DnlibMetadataProvider(), new AvaloniaCompilationAssemblyProvider());
-                                        return metadataReader.GetForTargetAssembly(intermediateOutputPath);
+                                        var metadataReader = new MetadataReader(new DnlibMetadataProvider());
+                                        return metadataReader.GetForTargetAssembly(new AvaloniaCompilationAssemblyProvider(intermediateOutputPath));
                                     });
                     _metadataCache[intermediateOutputPath] = metadataLoad;
                 }
