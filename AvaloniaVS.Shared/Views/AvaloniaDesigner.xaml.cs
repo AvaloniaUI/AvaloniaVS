@@ -16,6 +16,7 @@ using AvaloniaVS.Models;
 using AvaloniaVS.Services;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Threading;
@@ -465,11 +466,11 @@ namespace AvaloniaVS.Views
             var assemblyPath = SelectedTarget?.XamlAssembly;
             var executablePath = SelectedTarget?.ExecutableAssembly;
             var hostAppPath = SelectedTarget?.HostApp;
-            var isNetFx = SelectedTarget?.IsNetFramework; 
+            var isNetFx = SelectedTarget?.IsNetFramework;
 
             if (assemblyPath != null && executablePath != null && hostAppPath != null && isNetFx != null)
             {
-                RebuildMetadata(assemblyPath, executablePath);
+                RebuildMetadata(assemblyPath);
 
                 try
                 {
@@ -518,22 +519,23 @@ namespace AvaloniaVS.Views
             Log.Logger.Verbose("Finished AvaloniaDesigner.StartProcessAsync()");
         }
 
-        private void RebuildMetadata(string assemblyPath, string executablePath)
+        private void RebuildMetadata(string assemblyPath)
         {
-            assemblyPath = assemblyPath ?? SelectedTarget?.XamlAssembly;
-            executablePath = executablePath ?? SelectedTarget?.ExecutableAssembly;
+            assemblyPath ??= SelectedTarget?.XamlAssembly;
 
-            if (assemblyPath != null && executablePath != null)
+            if (assemblyPath != null && SelectedTarget?.Project != null)
             {
                 var buffer = _editor.TextView.TextBuffer;
                 var metadata = buffer.Properties.GetOrCreateSingletonProperty(
                     typeof(XamlBufferMetadata),
                     () => new XamlBufferMetadata());
                 buffer.Properties["AssemblyName"] = Path.GetFileNameWithoutExtension(assemblyPath);
-
+                var storage = GetMSBuildPropertyStorage(SelectedTarget.Project);
+                string intermediateOutputPath = GetMSBuildProperty("MSBuildProjectDirectory", storage) + "\\"
+                    + GetMSBuildProperty("IntermediateOutputPath", storage) + "Avalonia\\references";
                 if (metadata.CompletionMetadata == null || metadata.NeedInvalidation)
                 {
-                    CreateCompletionMetadataAsync(executablePath, metadata).FireAndForget();
+                    CreateCompletionMetadataAsync(intermediateOutputPath, metadata).FireAndForget();
                 }
             }
         }
@@ -541,7 +543,7 @@ namespace AvaloniaVS.Views
         private static Dictionary<string, Task<Metadata>> _metadataCache;
 
         private static async Task CreateCompletionMetadataAsync(
-            string executablePath,
+            string intermediateOutputPath,
             XamlBufferMetadata target)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -554,7 +556,7 @@ namespace AvaloniaVS.Views
                 dte.Events.BuildEvents.OnBuildBegin += (s, e) => _metadataCache.Clear();
             }
 
-            Log.Logger.Verbose("Started AvaloniaDesigner.CreateCompletionMetadataAsync() for {ExecutablePath}", executablePath);
+            Log.Logger.Verbose("Started AvaloniaDesigner.CreateCompletionMetadataAsync() for {ExecutablePath}", intermediateOutputPath);
 
             try
             {
@@ -562,14 +564,14 @@ namespace AvaloniaVS.Views
 
                 Task<Metadata> metadataLoad;
 
-                if (!_metadataCache.TryGetValue(executablePath, out metadataLoad))
+                if (!_metadataCache.TryGetValue(intermediateOutputPath, out metadataLoad))
                 {
                     metadataLoad = Task.Run(() =>
                                     {
                                         var metadataReader = new MetadataReader(new DnlibMetadataProvider());
-                                        return metadataReader.GetForTargetAssembly(executablePath);
+                                        return metadataReader.GetForTargetAssembly(new AvaloniaCompilationAssemblyProvider(intermediateOutputPath));
                                     });
-                    _metadataCache[executablePath] = metadataLoad;
+                    _metadataCache[intermediateOutputPath] = metadataLoad;
                 }
 
                 target.CompletionMetadata = await metadataLoad;
@@ -578,7 +580,7 @@ namespace AvaloniaVS.Views
 
                 sw.Stop();
 
-                Log.Logger.Verbose("Finished AvaloniaDesigner.CreateCompletionMetadataAsync() took {Time} for {ExecutablePath}", sw.Elapsed, executablePath);
+                Log.Logger.Verbose("Finished AvaloniaDesigner.CreateCompletionMetadataAsync() took {Time} for {ExecutablePath}", sw.Elapsed, intermediateOutputPath);
             }
             catch (Exception ex)
             {
@@ -839,6 +841,32 @@ namespace AvaloniaVS.Views
             {
                 return await reader.ReadToEndAsync();
             }
+        }
+
+        private IVsBuildPropertyStorage GetMSBuildPropertyStorage(Project project)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            IVsSolution solution = (IVsSolution)ServiceProvider.GlobalProvider.GetService(typeof(SVsSolution));
+
+            int hr = solution.GetProjectOfUniqueName(project.FullName, out var hierarchy);
+            System.Runtime.InteropServices.Marshal.ThrowExceptionForHR(hr);
+
+            return hierarchy as IVsBuildPropertyStorage;
+        }
+
+        private string GetMSBuildProperty(string key, IVsBuildPropertyStorage storage)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            int hr = storage.GetPropertyValue(key, null, (uint)_PersistStorageType.PST_USER_FILE, out var value);
+            int E_XML_ATTRIBUTE_NOT_FOUND = unchecked((int)0x8004C738);
+
+            // ignore this HR, it means that there's no value for this key
+            if (hr != E_XML_ATTRIBUTE_NOT_FOUND)
+            {
+                System.Runtime.InteropServices.Marshal.ThrowExceptionForHR(hr);
+            }
+
+            return value;
         }
     }
 }
