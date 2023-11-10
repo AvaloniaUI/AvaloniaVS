@@ -34,46 +34,53 @@
             </Grid>
         </ScrollViewer>
 
-        <StackPanel
-            Name="error"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
+    <Border Name="error"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
+            Background="Gray"
+            Opacity=".75"
             Visibility="Collapsed">
-            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
-                <Grid Margin="0,0,7,0">
-                    <Ellipse
-                        Width="22"
-                        Height="22"
-                        Fill="#f55762" />
-                    <TextBlock
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        FontSize="16"
-                        FontWeight="ExtraBold"
-                        Foreground="White"
-                        Text="!" />
-                </Grid>
 
-                <TextBlock
-                    Name="errorHeading"
-                    HorizontalAlignment="Center"
-                    FontSize="18" />
-            </StackPanel>
-
+      <StackPanel Background="Black"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center">
+        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+          <Grid Margin="0,0,7,0">
+            <Ellipse
+                Width="22"
+                Height="22"
+                Fill="#f55762" />
             <TextBlock
-                Name="errorMessage"
-                Margin="20,10,20,0"
-                HorizontalAlignment="Center"
-                TextWrapping="Wrap" />
-            <Button
-                Name="buildButton"
-                Margin="0,15,0,0"
-                Padding="7,5,7,5"
-                Visibility="Hidden"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
-                Content="Build" />
+                FontSize="16"
+                FontWeight="ExtraBold"
+                Foreground="White"
+                Text="!" />
+          </Grid>
+
+          <TextBlock
+            Name="errorHeading"
+            HorizontalAlignment="Center"
+            FontSize="18" />
         </StackPanel>
+
+        <TextBlock
+        Name="errorMessage"
+        Margin="20,10,20,0"
+        HorizontalAlignment="Center"
+        TextWrapping="Wrap" />
+        <Button
+          Name="buildButton"
+          Margin="0,15,0,0"
+          Padding="7,5,7,5"
+          Visibility="Hidden"
+          HorizontalAlignment="Center"
+          VerticalAlignment="Center"
+          Content="Build" />
+      </StackPanel>
+    </Border>
+        
 
     </Grid>
 </UserControl>
