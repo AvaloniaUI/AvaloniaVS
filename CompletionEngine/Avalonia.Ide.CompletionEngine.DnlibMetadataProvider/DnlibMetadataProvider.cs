@@ -27,7 +27,7 @@ internal class DnlibMetadataProviderSession : IMetadataReaderSession
         Assemblies = LoadAssemblies(directoryPath).Select(a => new AssemblyWrapper(a, this)).ToList();
     }
 
-    public TypeDef? GetBaseTypeDef(ITypeDefOrRef type)
+    public TypeDef? GetTypeDef(ITypeDefOrRef type)
     {
         if (type == null)
         {
@@ -40,7 +40,7 @@ internal class DnlibMetadataProviderSession : IMetadataReaderSession
         }
         else
         {
-            return _baseTypeDefs[type] = GetBaseType(type).ResolveTypeDef();
+            return _baseTypeDefs[type] = type.ResolveTypeDef();
         }
     }
 
