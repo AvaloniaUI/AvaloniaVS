@@ -6,7 +6,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Avalonia.Remote.Protocol.Input;
-using AvaloniaVS.Models;
 using AvaloniaVS.Services;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
@@ -21,6 +20,7 @@ namespace AvaloniaVS.Views
         private PreviewerProcess _process;
         private bool _centerPreviewer;
         private Size _lastBitmapSize;
+        private WeakReference<BitmapSource> _lastBitmap = new(default);
 
         public Project SelectedProject { get; set; }
         public AvaloniaPreviewer()
@@ -138,9 +138,18 @@ namespace AvaloniaVS.Views
 
         private void Update(BitmapSource bitmap)
         {
+            if (Process is null)
+            {
+                return;
+            }
+            if (bitmap is null)
+            {
+                _lastBitmap.TryGetTarget(out bitmap);
+            }
+            
             preview.Source = bitmap;
 
-            if (bitmap != null)
+            if (bitmap is not null)
             {
                 var scaling = VisualTreeHelper.GetDpi(this).DpiScaleX;
 
@@ -173,10 +182,7 @@ namespace AvaloniaVS.Views
                     _centerPreviewer = true;
                     _lastBitmapSize = new Size(preview.Width, preview.Height);
                 }
-            }
-            else
-            {
-                previewScroller.Visibility = Visibility.Collapsed;
+                _lastBitmap.SetTarget(bitmap);
             }
         }
 
