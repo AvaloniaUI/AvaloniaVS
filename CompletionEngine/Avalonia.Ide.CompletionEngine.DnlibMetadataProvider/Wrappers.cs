@@ -10,10 +10,12 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider;
 internal class AssemblyWrapper : IAssemblyInformation
 {
     private readonly AssemblyDef _asm;
+    private readonly DnlibMetadataProviderSession _session;
 
-    public AssemblyWrapper(AssemblyDef asm)
+    public AssemblyWrapper(AssemblyDef asm, DnlibMetadataProviderSession session)
     {
         _asm = asm;
+        _session = session;
     }
 
     public string Name => _asm.Name;
@@ -22,7 +24,7 @@ internal class AssemblyWrapper : IAssemblyInformation
         => _asm.GetFullNameWithPublicKeyToken();
 
     public IEnumerable<ITypeInformation> Types
-        => _asm.Modules.SelectMany(m => m.Types).Select(TypeWrapper.FromDef).Where(t => t is not null)!;
+        => _asm.Modules.SelectMany(m => m.Types).Select(x => TypeWrapper.FromDef(x, _session)).Where(t => t is not null)!;
 
     public IEnumerable<ICustomAttributeInformation> CustomAttributes
         => _asm.CustomAttributes.Select(a => new CustomAttributeWrapper(a));
@@ -45,15 +47,16 @@ internal class AssemblyWrapper : IAssemblyInformation
 internal class TypeWrapper : ITypeInformation
 {
     private readonly TypeDef _type;
+    private readonly DnlibMetadataProviderSession _session;
 
-    public static TypeWrapper? FromDef(TypeDef def) => def == null ? null : new TypeWrapper(def);
+    public static TypeWrapper? FromDef(TypeDef? def, DnlibMetadataProviderSession session) => def == null ? null : new TypeWrapper(def, session);
 
-    private TypeWrapper(TypeDef type)
+    private TypeWrapper(TypeDef type, DnlibMetadataProviderSession session)
     {
         if (type == null)
             throw new ArgumentNullException();
         _type = type;
-
+        _session = session;
         AssemblyQualifiedName = _type.AssemblyQualifiedName;
     }
 
@@ -61,13 +64,13 @@ internal class TypeWrapper : ITypeInformation
     public string Name => _type.Name;
     public string AssemblyQualifiedName { get; }
     public string Namespace => _type.Namespace;
-    public ITypeInformation? GetBaseType() => FromDef(_type.GetBaseType().ResolveTypeDef());
+    public ITypeInformation? GetBaseType() => FromDef(_session.GetTypeDef(_session.GetBaseType(_type)), _session);
 
     public IEnumerable<IEventInformation> Events => _type.Events.Select(e => new EventWrapper(e));
 
     public IEnumerable<IMethodInformation> Methods => _type.Methods.Select(m => new MethodWrapper(m));
 
-    public IEnumerable<IFieldInformation> Fields => _type.Fields.Select(f => new FieldWrapper(f));
+    public IEnumerable<IFieldInformation> Fields => _type.Fields.Select(f => new FieldWrapper(f, _session));
 
     public IEnumerable<IPropertyInformation> Properties => _type.Properties
         //Filter indexer properties
@@ -122,7 +125,7 @@ internal class TypeWrapper : ITypeInformation
     }
     public override string ToString() => Name;
     public IEnumerable<ITypeInformation> NestedTypes =>
-        _type.HasNestedTypes ? _type.NestedTypes.Select(t => new TypeWrapper(t)) : Array.Empty<TypeWrapper>();
+        _type.HasNestedTypes ? _type.NestedTypes.Select(t => new TypeWrapper(t, _session)) : Array.Empty<TypeWrapper>();
 
     public IEnumerable<(ITypeInformation Type, string Name)> TemplateParts
     {
@@ -134,7 +137,7 @@ internal class TypeWrapper : ITypeInformation
             foreach (var attr in attributes)
             {
                 var name = attr.ConstructorArguments[0].Value.ToString()!;
-                ITypeInformation type = TypeWrapper.FromDef(((ClassSig)attr.ConstructorArguments[1].Value).TypeDef)!;
+                ITypeInformation type = FromDef(((ClassSig)attr.ConstructorArguments[1].Value).TypeDef, _session)!;
                 yield return (type, name);
             }
         }
@@ -280,7 +283,7 @@ internal class PropertyWrapper : IPropertyInformation
 
 internal class FieldWrapper : IFieldInformation
 {
-    public FieldWrapper(FieldDef f)
+    public FieldWrapper(FieldDef f, DnlibMetadataProviderSession session)
     {
         IsStatic = f.IsStatic;
         IsPublic = f.IsPublic || f.IsAssembly;
@@ -296,7 +299,7 @@ internal class FieldWrapper : IFieldInformation
                 isRoutedEvent = true;
                 break;
             }
-            t = t.GetBaseType();
+            t = session.GetBaseType(t);
         }
 
         IsRoutedEvent = isRoutedEvent;
