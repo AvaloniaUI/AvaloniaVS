@@ -17,12 +17,44 @@ public class DnlibMetadataProvider : IMetadataProvider
 
 internal class DnlibMetadataProviderSession : IMetadataReaderSession
 {
+    private readonly Dictionary<ITypeDefOrRef, ITypeDefOrRef> _baseTypes = new Dictionary<ITypeDefOrRef, ITypeDefOrRef>();
+    private readonly Dictionary<ITypeDefOrRef, TypeDef> _baseTypeDefs = new Dictionary<ITypeDefOrRef, TypeDef>();
     public string TargetAssemblyName { get; private set; }
     public IEnumerable<IAssemblyInformation> Assemblies { get; }
     public DnlibMetadataProviderSession(string[] directoryPath)
     {
         TargetAssemblyName = System.Reflection.AssemblyName.GetAssemblyName(directoryPath[0]).ToString();
-        Assemblies = LoadAssemblies(directoryPath).Select(a => new AssemblyWrapper(a)).ToList();
+        Assemblies = LoadAssemblies(directoryPath).Select(a => new AssemblyWrapper(a, this)).ToList();
+    }
+
+    public TypeDef? GetTypeDef(ITypeDefOrRef type)
+    {
+        if (type == null)
+        {
+            return null;
+        }
+
+        if (_baseTypeDefs.TryGetValue(type, out var baseType))
+        {
+            return baseType;
+        }
+        else
+        {
+            return _baseTypeDefs[type] = type.ResolveTypeDef();
+        }
+    }
+
+    public ITypeDefOrRef GetBaseType(ITypeDefOrRef type)
+    {
+        if (_baseTypes.TryGetValue(type, out var baseType))
+        {
+            return baseType;
+        }
+        else
+        {
+            return _baseTypes[type] = type.GetBaseType();
+        }
+
     }
 
     private static List<AssemblyDef> LoadAssemblies(string[] lst)

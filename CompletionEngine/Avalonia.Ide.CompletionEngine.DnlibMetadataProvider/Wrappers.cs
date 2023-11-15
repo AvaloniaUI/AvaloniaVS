@@ -11,10 +11,12 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider;
 internal class AssemblyWrapper : IAssemblyInformation
 {
     private readonly AssemblyDef _asm;
+    private readonly DnlibMetadataProviderSession _session;
 
-    public AssemblyWrapper(AssemblyDef asm)
+    public AssemblyWrapper(AssemblyDef asm, DnlibMetadataProviderSession session)
     {
         _asm = asm;
+        _session = session;
     }
 
     public string Name => _asm.Name;
@@ -23,7 +25,7 @@ internal class AssemblyWrapper : IAssemblyInformation
         => _asm.GetFullNameWithPublicKeyToken();
 
     public IEnumerable<ITypeInformation> Types
-        => _asm.Modules.SelectMany(m => m.Types).Select(TypeWrapper.FromDef).Where(t => t is not null)!;
+        => _asm.Modules.SelectMany(m => m.Types).Select(x => TypeWrapper.FromDef(x, _session)).Where(t => t is not null)!;
 
     public IEnumerable<ICustomAttributeInformation> CustomAttributes
         => _asm.CustomAttributes.Select(a => new CustomAttributeWrapper(a));
@@ -46,19 +48,16 @@ internal class AssemblyWrapper : IAssemblyInformation
 internal class TypeWrapper : ITypeInformation
 {
     private readonly TypeDef _type;
-    private readonly static ConcurrentDictionary<TypeDef, TypeWrapper> _typeCache = new();
+    private readonly DnlibMetadataProviderSession _session;
 
-    public static TypeWrapper? FromDef(TypeDef def) =>
-        def is null
-        ? null
-        : _typeCache.GetOrAdd(def, new TypeWrapper(def));
+    public static TypeWrapper? FromDef(TypeDef? def, DnlibMetadataProviderSession session) => def == null ? null : new TypeWrapper(def, session);
 
-    private TypeWrapper(TypeDef type)
+    private TypeWrapper(TypeDef type, DnlibMetadataProviderSession session)
     {
         if (type == null)
             throw new ArgumentNullException();
         _type = type;
-
+        _session = session;
         AssemblyQualifiedName = _type.AssemblyQualifiedName;
     }
 
@@ -66,13 +65,13 @@ internal class TypeWrapper : ITypeInformation
     public string Name => _type.Name;
     public string AssemblyQualifiedName { get; }
     public string Namespace => _type.Namespace;
-    public ITypeInformation? GetBaseType() => FromDef(_type.GetBaseType().ResolveTypeDef());
+    public ITypeInformation? GetBaseType() => FromDef(_session.GetTypeDef(_session.GetBaseType(_type)), _session);
 
     public IEnumerable<IEventInformation> Events => _type.Events.Select(EventWrapper.FromDef);
 
-    public IEnumerable<IMethodInformation> Methods => _type.GetMethodsHierarchy().Select(MethodWrapper.FromDef);
+    public IEnumerable<IMethodInformation> Methods => _type.GetMethodsHierarchy().Select(m => MethodWrapper.FromDef(m, _session));
 
-    public IEnumerable<IFieldInformation> Fields => _type.Fields.Select(FieldWrapper.FromDef);
+    public IEnumerable<IFieldInformation> Fields => _type.Fields.Select(f => new FieldWrapper(f, _session));
 
     public IEnumerable<IPropertyInformation> Properties => _type.Properties
         //Filter indexer properties
@@ -136,7 +135,7 @@ internal class TypeWrapper : ITypeInformation
     }
 
     public IEnumerable<ITypeInformation> NestedTypes =>
-        _type.HasNestedTypes ? _type.NestedTypes.Select(t => new TypeWrapper(t)) : Array.Empty<TypeWrapper>();
+        _type.HasNestedTypes ? _type.NestedTypes.Select(t => new TypeWrapper(t, _session)) : Array.Empty<TypeWrapper>();
 
     public IEnumerable<(ITypeInformation Type, string Name)> TemplateParts
     {
@@ -148,7 +147,7 @@ internal class TypeWrapper : ITypeInformation
             foreach (var attr in attributes)
             {
                 var name = attr.ConstructorArguments[0].Value.ToString()!;
-                ITypeInformation type = TypeWrapper.FromDef(((ClassSig)attr.ConstructorArguments[1].Value).TypeDef)!;
+                ITypeInformation type = FromDef(((ClassSig)attr.ConstructorArguments[1].Value).TypeDef, _session)!;
                 yield return (type, name);
             }
         }
@@ -322,12 +321,7 @@ internal class PropertyWrapper : IPropertyInformation
 
 internal class FieldWrapper : IFieldInformation
 {
-    static readonly ConcurrentDictionary<FieldDef, FieldWrapper> _fieldsCanche = new();
-
-    public static FieldWrapper FromDef(FieldDef def) =>
-        _fieldsCanche.GetOrAdd(def, new FieldWrapper(def));
-
-    private FieldWrapper(FieldDef f)
+    public FieldWrapper(FieldDef f, DnlibMetadataProviderSession session)
     {
         IsStatic = f.IsStatic;
         IsPublic = f.IsPublic || f.IsAssembly;
@@ -343,7 +337,7 @@ internal class FieldWrapper : IFieldInformation
                 isRoutedEvent = true;
                 break;
             }
-            t = t.GetBaseType();
+            t = session.GetBaseType(t);
         }
 
         IsRoutedEvent = isRoutedEvent;
@@ -388,18 +382,19 @@ internal class EventWrapper : IEventInformation
 internal class MethodWrapper : IMethodInformation
 {
     private readonly MethodDef _method;
+    private readonly DnlibMetadataProviderSession _session;
     private readonly Lazy<IList<IParameterInformation>> _parameters;
     private static readonly ConcurrentDictionary<MethodDef, MethodWrapper> _methodsCache = new();
 
-    public static MethodWrapper FromDef(MethodDef def) =>
-            _methodsCache.GetOrAdd(def, new MethodWrapper(def));
+    public static MethodWrapper FromDef(MethodDef def, DnlibMetadataProviderSession session) =>
+            _methodsCache.GetOrAdd(def, new MethodWrapper(def, session));
 
-    private MethodWrapper(MethodDef method)
+    private MethodWrapper(MethodDef method, DnlibMetadataProviderSession session)
     {
         _method = method;
+        _session = session;
         _parameters = new Lazy<IList<IParameterInformation>>(() =>
-            _method.Parameters.Skip(_method.IsStatic ? 0 : 1).Select(p => (IParameterInformation)new ParameterWrapper(p)).ToList() as
-                IList<IParameterInformation>);
+            _method.Parameters.Skip(_method.IsStatic ? 0 : 1).Select(p => (IParameterInformation)new ParameterWrapper(p, _session!)).ToList());
         if (_method.ReturnType is not null)
         {
             QualifiedReturnTypeFullName = _method.ReturnType.AssemblyQualifiedName;
@@ -440,8 +435,9 @@ internal class MethodWrapper : IMethodInformation
 internal class ParameterWrapper : IParameterInformation
 {
     private readonly Lazy<ITypeInformation?> _type;
+    private readonly DnlibMetadataProviderSession _session;
 
-    public ParameterWrapper(Parameter param)
+    public ParameterWrapper(Parameter param, DnlibMetadataProviderSession session)
     {
         TypeFullName = param.Type.FullName;
         QualifiedTypeFullName = param.Type.AssemblyQualifiedName;
@@ -449,10 +445,11 @@ internal class ParameterWrapper : IParameterInformation
         {
             if (param.Type?.TryGetTypeDefOrRef()?.ResolveTypeDef() is { } td)
             {
-                return TypeWrapper.FromDef(td);
+                return TypeWrapper.FromDef(td, _session!);
             }
             return null;
         });
+        _session = session;
     }
     public string TypeFullName { get; }
     public string QualifiedTypeFullName { get; }
