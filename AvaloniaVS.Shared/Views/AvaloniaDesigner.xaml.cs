@@ -519,6 +519,26 @@ namespace AvaloniaVS.Views
             Log.Logger.Verbose("Finished AvaloniaDesigner.StartProcessAsync()");
         }
 
+        private string GetIntermediateOutputPath(IVsBuildPropertyStorage storage)
+        {
+            // .NET 8 SDK Artifacts output layout
+            // https://learn.microsoft.com/en-us/dotnet/core/sdk/artifacts-output
+            // Example
+            // MSBuildProjectDirectory: X:\abcd\src\Mobius.Windows\
+            // IntermediateOutputPath: X:\abcd\src\artifacts\obj\Mobius.Windows\debug_net8.0-windows10.0.19041.0
+
+            var intermediateOutputPath = GetMSBuildProperty("IntermediateOutputPath", storage);
+            if (Path.IsPathRooted(intermediateOutputPath))
+            {
+                return Path.Combine(intermediateOutputPath, "Avalonia", "references");
+            }
+            else
+            {
+                var projDir = GetMSBuildProperty("MSBuildProjectDirectory", storage);
+                return Path.Combine(projDir, intermediateOutputPath.TrimStart(Path.DirectorySeparatorChar), "Avalonia", "references");
+            }
+        }
+
         private void RebuildMetadata(string assemblyPath)
         {
             assemblyPath ??= SelectedTarget?.XamlAssembly;
@@ -531,8 +551,7 @@ namespace AvaloniaVS.Views
                     () => new XamlBufferMetadata());
                 buffer.Properties["AssemblyName"] = Path.GetFileNameWithoutExtension(assemblyPath);
                 var storage = GetMSBuildPropertyStorage(SelectedTarget.Project);
-                string intermediateOutputPath = GetMSBuildProperty("MSBuildProjectDirectory", storage) + "\\"
-                    + GetMSBuildProperty("IntermediateOutputPath", storage) + "Avalonia\\references";
+                string intermediateOutputPath = GetIntermediateOutputPath(storage);
                 if (metadata.CompletionMetadata == null || metadata.NeedInvalidation)
                 {
                     CreateCompletionMetadataAsync(intermediateOutputPath, metadata).FireAndForget();
@@ -556,7 +575,7 @@ namespace AvaloniaVS.Views
                 dte.Events.BuildEvents.OnBuildBegin += (s, e) => _metadataCache.Clear();
             }
 
-            Log.Logger.Verbose("Started AvaloniaDesigner.CreateCompletionMetadataAsync() for {ExecutablePath}", intermediateOutputPath);
+            Log.Logger.Information("Started AvaloniaDesigner.CreateCompletionMetadataAsync() for {ExecutablePath}", intermediateOutputPath);
 
             try
             {
