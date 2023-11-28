@@ -17,7 +17,19 @@ namespace Avalonia.Ide.CompletionEngine.AssemblyMetadata
 
         public IEnumerable<string> GetAssemblies()
         {
-            return File.ReadAllText(_path).Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+            try
+            {
+                return File.ReadAllText(_path).Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+            }
+            catch (Exception ex) when
+                (ex is DirectoryNotFoundException || ex is FileNotFoundException)
+            {
+                return Array.Empty<string>();
+            }
+            catch (Exception ex)
+            {
+                throw new IOException($"Failed to read file '{_path}'.", ex);
+            }
         }
     }
 }
