@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Avalonia.Ide.CompletionEngine.AssemblyMetadata;
@@ -19,12 +20,20 @@ internal class DnlibMetadataProviderSession : IMetadataReaderSession
 {
     private readonly Dictionary<ITypeDefOrRef, ITypeDefOrRef> _baseTypes = new Dictionary<ITypeDefOrRef, ITypeDefOrRef>();
     private readonly Dictionary<ITypeDefOrRef, TypeDef> _baseTypeDefs = new Dictionary<ITypeDefOrRef, TypeDef>();
-    public string TargetAssemblyName { get; private set; }
+    public string? TargetAssemblyName { get; private set; }
     public IEnumerable<IAssemblyInformation> Assemblies { get; }
     public DnlibMetadataProviderSession(string[] directoryPath)
     {
-        TargetAssemblyName = System.Reflection.AssemblyName.GetAssemblyName(directoryPath[0]).ToString();
-        Assemblies = LoadAssemblies(directoryPath).Select(a => new AssemblyWrapper(a, this)).ToList();
+        if (directoryPath == null || directoryPath.Length == 0)
+        {
+            TargetAssemblyName = null;
+            Assemblies = Array.Empty<IAssemblyInformation>();
+        }
+        else
+        {
+            TargetAssemblyName = System.Reflection.AssemblyName.GetAssemblyName(directoryPath[0]).ToString();
+            Assemblies = LoadAssemblies(directoryPath).Select(a => new AssemblyWrapper(a, this)).ToList();
+        }
     }
 
     public TypeDef? GetTypeDef(ITypeDefOrRef type)

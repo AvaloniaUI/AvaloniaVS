@@ -10,6 +10,6 @@ public interface IMetadataProvider
 
 public interface IMetadataReaderSession : IDisposable
 {
-    string TargetAssemblyName { get; }
+    string? TargetAssemblyName { get; }
     IEnumerable<IAssemblyInformation> Assemblies { get; }
 }
