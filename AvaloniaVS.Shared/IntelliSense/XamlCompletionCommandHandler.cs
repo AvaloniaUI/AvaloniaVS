@@ -100,7 +100,7 @@ namespace AvaloniaVS.IntelliSense
                     return VSConstants.S_OK;
                 }
 
-                if (HandleSessionUpdate(c))
+                if (HandleSessionUpdate())
                 {
                     return VSConstants.S_OK;
                 }
@@ -141,7 +141,7 @@ namespace AvaloniaVS.IntelliSense
             return false;
         }
 
-        private bool HandleSessionUpdate(char _)
+        private bool HandleSessionUpdate()
         {
             if (_session != null && !_session.IsDismissed)
             {
