@@ -100,7 +100,7 @@ namespace AvaloniaVS.IntelliSense
                     return VSConstants.S_OK;
                 }
 
-                if (HandleSessionUpdate(c))
+                if (HandleSessionUpdate())
                 {
                     return VSConstants.S_OK;
                 }
@@ -141,16 +141,11 @@ namespace AvaloniaVS.IntelliSense
             return false;
         }
 
-        private bool HandleSessionUpdate(char c)
+        private bool HandleSessionUpdate()
         {
-            // Update the filter if there is a deletion.
-            if (c == '\b')
+            if (_session != null && !_session.IsDismissed)
             {
-                if (_session != null && !_session.IsDismissed)
-                {
-                    _session.Filter();
-                }
-
+                _session.Filter();
                 return true;
             }
 
