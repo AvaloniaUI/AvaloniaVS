@@ -382,7 +382,14 @@ public class CompletionEngine
             }
             else if (type != null && type.Events.FirstOrDefault(x => x.Name == state.AttributeName) != null)
             {
-                completions.Add(new Completion("<New Event Handler>", $"{state.TagName}_{state.AttributeName}", CompletionKind.StaticProperty));
+                var name = state.TagName!;
+                // Clean up xmlns
+                var index = name.IndexOf(':');
+                if (index > -1)
+                {
+                    name = name.Substring(index + 1, name.Length - index - 1);
+                }
+                completions.Add(new Completion("<New Event Handler>", $"{name}_{state.AttributeName}", CompletionKind.StaticProperty));
             }
             else
             {
