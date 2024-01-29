@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Controls;
 
 namespace CompletionEngineTests.Models
 {
@@ -72,5 +73,9 @@ namespace CompletionEngineTests.Models
         protected int ProtectedProperty { get; set; }
 
         private int PrivateProperty { get; set; }
+    }
+
+    public class MyButton : Button
+    {
     }
 }

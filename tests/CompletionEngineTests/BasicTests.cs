@@ -144,6 +144,16 @@ namespace CompletionEngineTests
             Assert.Equal("DataTemplates", compl.Completions[1].DisplayText);
         }
 
+        [Fact] 
+        public void Completation_Event_Handler_Without_xmlsn()
+        {
+            var comp = GetCompletionsFor("<local:MyButton Click=\"");
+
+            Assert.NotNull(comp);
+            Assert.Equal(1, comp.Completions?.Count);
+            Assert.Equal("MyButton_Click", comp.Completions[0].InsertText);
+        }
+
         [Fact]
         public void Completions_With_Multiple_Kinds_Should_Be_Sorted()
         {
