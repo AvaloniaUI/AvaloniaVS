@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Avalonia;
+using Avalonia.Controls;
 
 namespace CompletionEngineTests.Models
 {
@@ -74,6 +75,11 @@ namespace CompletionEngineTests.Models
         protected int ProtectedProperty { get; set; }
 
         private int PrivateProperty { get; set; }
+    }
+
+    public class MyButton : Button
+    {
+
     }
 
     public class MyListBoxItem : Avalonia.Controls.ListBoxItem
