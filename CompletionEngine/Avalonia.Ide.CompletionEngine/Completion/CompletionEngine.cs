@@ -743,7 +743,7 @@ public class CompletionEngine
             {
                 foreach (var propertyName in MetadataHelper.FilterPropertyNames(filterType, filter, false, false))
                 {
-                    yield return new Completion(propertyName, fmtInsertText?.Invoke(propertyName) ?? propertyName, propertyName, CompletionKind.DataProperty);
+                    yield return new Completion(propertyName, fmtInsertText?.Invoke(propertyName) ?? propertyName, propertyName, CompletionKind.DataProperty, Priority:254);
                 }
             }
         }
