@@ -24,4 +24,4 @@ To run it you simply need to set **AvaloniaVS.csproj** as startup project and ru
 
 **Note:**
 
-This way to debug application will only help you if your issue is directly in AvaloniaVS project,if your issue is somewhere in Avalonia code,but it is reproducible only with Avalonia Previewer please consider this article - https://docs.avaloniaui.net/docs/guides/developer-guides/debugging-previewer
+This way to debug application will only help you if your issue is directly in AvaloniaVS project,if your issue is somewhere in Avalonia code,but it is reproducible only with Avalonia Previewer please consider this article - [https://docs.avaloniaui.net/docs/0.10.x/guides/developer-guides/debugging-previewer](https://docs.avaloniaui.net/docs/0.10.x/guides/developer-guides/debugging-previewer)
