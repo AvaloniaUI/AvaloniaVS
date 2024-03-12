@@ -15,6 +15,7 @@ Avalonia Visual Studio extension adds such capabilities to your Visual Studio:
 | [VS2022](https://marketplace.visualstudio.com/items?itemName=AvaloniaTeam.AvaloniaVS) |
 | ------------- |
 
+**Note:** Latest Release supporting VS2019 is **11.5**
 **Note:** Latest Release supporting VS2017 is **11.2**
 
 
