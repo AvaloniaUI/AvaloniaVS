@@ -65,10 +65,6 @@ public static class MetadataConverter
         return false;
     }
 
-    [Obsolete($"Method name was misspelled. Use {nameof(ConvertTypeInformation)} instead.")]
-    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-    public static MetadataType ConvertTypeInfomation(ITypeInformation type) => ConvertTypeInformation(type);
-
     public static MetadataType ConvertTypeInformation(ITypeInformation type)
     {
         var mt = new MetadataType(type.Name)

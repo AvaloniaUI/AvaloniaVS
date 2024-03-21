@@ -1016,9 +1016,6 @@ public class CompletionEngine
     public static CompletionKind GetCompletionKindForHintValues(MetadataType type)
         => type.IsEnum ? CompletionKind.Enum : CompletionKind.StaticProperty;
 
-    [Obsolete($"Method name was misspelled. Use {nameof(ProcessSelector)} instead.")]
-    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-    public int? ProcesssSelector(ReadOnlySpan<char> text, XmlParser state, List<Completion> completions, string? currentAssemblyName, string? fullText) => ProcessSelector(text, state, completions, currentAssemblyName, fullText);
     public int? ProcessSelector(ReadOnlySpan<char> text, XmlParser state, List<Completion> completions, string? currentAssemblyName, string? fullText)
     {
         int? parsed = default;

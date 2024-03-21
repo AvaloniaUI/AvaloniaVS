@@ -27,8 +27,6 @@ namespace AvaloniaVS.Models
         /// </summary>
         public string RuntimeIdentifier { get; }
 
-        [Obsolete($"Member name mispelled. Use {nameof(TargetPlatformIdentifier)} instead.")]
-        public string TargetPlatfromIdentifier => TargetPlatformIdentifier;
         public string TargetPlatformIdentifier { get; }
 
         /// <summary>
