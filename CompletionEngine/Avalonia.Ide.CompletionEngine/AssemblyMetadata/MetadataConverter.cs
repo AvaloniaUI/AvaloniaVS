@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -65,7 +65,7 @@ public static class MetadataConverter
         return false;
     }
 
-    public static MetadataType ConvertTypeInfomation(ITypeInformation type)
+    public static MetadataType ConvertTypeInformation(ITypeInformation type)
     {
         var mt = new MetadataType(type.Name)
         {
@@ -166,7 +166,7 @@ public static class MetadataConverter
 
             foreach (var type in asmTypes)
             {
-                var mt = types[type.AssemblyQualifiedName] = ConvertTypeInfomation(type);
+                var mt = types[type.AssemblyQualifiedName] = ConvertTypeInformation(type);
                 typeDefs[mt] = type;
                 metadata.AddType("clr-namespace:" + type.Namespace + ";assembly=" + asm.Name, mt);
                 string usingNamespace = $"using:{type.Namespace}";
@@ -212,7 +212,7 @@ public static class MetadataConverter
 
             type.TemplateParts = (typeDef?.TemplateParts ??
                 Array.Empty<(ITypeInformation, string)>())
-                .Select(item => (Type: ConvertTypeInfomation(item.Type), item.Name));
+                .Select(item => (Type: ConvertTypeInformation(item.Type), item.Name));
 
             while (typeDef != null)
             {
