@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Avalonia.Remote.Protocol.Input;
 using AvaloniaVS.Services;
 using EnvDTE;
+using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Serilog;
 using AvMouseButton = Avalonia.Remote.Protocol.Input.MouseButton;
@@ -32,6 +35,8 @@ namespace AvaloniaVS.Views
 
             buildButton.Click += BuildButton_Click;
             previewScroller.ScrollChanged += PreviewScroller_ScrollChanged;
+
+            SizeChanged += (_, _) => _lastSize = default;
         }
 
         private async void BuildButton_Click(object sender, RoutedEventArgs e)
@@ -146,7 +151,7 @@ namespace AvaloniaVS.Views
             {
                 _lastBitmap.TryGetTarget(out bitmap);
             }
-            
+
             preview.Source = bitmap;
 
             if (bitmap is not null)
@@ -311,5 +316,39 @@ namespace AvaloniaVS.Views
 
             return result.ToArray();
         }
+
+        ScrollBar? _horizontalScroll;
+        ScrollBar _verticalScroll;
+        Size? _lastSize = default;
+        public Size GetViewportSize(int padding)
+        {
+            if (_lastSize is null)
+            {
+                var height = previewScroller.ActualHeight;
+                var width = previewScroller.ActualWidth;
+                if (previewScroller.ComputedHorizontalScrollBarVisibility == Visibility.Visible)
+                {
+                    if (_horizontalScroll is null)
+                    {
+                        _horizontalScroll = previewScroller.FindDescendants<ScrollBar>()
+                            .First(b => b.Orientation == Orientation.Horizontal);
+                    }
+                    height -= _horizontalScroll.Height;
+                }
+                if (previewScroller.ComputedVerticalScrollBarVisibility == Visibility.Visible)
+                {
+                    if (_verticalScroll == null)
+                    {
+                        _verticalScroll = previewScroller.FindDescendants<ScrollBar>()
+                            .First(b => b.Orientation == Orientation.Vertical);
+                    }
+                    width -= _verticalScroll.Width;
+                }
+                _lastSize = new(width - padding * 2, height - padding * 2);
+            }
+            return _lastSize.Value;
+        }
+
+
     }
 }
