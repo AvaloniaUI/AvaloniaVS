@@ -11,5 +11,5 @@ public interface IMetadataProvider
 public interface IMetadataReaderSession : IDisposable
 {
     string? TargetAssemblyName { get; }
-    IEnumerable<IAssemblyInformation> Assemblies { get; }
+    IReadOnlyCollection<IAssemblyInformation> Assemblies { get; }
 }

@@ -18,12 +18,25 @@ public class DnlibMetadataProvider : IMetadataProvider
 
 internal class DnlibMetadataProviderSession : IMetadataReaderSession
 {
+    private readonly ModuleContext _modCtx;
     private readonly Dictionary<ITypeDefOrRef, ITypeDefOrRef> _baseTypes = new Dictionary<ITypeDefOrRef, ITypeDefOrRef>();
     private readonly Dictionary<ITypeDefOrRef, TypeDef> _baseTypeDefs = new Dictionary<ITypeDefOrRef, TypeDef>();
     public string? TargetAssemblyName { get; private set; }
-    public IEnumerable<IAssemblyInformation> Assemblies { get; }
+    public IReadOnlyCollection<IAssemblyInformation> Assemblies { get; }
     public DnlibMetadataProviderSession(string[] directoryPath)
     {
+        var asmResolver = new AssemblyResolver()
+        {
+            EnableTypeDefCache = false,
+            UseGAC = false
+        };
+        var resolver = new Resolver(asmResolver)
+        {
+            ProjectWinMDRefs = false
+        };
+        _modCtx = new ModuleContext(asmResolver, resolver);
+        asmResolver.DefaultModuleContext = _modCtx;
+
         if (directoryPath == null || directoryPath.Length == 0)
         {
             TargetAssemblyName = null;
@@ -32,7 +45,7 @@ internal class DnlibMetadataProviderSession : IMetadataReaderSession
         else
         {
             TargetAssemblyName = System.Reflection.AssemblyName.GetAssemblyName(directoryPath[0]).ToString();
-            Assemblies = LoadAssemblies(directoryPath).Select(a => new AssemblyWrapper(a, this)).ToList();
+            Assemblies = LoadAssemblies(_modCtx, directoryPath).Select(a => new AssemblyWrapper(a, this)).ToList();
         }
     }
 
@@ -41,6 +54,11 @@ internal class DnlibMetadataProviderSession : IMetadataReaderSession
         if (type == null)
         {
             return null;
+        }
+
+        if (type is TypeDef typeDef)
+        {
+            return typeDef;
         }
 
         if (_baseTypeDefs.TryGetValue(type, out var baseType))
@@ -66,15 +84,12 @@ internal class DnlibMetadataProviderSession : IMetadataReaderSession
 
     }
 
-    private static List<AssemblyDef> LoadAssemblies(string[] lst)
+    private static List<AssemblyDef> LoadAssemblies(ModuleContext context, string[] lst)
     {
-        AssemblyResolver asmResolver = new AssemblyResolver();
-        ModuleContext modCtx = new ModuleContext(asmResolver);
-        asmResolver.DefaultModuleContext = modCtx;
-        asmResolver.EnableTypeDefCache = true;
+        var asmResovler = (AssemblyResolver)context.AssemblyResolver;
 
         foreach (var path in lst)
-            asmResolver.PreSearchPaths.Add(path);
+            asmResovler.PreSearchPaths.Add(path);
 
         List<AssemblyDef> assemblies = new List<AssemblyDef>();
 
@@ -82,9 +97,12 @@ internal class DnlibMetadataProviderSession : IMetadataReaderSession
         {
             try
             {
-                var def = AssemblyDef.Load(File.ReadAllBytes(asm));
-                def.Modules[0].Context = modCtx;
-                asmResolver.AddToCache(def);
+                var creationOptions = new ModuleCreationOptions(context)
+                {
+                    TryToLoadPdbFromDisk = false
+                };
+                var def = AssemblyDef.Load(File.ReadAllBytes(asm), creationOptions);
+                asmResovler.AddToCache(def);
                 assemblies.Add(def);
             }
             catch
@@ -99,7 +117,7 @@ internal class DnlibMetadataProviderSession : IMetadataReaderSession
     public void Dispose()
     {
         _baseTypes.Clear();
-        _typeDefsCache.Clear();
+        _baseTypeDefs.Clear();
         ((AssemblyResolver)_modCtx.AssemblyResolver).Clear();
     }
 }
