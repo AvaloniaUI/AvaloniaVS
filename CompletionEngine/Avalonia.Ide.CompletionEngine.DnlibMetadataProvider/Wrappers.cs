@@ -24,7 +24,7 @@ internal class AssemblyWrapper : IAssemblyInformation
         => _asm.GetFullNameWithPublicKeyToken();
 
     public IEnumerable<ITypeInformation> Types
-        => _asm.Modules.SelectMany(m => m.Types).Select(x => TypeWrapper.FromDefOrRef(x, _session)).Where(t => t is not null)!;
+        => _asm.Modules.SelectMany(m => m.Types).Select(x => TypeWrapper.FromDef(x, _session)).Where(t => t is not null)!;
 
     public IEnumerable<ICustomAttributeInformation> CustomAttributes
         => _asm.CustomAttributes.Select(a => new CustomAttributeWrapper(a));
@@ -46,13 +46,12 @@ internal class AssemblyWrapper : IAssemblyInformation
 
 internal class TypeWrapper : ITypeInformation
 {
-    private TypeDef? _typeDef;
-    private ITypeDefOrRef _type;
+    private readonly TypeDef _type;
     private readonly DnlibMetadataProviderSession _session;
 
-    public static TypeWrapper? FromDefOrRef(ITypeDefOrRef? def, DnlibMetadataProviderSession session) => def == null ? null : new TypeWrapper(def, session);
+    public static TypeWrapper? FromDef(TypeDef? def, DnlibMetadataProviderSession session) => def == null ? null : new TypeWrapper(def, session);
 
-    private TypeWrapper(ITypeDefOrRef type, DnlibMetadataProviderSession session)
+    private TypeWrapper(TypeDef type, DnlibMetadataProviderSession session)
     {
         if (type == null)
             throw new ArgumentNullException();
@@ -61,54 +60,39 @@ internal class TypeWrapper : ITypeInformation
         AssemblyQualifiedName = _type.AssemblyQualifiedName;
     }
 
-    private TypeDef TypeDef
-    {
-        get
-        {
-            if (_typeDef is null)
-            {
-                _typeDef = _session.GetTypeDef(_type);
-                _type = _typeDef;
-            }
-            return _typeDef;
-        }
-    }
-
     public string FullName => _type.FullName;
     public string Name => _type.Name;
     public string AssemblyQualifiedName { get; }
     public string Namespace => _type.Namespace;
-    public ITypeInformation? GetBaseType() => FromDefOrRef(_session.GetBaseType(_type), _session);
+    public ITypeInformation? GetBaseType() => FromDef(_session.GetTypeDef(_session.GetBaseType(_type)), _session);
 
-    public IEnumerable<IEventInformation> Events => TypeDef.Events.Select(e => new EventWrapper(e)).ToArray();
+    public IEnumerable<IEventInformation> Events => _type.Events.Select(e => new EventWrapper(e));
 
-    private IMethodInformation[]? _methods;
-    public IEnumerable<IMethodInformation> Methods => _methods ??= TypeDef.Methods.Select(m => new MethodWrapper(m)).ToArray();
+    public IEnumerable<IMethodInformation> Methods => _type.Methods.Select(m => new MethodWrapper(m));
 
-    public IEnumerable<IFieldInformation> Fields => TypeDef.Fields.Select(f => new FieldWrapper(f, _session)).ToArray() ;
+    public IEnumerable<IFieldInformation> Fields => _type.Fields.Select(f => new FieldWrapper(f, _session));
 
-    public IEnumerable<IPropertyInformation> Properties => TypeDef.Properties
+    public IEnumerable<IPropertyInformation> Properties => _type.Properties
         //Filter indexer properties
         .Where(p =>
             (p.GetMethod?.IsPublicOrInternal() == true && p.GetMethod.Parameters.Count == (p.GetMethod.IsStatic ? 0 : 1))
             || (p.SetMethod?.IsPublicOrInternal() == true && p.SetMethod.Parameters.Count == (p.SetMethod.IsStatic ? 1 : 2)))
         // Filter property overrides
         .Where(p => !p.Name.Contains("."))
-        .Select(p => new PropertyWrapper(p))
-        .ToArray();
-    public bool IsEnum => TypeDef.IsEnum;
-    public bool IsStatic => TypeDef.IsAbstract && TypeDef.IsSealed;
-    public bool IsInterface => TypeDef.IsInterface;
-    public bool IsPublic => TypeDef.IsPublic;
-    public bool IsGeneric => TypeDef.HasGenericParameters;
-    public bool IsAbstract => TypeDef.IsAbstract && !TypeDef.IsSealed;
-    public bool IsInternal => TypeDef.IsNotPublic && !TypeDef.IsNestedPrivate;
+        .Select(p => new PropertyWrapper(p));
+    public bool IsEnum => _type.IsEnum;
+    public bool IsStatic => _type.IsAbstract && _type.IsSealed;
+    public bool IsInterface => _type.IsInterface;
+    public bool IsPublic => _type.IsPublic;
+    public bool IsGeneric => _type.HasGenericParameters;
+    public bool IsAbstract => _type.IsAbstract && !_type.IsSealed;
+    public bool IsInternal => _type.IsNotPublic && !_type.IsNestedPrivate;
 
     public IEnumerable<string> EnumValues
     {
         get
         {
-            return TypeDef.Fields.Where(f => f.IsStatic).Select(f => f.Name.String).ToArray();
+            return _type.Fields.Where(f => f.IsStatic).Select(f => f.Name.String).ToArray();
         }
     }
     public IEnumerable<string> Pseudoclasses
@@ -141,7 +125,7 @@ internal class TypeWrapper : ITypeInformation
     }
     public override string ToString() => Name;
     public IEnumerable<ITypeInformation> NestedTypes =>
-        TypeDef.HasNestedTypes ? TypeDef.NestedTypes.Select(t => new TypeWrapper(t, _session)) : Array.Empty<TypeWrapper>();
+        _type.HasNestedTypes ? _type.NestedTypes.Select(t => new TypeWrapper(t, _session)) : Array.Empty<TypeWrapper>();
 
     public IEnumerable<(ITypeInformation Type, string Name)> TemplateParts
     {
@@ -153,7 +137,7 @@ internal class TypeWrapper : ITypeInformation
             foreach (var attr in attributes)
             {
                 var name = attr.ConstructorArguments[0].Value.ToString()!;
-                ITypeInformation type = FromDefOrRef(((ClassSig)attr.ConstructorArguments[1].Value).TypeDefOrRef, _session)!;
+                ITypeInformation type = FromDef(((ClassSig)attr.ConstructorArguments[1].Value).TypeDef, _session)!;
                 yield return (type, name);
             }
         }

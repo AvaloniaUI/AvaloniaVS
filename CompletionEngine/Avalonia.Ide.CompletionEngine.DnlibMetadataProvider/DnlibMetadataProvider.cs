@@ -9,6 +9,7 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider;
 
 public class DnlibMetadataProvider : IMetadataProvider
 {
+
     public IMetadataReaderSession GetMetadata(IEnumerable<string> paths)
     {
         return new DnlibMetadataProviderSession(paths.ToArray());
@@ -17,25 +18,12 @@ public class DnlibMetadataProvider : IMetadataProvider
 
 internal class DnlibMetadataProviderSession : IMetadataReaderSession
 {
-    private readonly ModuleContext _modCtx;
     private readonly Dictionary<ITypeDefOrRef, ITypeDefOrRef> _baseTypes = new Dictionary<ITypeDefOrRef, ITypeDefOrRef>();
-    private readonly Dictionary<ITypeDefOrRef, TypeDef> _typeDefsCache = new Dictionary<ITypeDefOrRef, TypeDef>();
+    private readonly Dictionary<ITypeDefOrRef, TypeDef> _baseTypeDefs = new Dictionary<ITypeDefOrRef, TypeDef>();
     public string? TargetAssemblyName { get; private set; }
-    public IReadOnlyCollection<IAssemblyInformation> Assemblies { get; }
+    public IEnumerable<IAssemblyInformation> Assemblies { get; }
     public DnlibMetadataProviderSession(string[] directoryPath)
     {
-        var asmResolver = new AssemblyResolver()
-        {
-            EnableTypeDefCache = false,
-            UseGAC = false
-        };
-        var resolver = new Resolver(asmResolver)
-        {
-            ProjectWinMDRefs = false
-        };
-        _modCtx = new ModuleContext(asmResolver, resolver);
-        asmResolver.DefaultModuleContext = _modCtx;
-
         if (directoryPath == null || directoryPath.Length == 0)
         {
             TargetAssemblyName = null;
@@ -44,13 +32,10 @@ internal class DnlibMetadataProviderSession : IMetadataReaderSession
         else
         {
             TargetAssemblyName = System.Reflection.AssemblyName.GetAssemblyName(directoryPath[0]).ToString();
-            Assemblies = LoadAssemblies(_modCtx, directoryPath).Select(a => new AssemblyWrapper(a, this)).ToList();
+            Assemblies = LoadAssemblies(directoryPath).Select(a => new AssemblyWrapper(a, this)).ToList();
         }
     }
 
-#if NET6_0_OR_GREATER
-    [return: System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(type))]
-#endif
     public TypeDef? GetTypeDef(ITypeDefOrRef type)
     {
         if (type == null)
@@ -58,18 +43,13 @@ internal class DnlibMetadataProviderSession : IMetadataReaderSession
             return null;
         }
 
-        if (type is TypeDef typeDef)
+        if (_baseTypeDefs.TryGetValue(type, out var baseType))
         {
-            return typeDef;
-        }
-
-        if (_typeDefsCache.TryGetValue(type, out var cachedTypeDef))
-        {
-            return cachedTypeDef;
+            return baseType;
         }
         else
         {
-            return _typeDefsCache[type] = type.ResolveTypeDef();
+            return _baseTypeDefs[type] = type.ResolveTypeDef();
         }
     }
 
@@ -86,12 +66,15 @@ internal class DnlibMetadataProviderSession : IMetadataReaderSession
 
     }
 
-    private static List<AssemblyDef> LoadAssemblies(ModuleContext context, string[] lst)
+    private static List<AssemblyDef> LoadAssemblies(string[] lst)
     {
-        var asmResovler = (AssemblyResolver)context.AssemblyResolver;
+        AssemblyResolver asmResolver = new AssemblyResolver();
+        ModuleContext modCtx = new ModuleContext(asmResolver);
+        asmResolver.DefaultModuleContext = modCtx;
+        asmResolver.EnableTypeDefCache = true;
 
         foreach (var path in lst)
-            asmResovler.PreSearchPaths.Add(path);
+            asmResolver.PreSearchPaths.Add(path);
 
         List<AssemblyDef> assemblies = new List<AssemblyDef>();
 
@@ -99,12 +82,9 @@ internal class DnlibMetadataProviderSession : IMetadataReaderSession
         {
             try
             {
-                var creationOptions = new ModuleCreationOptions(context)
-                {
-                    TryToLoadPdbFromDisk = false
-                };
-                var def = AssemblyDef.Load(File.ReadAllBytes(asm), creationOptions);
-                asmResovler.AddToCache(def);
+                var def = AssemblyDef.Load(File.ReadAllBytes(asm));
+                def.Modules[0].Context = modCtx;
+                asmResolver.AddToCache(def);
                 assemblies.Add(def);
             }
             catch
