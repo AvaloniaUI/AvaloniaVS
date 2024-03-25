@@ -64,7 +64,7 @@ public record MetadataType(string Name)
     public string? AssemblyQualifiedName { get; set; }
     public bool IsNullable { get; init; }
     public MetadataType? UnderlyingType { get; init; }
-    public List<(MetadataType Type, string Name)> TemplateParts { get; set; }
+    public List<(MetadataType Type, string Name)> TemplateParts { get; set; } = new List<(MetadataType Type, string Name)>();
     public bool IsAbstract { get; internal set; } = false;
 }
 
