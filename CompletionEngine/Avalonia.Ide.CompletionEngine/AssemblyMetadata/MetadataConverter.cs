@@ -212,7 +212,8 @@ public static class MetadataConverter
 
             type.TemplateParts = (typeDef?.TemplateParts ??
                 Array.Empty<(ITypeInformation, string)>())
-                .Select(item => (Type: ConvertTypeInformation(item.Type), item.Name));
+                .Select(item => (Type: ConvertTypeInformation(item.Type), item.Name))
+                .ToList();
 
             while (typeDef != null)
             {
