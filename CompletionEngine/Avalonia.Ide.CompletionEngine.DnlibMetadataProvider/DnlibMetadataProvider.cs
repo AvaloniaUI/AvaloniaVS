@@ -118,6 +118,8 @@ internal class DnlibMetadataProviderSession : IMetadataReaderSession
 
     public void Dispose()
     {
-        //no-op
+        _baseTypes.Clear();
+        _typeDefsCache.Clear();
+        ((AssemblyResolver)_modCtx.AssemblyResolver).Clear();
     }
 }
