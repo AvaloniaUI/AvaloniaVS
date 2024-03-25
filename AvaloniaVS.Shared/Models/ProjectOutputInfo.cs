@@ -50,14 +50,14 @@ namespace AvaloniaVS.Models
         public bool IsNetStandard => FrameworkInfoUtils.IsNetStandard(TargetFrameworkIdentifier);
 
         public ProjectOutputInfo(
-            string targetAssembly, string targetFramework, string targetFrameworkIdentifier, string hostApp, string runtimeIdentifier, string TargetPlatformIdentifier)
+            string targetAssembly, string targetFramework, string targetFrameworkIdentifier, string hostApp, string runtimeIdentifier, string targetPlatformIdentifier)
         {
             TargetAssembly = targetAssembly;
             TargetFramework = targetFramework;
             TargetFrameworkIdentifier = targetFrameworkIdentifier;
             HostApp = hostApp;
             RuntimeIdentifier = runtimeIdentifier;
-            TargetPlatformIdentifier = TargetPlatformIdentifier;
+            TargetPlatformIdentifier = targetPlatformIdentifier;
         }
     }
 }
