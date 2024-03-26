@@ -1100,7 +1100,8 @@ public class CompletionEngine
                                 if (partType is not null)
                                 {
                                     parts = parts
-                                        .Where(p => p.Type.AssemblyQualifiedName == partType.AssemblyQualifiedName);
+                                        .Where(p => p.Type.AssemblyQualifiedName == partType.AssemblyQualifiedName)
+                                        .ToList();
                                 }
                                 if (parts.Any())
                                 {
