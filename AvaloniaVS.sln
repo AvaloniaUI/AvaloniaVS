@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31919.166
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "templates", "templates", "{FC634911-168A-4FDD-8758-11FAD5B8696B}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaVS.VS2022", "AvaloniaVS.VS2022\AvaloniaVS.VS2022.csproj", "{1029EC08-7B2E-4018-B20D-E85CA58DEB59}"
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "AvaloniaVS.Shared", "AvaloniaVS.Shared\AvaloniaVS.Shared.shproj", "{40D9809E-D179-44B2-BF42-61D781FB74F6}"
@@ -30,6 +32,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestAssembly1", "tests\TestAssembly1\TestAssembly1.csproj", "{26CB0499-10FE-4CC1-9F20-4738BF527494}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestAssembly2", "tests\TestAssembly2\TestAssembly2.csproj", "{0D792D9B-66F7-46DB-AC87-AA3068151E6C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProjectTemplatesDownloader", "templates\ProjectTemplatesDownloader\ProjectTemplatesDownloader.csproj", "{14C474FC-E529-4148-ADEB-E9F77E744452}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -113,6 +117,18 @@ Global
 		{0D792D9B-66F7-46DB-AC87-AA3068151E6C}.Release|arm64.Build.0 = Release|Any CPU
 		{0D792D9B-66F7-46DB-AC87-AA3068151E6C}.Release|x86.ActiveCfg = Release|Any CPU
 		{0D792D9B-66F7-46DB-AC87-AA3068151E6C}.Release|x86.Build.0 = Release|Any CPU
+		{14C474FC-E529-4148-ADEB-E9F77E744452}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{14C474FC-E529-4148-ADEB-E9F77E744452}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{14C474FC-E529-4148-ADEB-E9F77E744452}.Debug|arm64.ActiveCfg = Debug|Any CPU
+		{14C474FC-E529-4148-ADEB-E9F77E744452}.Debug|arm64.Build.0 = Debug|Any CPU
+		{14C474FC-E529-4148-ADEB-E9F77E744452}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{14C474FC-E529-4148-ADEB-E9F77E744452}.Debug|x86.Build.0 = Debug|Any CPU
+		{14C474FC-E529-4148-ADEB-E9F77E744452}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{14C474FC-E529-4148-ADEB-E9F77E744452}.Release|Any CPU.Build.0 = Release|Any CPU
+		{14C474FC-E529-4148-ADEB-E9F77E744452}.Release|arm64.ActiveCfg = Release|Any CPU
+		{14C474FC-E529-4148-ADEB-E9F77E744452}.Release|arm64.Build.0 = Release|Any CPU
+		{14C474FC-E529-4148-ADEB-E9F77E744452}.Release|x86.ActiveCfg = Release|Any CPU
+		{14C474FC-E529-4148-ADEB-E9F77E744452}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -123,6 +139,7 @@ Global
 		{70475448-B721-48BD-A96D-56C8A0B88BA0} = {3CF4E8CC-E706-41DC-8A22-8E37EDA7E599}
 		{26CB0499-10FE-4CC1-9F20-4738BF527494} = {3CF4E8CC-E706-41DC-8A22-8E37EDA7E599}
 		{0D792D9B-66F7-46DB-AC87-AA3068151E6C} = {3CF4E8CC-E706-41DC-8A22-8E37EDA7E599}
+		{14C474FC-E529-4148-ADEB-E9F77E744452} = {FC634911-168A-4FDD-8758-11FAD5B8696B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0CE7163D-D505-4965-B2B9-9E9068C77A62}

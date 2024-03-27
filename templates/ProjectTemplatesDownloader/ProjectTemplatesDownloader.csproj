@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--This project is needed to download Avalonia CLI templates, we can't download them from main projects because PackageDownload requires SDK-style project
+  and our main projects can't be migrated to SDK-style.-->
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <PackageDownload Include="$(AvaloniaTemplatesPackageName)" Version="[$(AvaloniaTemplatesPackageVersion)]" />
+  </ItemGroup>
+  
+</Project>

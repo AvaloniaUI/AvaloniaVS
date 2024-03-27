@@ -72,8 +72,8 @@
     </ItemGroup>
     <Error Text="No template files found." Condition="@(_TemplatePackage-&gt;Count()) == 0" />
     <Message Text="Template nuget packages found: @(_TemplatePackage)" Importance="low" />
-    <!-- don't modify the following, the pkgdef file uses the path below -->
-    <ItemGroup>
+  <!-- don't modify the following, the pkgdef file uses the path below -->
+  <ItemGroup>
       <VSIXSourceItem Include="@(_TemplatePackage)">
         <VSIXSubPath>ProjectTemplates\</VSIXSubPath>
       </VSIXSourceItem>
@@ -122,6 +122,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\templates\ProjectTemplatesDownloader\ProjectTemplatesDownloader.csproj" ReferenceOutputAssembly="false" PrivateAssets="all" Name="ProjectTemplatesDownloader" />
     <ProjectReference Include="..\CompletionEngine\Avalonia.Ide.CompletionEngine.DnlibMetadataProvider\Avalonia.Ide.CompletionEngine.DnlibMetadataProvider.csproj">
       <Project>{5f0f9262-3527-46af-acf6-986b7f7b4c90}</Project>
       <Name>Avalonia.Ide.CompletionEngine.DnlibMetadataProvider</Name>
