@@ -15,6 +15,8 @@ Avalonia Visual Studio extension adds such capabilities to your Visual Studio:
 | [VS2022](https://marketplace.visualstudio.com/items?itemName=AvaloniaTeam.AvaloniaVS) |
 | ------------- |
 
+**Note:** Latest Release supporting VS2019 is **11.5**
+
 **Note:** Latest Release supporting VS2017 is **11.2**
 
 
@@ -24,4 +26,4 @@ To run it you simply need to set **AvaloniaVS.csproj** as startup project and ru
 
 **Note:**
 
-This way to debug application will only help you if your issue is directly in AvaloniaVS project,if your issue is somewhere in Avalonia code,but it is reproducible only with Avalonia Previewer please consider this article - https://docs.avaloniaui.net/docs/guides/developer-guides/debugging-previewer
+This way to debug application will only help you if your issue is directly in AvaloniaVS project,if your issue is somewhere in Avalonia code,but it is reproducible only with Avalonia Previewer please consider this article - [https://docs.avaloniaui.net/docs/0.10.x/guides/developer-guides/debugging-previewer](https://docs.avaloniaui.net/docs/0.10.x/guides/developer-guides/debugging-previewer)

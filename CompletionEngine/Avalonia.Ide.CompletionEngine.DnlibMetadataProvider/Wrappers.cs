@@ -137,7 +137,8 @@ internal class TypeWrapper : ITypeInformation
             foreach (var attr in attributes)
             {
                 var name = attr.ConstructorArguments[0].Value.ToString()!;
-                ITypeInformation type = FromDef(((ClassSig)attr.ConstructorArguments[1].Value).TypeDef, _session)!;
+                var def = _session.GetTypeDef(((ClassSig)attr.ConstructorArguments[1].Value).TypeDefOrRef);
+                ITypeInformation type = FromDef(def, _session)!;
                 yield return (type, name);
             }
         }

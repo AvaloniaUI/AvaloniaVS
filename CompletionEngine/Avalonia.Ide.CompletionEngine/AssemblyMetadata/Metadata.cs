@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -17,8 +17,22 @@ public class Metadata
         _namespaces.GetOrCreate(ns)[type.Name] = type;
         _inverseNamespace[type.FullName] = ns;
     }
+
+    /// <summary>
+    /// Add new metadata. Keys are added and existing keys are unchanged.
+    /// </summary>
+    public void AddMetadata(Metadata metadata)
+    {
+        foreach (var x in metadata._namespaces)
+            if (!_namespaces.ContainsKey(x.Key))
+                _namespaces.Add(x.Key, x.Value);
+        foreach (var x in metadata._inverseNamespace)
+            if (!_inverseNamespace.ContainsKey(x.Key))
+                _inverseNamespace.Add(x.Key, x.Value);
+    }
 }
 
+// todo: add property for permutation annotation. A MetadataType may be defined in multiple build contexts, but have different definitions.
 [DebuggerDisplay("{Name}")]
 public record MetadataType(string Name)
 {
@@ -50,8 +64,7 @@ public record MetadataType(string Name)
     public string? AssemblyQualifiedName { get; set; }
     public bool IsNullable { get; init; }
     public MetadataType? UnderlyingType { get; init; }
-    public IEnumerable<(MetadataType Type,string Name)> TemplateParts { get; internal set; } = 
-        Array.Empty<(MetadataType Type, string Name)>();
+    public List<(MetadataType Type, string Name)> TemplateParts { get; set; } = new List<(MetadataType Type, string Name)>();
     public bool IsAbstract { get; internal set; } = false;
 }
 

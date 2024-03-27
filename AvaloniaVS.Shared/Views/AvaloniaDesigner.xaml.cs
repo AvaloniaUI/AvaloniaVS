@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -100,7 +100,7 @@ namespace AvaloniaVS.Views
         private bool _disposed;
         private double _scaling = 1;
         private AvaloniaDesignerView _unPausedView;
-        private bool _buidRequired;
+        private bool _buildRequired;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AvaloniaDesigner"/> class.
@@ -350,9 +350,9 @@ namespace AvaloniaVS.Views
                 {
                     return (output.IsNetCore || output.IsNetFramework)
                         && output.RuntimeIdentifier != "browser-wasm"
-                        && (output.TargetPlatfromIdentifier == ""
-                            || string.Equals(output.TargetPlatfromIdentifier, "windows", StringComparison.OrdinalIgnoreCase)
-                            || string.Equals(output.TargetPlatfromIdentifier, "macos", StringComparison.OrdinalIgnoreCase));
+                        && (output.TargetPlatformIdentifier == ""
+                            || string.Equals(output.TargetPlatformIdentifier, "windows", StringComparison.OrdinalIgnoreCase)
+                            || string.Equals(output.TargetPlatformIdentifier, "macos", StringComparison.OrdinalIgnoreCase));
                 }
 
                 string GetXamlAssembly(ProjectOutputInfo output)
@@ -490,7 +490,7 @@ namespace AvaloniaVS.Views
                 }
                 catch (FileNotFoundException ex)
                 {
-                    _buidRequired = true;
+                    _buildRequired = true;
                     ShowError("Build Required", ex.Message);
                     Log.Logger.Debug(ex, "StartAsync could not find executable");
                 }
@@ -503,7 +503,7 @@ namespace AvaloniaVS.Views
                 {
                     _startingProcess.Release();
                 }
-                _buidRequired = false;
+                _buildRequired = false;
             }
             else
             {
@@ -655,7 +655,7 @@ namespace AvaloniaVS.Views
             errorIndicator.Visibility = Visibility.Visible;
             errorHeading.Text = heading;
             errorMessage.Text = message;
-            if (_buidRequired == true)
+            if (_buildRequired == true)
             {
                 previewer.buildButton.Visibility = Visibility.Visible;
             }
