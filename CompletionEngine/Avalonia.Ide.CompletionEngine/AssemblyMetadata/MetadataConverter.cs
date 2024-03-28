@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -65,10 +65,10 @@ public static class MetadataConverter
         return false;
     }
 
-    public static MetadataType ConvertTypeInfomation(ITypeInformation type) =>
-        ConvertTypeInfomation(type, null);
+    public static MetadataType ConvertTypeInformation(ITypeInformation type) =>
+        ConvertTypeInformation(type, null);
 
-    private static MetadataType ConvertTypeInfomation(ITypeInformation type, MetadataType? itemsType)
+    private static MetadataType ConvertTypeInformation(ITypeInformation type, MetadataType? itemsType)
     {
         var mt = new MetadataType(type.Name)
         {
@@ -94,7 +94,7 @@ public static class MetadataConverter
         {
             return mt;
         }
-        mt = ConvertTypeInfomation(type!, null);
+        mt = ConvertTypeInformation(type!, null);
         foreach (var key in keys)
         {
             types[key] = mt;
@@ -229,7 +229,8 @@ public static class MetadataConverter
 
             type.TemplateParts = (typeDef?.TemplateParts ??
                 Array.Empty<(ITypeInformation, string)>())
-                .Select(item => (Type: GetOrCreateMetadataType(types, item.Type, item.Type.AssemblyQualifiedName), item.Name));
+                .Select(item => (Type: GetOrCreateMetadataType(types, item.Type, item.Type.AssemblyQualifiedName), item.Name))
+                .ToList();
 
             while (typeDef != null)
             {
