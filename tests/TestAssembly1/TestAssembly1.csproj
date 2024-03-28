@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="11.0.0-preview4" />
+    <PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
   </ItemGroup>
 
   <ItemGroup>
