@@ -242,7 +242,7 @@ public class XmlParser
     {
         if (NestingLevel - startLevel - 1 < 0)
             return null;
-        var attribRegExpr = new Regex($"\\s(?:{attributeExpr})=\"(?<AttribValue>.*?)\"");
+        var attribRegExpr = new Regex($"\\s?(?:{attributeExpr})\\s*\\=\\s*\"(?<AttribValue>.*?)\"",RegexOptions.Multiline | RegexOptions.IgnorePatternWhitespace);
         foreach (var start in _containingTagStart.Skip(startLevel))
         {
             var m = Regex.Match(_data.Span.Slice(start).ToString(), @"^<[^<]+");
