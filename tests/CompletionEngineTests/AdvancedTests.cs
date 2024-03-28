@@ -70,6 +70,12 @@ namespace CompletionEngineTests
         }
 
         [Fact]
+        public void Binding_Path_Should_Be_Completed_From_xDataType_Issue_463()
+        {
+            AssertSingleCompletion("<UserControl x:DataType= \"Button\"><TextBlock Tag=\"{Binding Path=", "Conte", "Content");
+        }
+
+        [Fact]
         public void Binding_Path_Should_Be_Completed_From_xDataType2()
         {
             AssertSingleCompletion("<UserControl x:DataType=\"Button\"><TextBlock Tag=\"{Binding ", "Conte", "Content");
