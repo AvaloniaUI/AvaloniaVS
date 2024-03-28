@@ -24,14 +24,21 @@ namespace AvaloniaVS.Shared.SuggestedActions.Actions
         private readonly Dictionary<string, string> _aliases;
         private readonly ITextViewRoleSet _previewRoleSet;
 
-        public MissingNamespaceAndAliasSuggestedAction(ITrackingSpan span, IWpfDifferenceViewerFactoryService diffFactory,
-            IDifferenceBufferFactoryService diffBufferFactory, ITextBufferFactoryService bufferFactory, ITextEditorFactoryService textEditorFactoryService, 
-            IReadOnlyDictionary<string, string> inverseNamespaces, Dictionary<string, string> aliases)
+        public MissingNamespaceAndAliasSuggestedAction(ITrackingSpan span,
+            IWpfDifferenceViewerFactoryService diffFactory,
+            IDifferenceBufferFactoryService diffBufferFactory,
+            ITextBufferFactoryService bufferFactory,
+            ITextEditorFactoryService textEditorFactoryService,
+            IReadOnlyDictionary<string, ISet<string>> inverseNamespaces,
+            Dictionary<string, string> aliases)
         {
             _span = span;
             _snapshot = _span.TextBuffer.CurrentSnapshot;
             _targetClassName = _span.GetText(_snapshot);
-            _targetClassMetadata = inverseNamespaces.FirstOrDefault(x => x.Key.Split('.').Last() == _targetClassName);
+            _targetClassMetadata = inverseNamespaces
+                .Where(x => x.Key.Split('.').Last() == _targetClassName)
+                .Select(x => new KeyValuePair<string, string>(x.Key, x.Value.First()))
+                .FirstOrDefault();
 
             // _targetClassMetadata.Value is the namespace of the control we are trying to add the namespace to. 
             // It is usually in the format using:MyNamespace.Something.

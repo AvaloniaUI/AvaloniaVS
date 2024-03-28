@@ -1,21 +1,24 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Avalonia.Ide.CompletionEngine.AssemblyMetadata;
 
 namespace Avalonia.Ide.CompletionEngine;
 
 public class Metadata
 {
     readonly Dictionary<string, Dictionary<string, MetadataType>> _namespaces = new();
-    readonly Dictionary<string, string> _inverseNamespace = new();
+    readonly Dictionary<string, ISet<string>> _inverseNamespace = new();
 
     public IReadOnlyDictionary<string, Dictionary<string, MetadataType>> Namespaces => _namespaces;
-    public IReadOnlyDictionary<string, string> InverseNamespace => _inverseNamespace;
+    public IReadOnlyDictionary<string, ISet<string>> InverseNamespace => _inverseNamespace;
 
     public void AddType(string ns, MetadataType type)
     {
         _namespaces.GetOrCreate(ns)[type.Name] = type;
-        _inverseNamespace[type.FullName] = ns;
+
+        var namespaces = _inverseNamespace.GetOrCreate(type.FullName, _ => new HashSet<string>());
+        namespaces.Add(ns);
     }
 
     /// <summary>
@@ -42,6 +45,7 @@ public record MetadataType(string Name)
     public bool HasHintValues { get; set; }
     public string[]? HintValues { get; set; }
 
+
     public string[] PseudoClasses { get; set; } = Array.Empty<string>();
     public bool HasPseudoClasses { get; set; }
 
@@ -66,6 +70,18 @@ public record MetadataType(string Name)
     public MetadataType? UnderlyingType { get; init; }
     public List<(MetadataType Type, string Name)> TemplateParts { get; set; } = new List<(MetadataType Type, string Name)>();
     public bool IsAbstract { get; internal set; } = false;
+    public MetadataType? ItemsType { get; internal set; }
+
+    internal ITypeInformation? Type { get; set; }
+    internal bool IsSubclassOf(MetadataType? other)
+    {
+        if (ReferenceEquals(Type, other?.Type))
+            return true;
+        if (Type is null)
+            return false;
+        return Type.IsSubclassOf(other?.Type);
+    }
+
 }
 
 public enum MetadataTypeCtorArgument
@@ -78,6 +94,6 @@ public enum MetadataTypeCtorArgument
 }
 
 [DebuggerDisplay("{Name} from {DeclaringType}")]
-public record MetadataProperty(string Name, MetadataType? Type, MetadataType? DeclaringType, bool IsAttached, bool IsStatic, bool HasGetter, bool HasSetter);
+public record MetadataProperty(string Name, MetadataType? Type, MetadataType? DeclaringType, bool IsAttached, bool IsStatic, bool HasGetter, bool HasSetter, bool IsContent);
 
 public record MetadataEvent(string Name, MetadataType? Type, MetadataType? DeclaringType, bool IsAttached);

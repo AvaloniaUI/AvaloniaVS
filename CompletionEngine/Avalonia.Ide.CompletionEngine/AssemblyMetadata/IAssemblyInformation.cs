@@ -51,6 +51,9 @@ public interface ITypeInformation
     bool IsInternal { get; }
     IEnumerable<string> EnumValues { get; }
     IEnumerable<ITypeInformation> NestedTypes { get; }
+    IReadOnlyList<ICustomAttributeInformation> CustomAttributes { get; }
+
+    bool IsSubclassOf(ITypeInformation? parentType);
 }
 
 public interface IMethodInformation
@@ -61,6 +64,7 @@ public interface IMethodInformation
     IList<IParameterInformation> Parameters { get; }
     string ReturnTypeFullName { get; }
     string QualifiedReturnTypeFullName { get; }
+    IReadOnlyList<ICustomAttributeInformation> CustomAttributes { get; }
 }
 
 public interface IFieldInformation
@@ -77,6 +81,7 @@ public interface IParameterInformation
 {
     string TypeFullName { get; }
     string QualifiedTypeFullName { get; }
+    ITypeInformation? Type { get; }
 }
 
 public interface IPropertyInformation
@@ -90,6 +95,7 @@ public interface IPropertyInformation
     string QualifiedTypeFullName { get; }
     string Name { get; }
     bool IsVisbleTo(IAssemblyInformation assembly);
+    bool IsContent { get; }
 }
 
 public interface IEventInformation

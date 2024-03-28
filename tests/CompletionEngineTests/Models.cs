@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls;
 
@@ -77,5 +79,71 @@ namespace CompletionEngineTests.Models
 
     public class MyButton : Button
     {
+
+    }
+
+    public class MyListBoxItem : Avalonia.Controls.ListBoxItem
+    {
+
+    }
+
+    public class MyListBox : Avalonia.Controls.Control
+        , IList<MyListBoxItem>
+    {
+        public MyListBoxItem this[int index] { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+
+        public int Count => throw new System.NotImplementedException();
+
+        public bool IsReadOnly => throw new System.NotImplementedException();
+
+        public void Add(MyListBoxItem item)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void Clear()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public bool Contains(MyListBoxItem item)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void CopyTo(MyListBoxItem[] array, int arrayIndex)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public IEnumerator<MyListBoxItem> GetEnumerator()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public int IndexOf(MyListBoxItem item)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void Insert(int index, MyListBoxItem item)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public bool Remove(MyListBoxItem item)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void RemoveAt(int index)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

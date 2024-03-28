@@ -1,7 +1,5 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using Xunit;
 
@@ -481,6 +479,74 @@ namespace CompletionEngineTests
             }
         }
 
+        [Theory]
+        [MemberData(nameof(GetAffinityTypeCases))]
+        public void TypeAffinity_Compilation(string source,
+            IEnumerable<string> expected)
+        {
+            var compl = GetCompletionsFor(source)?.Completions?.Select(c => c.DisplayText);
+            Assert.Equal(expected, compl);
+        }
+
+        public static IEnumerable<object[]> GetAffinityTypeCases()
+        {
+            yield return new object[]
+                {
+                        "<ItemsControl><ItemsControl.DataTemplates><",
+                        new string[]
+                        {
+                            "!--",
+                            "/ItemsControl.DataTemplates>",
+                            "DataTemplate",
+                            "FuncDataTemplate",
+                            "FuncDataTemplate<T>",
+                            "FuncTreeDataTemplate",
+                            "FuncTreeDataTemplate<T>",
+                            "TreeDataTemplate",
+                        },
+                };
+            yield return new object[]
+                {
+                        "<UserControl><UserControl.Styles><",
+                        new string[]
+                        {
+                            "!--",
+                            "/UserControl.Styles>",
+                            "ControlTheme",
+                            "Style",
+                            "StyleInclude",
+                            "Styles",
+                        }
+                };
+            yield return new object[]
+                {
+                        "<TextBlock><TextBlock.Inlines><",
+                        new string[]
+                        {
+                            "!--",
+                            "/TextBlock.Inlines>",
+                            "Bold",
+                            "InlineUIContainer",
+                            "Italic",
+                            "LineBreak",
+                            "Run",
+                            "Span",
+                            "Underline",
+                        },
+                };
+            yield return new object[]
+            {
+                        "<UserControl xmlns:local=\"clr-namespace:CompletionEngineTests.Models\"><local:MyListBox><",
+                        new string[]
+                        {
+                            "!--",
+                            "/local:MyListBox>",
+                            "local:MyListBox",
+                            "local:MyListBoxItem",
+                        },
+            };
+        }
+
         public static IEnumerable<object[]> GetStyleSelectors()
         {
             yield return new object[]
@@ -603,7 +669,7 @@ namespace CompletionEngineTests
                     new ("AttachedBehavior","local|AttachedBehavior", Avalonia.Ide.CompletionEngine.CompletionKind.Class | Avalonia.Ide.CompletionEngine.CompletionKind.TargetTypeClass),
                 },
             };
-            
+
             yield return new object[]
             {
                 "<Style Selector=\"ToggleSwitch /template/ #",
