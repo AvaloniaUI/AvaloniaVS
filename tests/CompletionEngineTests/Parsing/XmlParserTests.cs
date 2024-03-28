@@ -4,7 +4,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Avalonia.Ide.CompletionEngine;
 using Xunit;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace CompletionEngineTests.Parsing;
 
