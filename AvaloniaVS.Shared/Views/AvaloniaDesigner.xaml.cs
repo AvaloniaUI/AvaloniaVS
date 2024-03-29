@@ -435,10 +435,15 @@ namespace AvaloniaVS.Views
             {
                 if (Process.IsReady && Process.Bitmap != null)
                 {
-                    double x = previewer.ActualWidth / (Process.Bitmap.Width / Process.Scaling);
-                    double y = previewer.ActualHeight / (Process.Bitmap.Height / Process.Scaling);
+                    var size = previewer.GetViewportSize(10);
+                    double x = size.Width / (Process.Bitmap.Width / Process.Scaling);
+                    double y = size.Height / (Process.Bitmap.Height / Process.Scaling);
 
-                    ZoomLevel = string.Format(CultureInfo.InvariantCulture, "{0}%", Math.Round(Math.Min(x, y), 2, MidpointRounding.ToEven) * 100);
+                    ZoomLevel = null;
+                    Dispatcher.BeginInvoke(() =>
+                        ZoomLevel = string.Format(CultureInfo.InvariantCulture, "{0}%", Math.Round(Math.Min(x, y), 2, MidpointRounding.ToEven) * 100),
+                        System.Windows.Threading.DispatcherPriority.Background);
+                    
                 }
                 else
                 {

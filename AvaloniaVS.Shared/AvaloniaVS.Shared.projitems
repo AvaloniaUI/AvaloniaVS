@@ -143,7 +143,6 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="$(MSBuildThisFileDirectory)Commands\" />
     <Folder Include="$(MSBuildThisFileDirectory)SuggestedActions\Actions\Base\" />
   </ItemGroup>
 </Project>

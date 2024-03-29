@@ -126,7 +126,21 @@ public class XmlParserTests
         Assert.Equal(nestingLevelExpected, state.NestingLevel);
         var parentTag = state.GetParentTagName(level);
         Assert.Equal(expectedParentTag, parentTag);
+    }
 
+    [Theory]
+    [InlineData("<UserControl x:DataType=\"Button\"><TextBlock Tag=\"\"")]
+    [InlineData("<UserControl x:DataType= \"Button\"><TextBlock Tag=\"\"")]
+    [InlineData("<UserControl x:DataType = \"Button\"><TextBlock Tag=\"\"")]
+    [InlineData("<UserControl x:DataType =\"Button\"><TextBlock Tag=\"\"")]
+    [InlineData("<UserControl x:DataType\t=\r\"Button\"><TextBlock Tag=\"\"")]
+    [InlineData("<UserControl x:DataType\t=\n\"Button\"><TextBlock Tag=\"\"")]
+    [InlineData("<UserControl x:DataType \t=\r\"Button\"><TextBlock Tag=\"\"")]
+    [InlineData("<UserControl x:DataType\t =\r\"Button\"><TextBlock Tag=\"\"")]
+    public void Should_FindParentAttributeValue(string source)
+    {
+        var state = XmlParser.Parse(source.AsMemory(),source.Length,0);
+        Assert.NotNull(state.FindParentAttributeValue("(x\\:)?DataType"));
     }
 
     string GetData(string name, [CallerMemberName] string callerMethod = "")
