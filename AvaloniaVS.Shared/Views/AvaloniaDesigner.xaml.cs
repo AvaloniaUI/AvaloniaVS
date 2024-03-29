@@ -565,6 +565,7 @@ namespace AvaloniaVS.Views
         }
 
         private static Dictionary<string, Task<Metadata>> _metadataCache;
+        private static readonly MetadataReader _metadataReader = new(new DnlibMetadataProvider());
 
         private static async Task CreateCompletionMetadataAsync(
             string intermediateOutputPath,
@@ -593,8 +594,7 @@ namespace AvaloniaVS.Views
                 {
                     metadataLoad = Task.Run(() =>
                                     {
-                                        var metadataReader = new MetadataReader(new DnlibMetadataProvider(xamlAssemblyPath));
-                                        return metadataReader.GetForTargetAssembly(new AvaloniaCompilationAssemblyProvider(intermediateOutputPath));
+                                        return _metadataReader.GetForTargetAssembly(new AvaloniaCompilationAssemblyProvider(intermediateOutputPath, xamlAssemblyPath));
                                     });
                     _metadataCache[intermediateOutputPath] = metadataLoad;
                 }
