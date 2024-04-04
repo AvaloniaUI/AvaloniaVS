@@ -9,27 +9,9 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider;
 
 public class DnlibMetadataProvider : IMetadataProvider
 {
-    private readonly string? _xamlAssemblyPath;
-
-    public DnlibMetadataProvider() : this(null)
-    {
-
-    }
-
-    public DnlibMetadataProvider(string? xamlAssemblyPath)
-    {
-        _xamlAssemblyPath = xamlAssemblyPath;
-    }
-
     public IMetadataReaderSession GetMetadata(IEnumerable<string> paths)
     {
-        var list = new List<string>();
-        if (!string.IsNullOrWhiteSpace(_xamlAssemblyPath))
-        {
-            list.Add(_xamlAssemblyPath);
-        }
-        list.AddRange(paths);
-        return new DnlibMetadataProviderSession(list.ToArray());
+        return new DnlibMetadataProviderSession(paths.ToArray());
     }
 }
 
