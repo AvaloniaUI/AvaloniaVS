@@ -7,6 +7,7 @@ namespace Avalonia.Ide.CompletionEngine.AssemblyMetadata
     public class AvaloniaCompilationAssemblyProvider : IAssemblyProvider
     {
         private readonly string _path;
+        private readonly string _xamlPrimaryAssemblyPath;
 
         /// <summary>
         /// Create a new instance of <see cref="AvaloniaCompilationAssemblyProvider"/>—an implementation of <see cref="IAssemblyProvider"/>.
@@ -22,12 +23,14 @@ namespace Avalonia.Ide.CompletionEngine.AssemblyMetadata
         /// - <c>C:\Repos\RepoRoot\src\artifacts\obj\MyApp\debug_net8.0\Avalonia\references</c><br/>
         /// See <see href="https://learn.microsoft.com/en-us/dotnet/core/sdk/artifacts-output#examples">Artifacts output layout &amp;gt; Examples</see> for more 'artifacts' path examples.
         /// </param>
+        /// <param name="xamlPrimaryAssemblyPath">Promary XAML Assembly path</param>
         /// <exception cref="ArgumentNullException"><paramref name="path"/> is null or empty</exception>
-        public AvaloniaCompilationAssemblyProvider(string path)
+        public AvaloniaCompilationAssemblyProvider(string path, string xamlPrimaryAssemblyPath)
         {
             if (string.IsNullOrEmpty(path))
                 throw new ArgumentNullException(nameof(path));
             _path = path;
+            _xamlPrimaryAssemblyPath = xamlPrimaryAssemblyPath;
         }
 
         /// <summary>
@@ -37,9 +40,14 @@ namespace Avalonia.Ide.CompletionEngine.AssemblyMetadata
         /// <exception cref="IOException">Failed to read the project's references file.</exception>
         public IEnumerable<string> GetAssemblies()
         {
+            List<string> result = new List<string>(300);
+            if (!string.IsNullOrEmpty(_xamlPrimaryAssemblyPath))
+            {
+                result.Add(_xamlPrimaryAssemblyPath);
+            }
             try
             {
-                return File.ReadAllText(_path).Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+                result.AddRange(File.ReadAllLines(_path));
             }
             catch (Exception ex) when
                 (ex is DirectoryNotFoundException || ex is FileNotFoundException)
@@ -50,6 +58,7 @@ namespace Avalonia.Ide.CompletionEngine.AssemblyMetadata
             {
                 throw new IOException($"Failed to read file '{_path}'.", ex);
             }
+            return result;
         }
     }
 }
