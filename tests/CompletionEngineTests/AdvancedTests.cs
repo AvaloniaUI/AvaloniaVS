@@ -1,7 +1,5 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using Xunit;
 
@@ -487,6 +485,71 @@ namespace CompletionEngineTests
             }
         }
 
+        [Fact]
+        public void ControlTheme_Nested_Selector_Should_Be_Completed()
+        {
+            var xaml =
+                """
+                <UserControl.Resources>
+                    <ControlTheme x:Key="MyButton" TargetType="Button">
+                        <Style Selector="
+                """;
+            var compl = GetCompletionsFor(xaml).Completions;
+
+            Assert.Single(compl);
+            Assert.Contains(compl, v => v.InsertText == "^");
+        }
+
+        [Fact]
+        public void ControlTheme_Nested_Selector_Should_Be_Completed_PseudoClass()
+        {
+            var xaml =
+                """
+                <UserControl.Resources>
+                    <ControlTheme x:Key="MyButton" TargetType="Button">
+                        <Style Selector="^:
+                """;
+            var compl = GetCompletionsFor(xaml).Completions;
+
+            Assert.Equal(10, compl.Count);
+            Assert.Contains(compl, v => v.InsertText == ":disabled");
+        }
+
+        [Fact]
+        public void ControlTheme_Nested_Selector_Should_Be_Completed_Template()
+        {
+            var xaml =
+                """
+                <UserControl.Resources>
+                    <ControlTheme x:Key="MyButton" TargetType="Button">
+                        <Style Selector="^ /template/ C
+                """;
+            var compl = GetCompletionsFor(xaml).Completions;
+
+            Assert.Contains(compl, v => v.InsertText == "ContentPresenter");
+        }
+
+        [Fact]
+        public void ControlTheme_Nested_Selector_Should_Be_Completed_Setter()
+        {
+            string[] expected = new[]
+                {
+                "Command",
+                "CommandParameter",
+                };
+
+            var xaml =
+                """
+                <UserControl.Resources>
+                    <ControlTheme x:Key="MyButton" TargetType="Button">
+                        <Style Selector="^:disabled">
+                            <Setter Property="Com
+                """;
+            var compl = GetCompletionsFor(xaml).Completions.Select(c => c.InsertText);
+
+            Assert.Equal(expected, compl);
+        }
+
         public static IEnumerable<object[]> GetStyleSelectors()
         {
             yield return new object[]
@@ -609,7 +672,7 @@ namespace CompletionEngineTests
                     new ("AttachedBehavior","local|AttachedBehavior", Avalonia.Ide.CompletionEngine.CompletionKind.Class | Avalonia.Ide.CompletionEngine.CompletionKind.TargetTypeClass),
                 },
             };
-            
+
             yield return new object[]
             {
                 "<Style Selector=\"ToggleSwitch /template/ #",

@@ -646,10 +646,19 @@ public class CompletionEngine
         }
         else
         {
-            var selector = state.FindParentAttributeValue("Selector", 1, maxLevels: 0);
-            var matches = Regex.Matches(selector ?? "", selectorTypes);
-            var types = matches.OfType<Match>().Select(m => m.Groups["type"].Value).Where(v => !string.IsNullOrEmpty(v));
-            selectorTypeName = types.LastOrDefault()?.Replace('|', ':') ?? "Control";
+            if (state.FindParentAttributeValue("Selector", 1, maxLevels: 0)?.Trim() is { Length: > 0 } selector)
+            {
+                if (selector[0]=='^')
+                {
+                    selectorTypeName = state.FindParentAttributeValue("TargetType", 2, maxLevels: 0);
+                }
+                else
+                {
+                    var matches = Regex.Matches(selector, selectorTypes);
+                    var types = matches.OfType<Match>().Select(m => m.Groups["type"].Value).Where(v => !string.IsNullOrEmpty(v));
+                    selectorTypeName = types.LastOrDefault()?.Replace('|', ':') ?? "Control";
+                }
+            }
         }
 
         if (string.IsNullOrEmpty(selectorTypeName))
@@ -743,7 +752,7 @@ public class CompletionEngine
             {
                 foreach (var propertyName in MetadataHelper.FilterPropertyNames(filterType, filter, false, false))
                 {
-                    yield return new Completion(propertyName, fmtInsertText?.Invoke(propertyName) ?? propertyName, propertyName, CompletionKind.DataProperty, Priority:254);
+                    yield return new Completion(propertyName, fmtInsertText?.Invoke(propertyName) ?? propertyName, propertyName, CompletionKind.DataProperty, Priority: 254);
                 }
             }
         }
@@ -1027,7 +1036,7 @@ public class CompletionEngine
             case SelectorStatement.FunctionArgs:
                 {
                     var fn = parser.FunctionName;
-                    var tn = parser.TypeName;
+                    var tn = GetFullName(parser);
                     var isEmptyTn = string.IsNullOrEmpty(tn);
                     if (previousStatement <= SelectorStatement.Middle && isEmptyTn)
                     {
@@ -1050,8 +1059,7 @@ public class CompletionEngine
                     }
                     else
                     {
-                        var typeFullName = GetFullName(parser);
-                        if (Helper.LookupType(typeFullName) is MetadataType { HasPseudoClasses: true } type)
+                        if (Helper.LookupType(tn) is MetadataType { HasPseudoClasses: true } type)
                         {
                             completions.AddRange(type.PseudoClasses.Select(v => new Completion(v, CompletionKind.Selector | CompletionKind.Enum)));
                         }
@@ -1082,6 +1090,10 @@ public class CompletionEngine
                     if (parser.IsTemplate)
                     {
                         var ton = parser.TemplateOwner;
+                        if (string.IsNullOrEmpty(ton))
+                        {
+                            ton = GetTypeFromControlTheme();
+                        }
                         if (!string.IsNullOrEmpty(ton))
                         {
                             //If it hat TemplateOwner 
@@ -1144,7 +1156,6 @@ public class CompletionEngine
                                 }
                             }
                         }
-
                     }
                 }
                 break;
@@ -1259,21 +1270,25 @@ public class CompletionEngine
                     if (!parser.IsError)
                     {
                         parsed = (parser.LastParsedPosition ?? 0);
+                        var parent = state.GetParentTagName(1);
                         // TODO: Crowling Selector operator from Attribute of the Selector
                         completions.Add(new Completion("^", CompletionKind.Selector | CompletionKind.Enum));
-                        completions.Add(new Completion(":", CompletionKind.Selector | CompletionKind.Enum));
-                        completions.Add(new Completion(">", CompletionKind.Selector | CompletionKind.Enum));
-                        completions.Add(new Completion(".", CompletionKind.Selector | CompletionKind.Enum));
-                        completions.Add(new Completion("#", CompletionKind.Selector | CompletionKind.Enum));
-                        completions.Add(new Completion(":is()", ":is(", CompletionKind.Selector | CompletionKind.Enum));
-                        completions.Add(new Completion(":not()", ":not(", CompletionKind.Selector | CompletionKind.Enum));
-                        completions.Add(new Completion(":nth-child()", ":nth-child(", CompletionKind.Selector | CompletionKind.Enum));
-                        completions.Add(new Completion(":nth-last-child()", ":nth-last-child(", CompletionKind.Selector | CompletionKind.Enum));
-                        completions.Add(new Completion("/template/", "/template/", CompletionKind.Selector | CompletionKind.Enum));
-                        var types = Helper.FilterTypes(default)
-                            .Where(t => t.Value.IsAvaloniaObjectType || t.Value.HasAttachedProperties)
-                            .Select(t => new Completion(t.Value.Name.Replace(":", "|"), CompletionKind.Class | CompletionKind.TargetTypeClass));
-                        completions.AddRange(types);
+                        if (!string.Equals(parent, "ControlTheme", StringComparison.OrdinalIgnoreCase))
+                        {
+                            completions.Add(new Completion(":", CompletionKind.Selector | CompletionKind.Enum));
+                            completions.Add(new Completion(">", CompletionKind.Selector | CompletionKind.Enum));
+                            completions.Add(new Completion(".", CompletionKind.Selector | CompletionKind.Enum));
+                            completions.Add(new Completion("#", CompletionKind.Selector | CompletionKind.Enum));
+                            completions.Add(new Completion(":is()", ":is(", CompletionKind.Selector | CompletionKind.Enum));
+                            completions.Add(new Completion(":not()", ":not(", CompletionKind.Selector | CompletionKind.Enum));
+                            completions.Add(new Completion(":nth-child()", ":nth-child(", CompletionKind.Selector | CompletionKind.Enum));
+                            completions.Add(new Completion(":nth-last-child()", ":nth-last-child(", CompletionKind.Selector | CompletionKind.Enum));
+                            completions.Add(new Completion("/template/", "/template/", CompletionKind.Selector | CompletionKind.Enum));
+                            var types = Helper.FilterTypes(default)
+                                .Where(t => t.Value.IsAvaloniaObjectType || t.Value.HasAttachedProperties)
+                                .Select(t => new Completion(t.Value.Name.Replace(":", "|"), CompletionKind.Class | CompletionKind.TargetTypeClass));
+                            completions.AddRange(types);
+                        }
                     }
                 }
                 break;
@@ -1323,8 +1338,11 @@ public class CompletionEngine
         string GetFullName(SelectorParser parser)
         {
             var ns = parser.Namespace;
-            var typename = parser.TypeName
-                ?? GetTypeFromControlTheme();
+            var typename = parser.TypeName;
+            if (string.IsNullOrEmpty(typename))
+            {
+                typename = GetTypeFromControlTheme();
+            }                 
             var typeFullName = string.IsNullOrEmpty(ns)
                 ? typename
                 : $"{ns}:{typename}";
