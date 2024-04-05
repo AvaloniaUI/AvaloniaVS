@@ -3,7 +3,7 @@
     <AvaloniaTemplatesPackageName>Avalonia.Templates</AvaloniaTemplatesPackageName>
     <AvaloniaTemplatesPackageVersion>11.0.10</AvaloniaTemplatesPackageVersion>
     <AvaloniaVersion>11.0.7</AvaloniaVersion>
-    <LangVersion>12.0</LangVersion>
+    <LangVersion>11.0</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup>

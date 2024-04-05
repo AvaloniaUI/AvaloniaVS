@@ -532,10 +532,11 @@ namespace CompletionEngineTests
         [Fact]
         public void ControlTheme_Nested_Selector_Should_Be_Completed_Setter()
         {
-            string[] expected = [
+            string[] expected = new[]
+                {
                 "Command",
                 "CommandParameter",
-                ];
+                };
 
             var xaml =
                 """
