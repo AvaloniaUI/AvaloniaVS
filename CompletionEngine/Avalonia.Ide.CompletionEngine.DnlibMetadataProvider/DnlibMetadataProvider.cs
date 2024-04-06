@@ -9,7 +9,6 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider;
 
 public class DnlibMetadataProvider : IMetadataProvider
 {
-
     public IMetadataReaderSession GetMetadata(IEnumerable<string> paths)
     {
         return new DnlibMetadataProviderSession(paths.ToArray());

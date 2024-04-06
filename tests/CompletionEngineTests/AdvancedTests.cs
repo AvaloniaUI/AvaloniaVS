@@ -485,6 +485,71 @@ namespace CompletionEngineTests
             }
         }
 
+        [Fact]
+        public void ControlTheme_Nested_Selector_Should_Be_Completed()
+        {
+            var xaml =
+                """
+                <UserControl.Resources>
+                    <ControlTheme x:Key="MyButton" TargetType="Button">
+                        <Style Selector="
+                """;
+            var compl = GetCompletionsFor(xaml).Completions;
+
+            Assert.Single(compl);
+            Assert.Contains(compl, v => v.InsertText == "^");
+        }
+
+        [Fact]
+        public void ControlTheme_Nested_Selector_Should_Be_Completed_PseudoClass()
+        {
+            var xaml =
+                """
+                <UserControl.Resources>
+                    <ControlTheme x:Key="MyButton" TargetType="Button">
+                        <Style Selector="^:
+                """;
+            var compl = GetCompletionsFor(xaml).Completions;
+
+            Assert.Equal(10, compl.Count);
+            Assert.Contains(compl, v => v.InsertText == ":disabled");
+        }
+
+        [Fact]
+        public void ControlTheme_Nested_Selector_Should_Be_Completed_Template()
+        {
+            var xaml =
+                """
+                <UserControl.Resources>
+                    <ControlTheme x:Key="MyButton" TargetType="Button">
+                        <Style Selector="^ /template/ C
+                """;
+            var compl = GetCompletionsFor(xaml).Completions;
+
+            Assert.Contains(compl, v => v.InsertText == "ContentPresenter");
+        }
+
+        [Fact]
+        public void ControlTheme_Nested_Selector_Should_Be_Completed_Setter()
+        {
+            string[] expected = new[]
+                {
+                "Command",
+                "CommandParameter",
+                };
+
+            var xaml =
+                """
+                <UserControl.Resources>
+                    <ControlTheme x:Key="MyButton" TargetType="Button">
+                        <Style Selector="^:disabled">
+                            <Setter Property="Com
+                """;
+            var compl = GetCompletionsFor(xaml).Completions.Select(c => c.InsertText);
+
+            Assert.Equal(expected, compl);
+        }
+
         [Theory]
         [MemberData(nameof(GetAffinityTypeCases))]
         public void TypeAffinity_Compilation(string source,

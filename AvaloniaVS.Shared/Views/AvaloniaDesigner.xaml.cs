@@ -559,15 +559,17 @@ namespace AvaloniaVS.Views
                 string intermediateOutputPath = GetIntermediateOutputPath(storage);
                 if (metadata.CompletionMetadata == null || metadata.NeedInvalidation)
                 {
-                    CreateCompletionMetadataAsync(intermediateOutputPath, metadata).FireAndForget();
+                    CreateCompletionMetadataAsync(intermediateOutputPath, assemblyPath, metadata).FireAndForget();
                 }
             }
         }
 
         private static Dictionary<string, Task<Metadata>> _metadataCache;
+        private static readonly MetadataReader _metadataReader = new(new DnlibMetadataProvider());
 
         private static async Task CreateCompletionMetadataAsync(
             string intermediateOutputPath,
+            string xamlAssemblyPath,
             XamlBufferMetadata target)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -592,8 +594,7 @@ namespace AvaloniaVS.Views
                 {
                     metadataLoad = Task.Run(() =>
                                     {
-                                        var metadataReader = new MetadataReader(new DnlibMetadataProvider());
-                                        return metadataReader.GetForTargetAssembly(new AvaloniaCompilationAssemblyProvider(intermediateOutputPath));
+                                        return _metadataReader.GetForTargetAssembly(new AvaloniaCompilationAssemblyProvider(intermediateOutputPath, xamlAssemblyPath));
                                     });
                     _metadataCache[intermediateOutputPath] = metadataLoad;
                 }
