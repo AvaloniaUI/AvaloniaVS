@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Avalonia.Ide.CompletionEngine;
 using EnvDTE;
 using EnvDTE80;
@@ -18,6 +19,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Threading;
 using IServiceProvider = System.IServiceProvider;
 
 namespace AvaloniaVS.IntelliSense
@@ -116,11 +118,12 @@ namespace AvaloniaVS.IntelliSense
             // If the pressed key is a key that can start a completion session.
             if (CompletionEngine.ShouldTriggerCompletionListOn(c) || c == '\a')
             {
-                if (_session == null || _session.IsDismissed)
+                var session = _session;
+                if (session == null || session.IsDismissed)
                 {
                     if (TriggerCompletion() && c != '<' && c != '.' && c != ' ' && c != '[' && c != '(' && c != '|' && c != '#' && c != '/')
                     {
-                        _session?.Filter();
+                        session?.Filter();
                     }
 
                     return true;
@@ -128,13 +131,13 @@ namespace AvaloniaVS.IntelliSense
             }
             else if (c == ',')
             {
-                if (_session == null || _session.IsDismissed)
+                var session = _session;
+                if (session is null || session.IsDismissed)
                 {
                     if (TriggerCompletion())
                     {
-                        _session.Filter();
+                        session?.Filter();
                     }
-
                     return true;
                 }
             }
@@ -143,12 +146,11 @@ namespace AvaloniaVS.IntelliSense
 
         private bool HandleSessionUpdate()
         {
-            if (_session != null && !_session.IsDismissed)
+            if (_session is { } session && !session.IsDismissed)
             {
-                _session.Filter();
+                session.Filter();
                 return true;
             }
-
             return false;
         }
 
@@ -163,7 +165,8 @@ namespace AvaloniaVS.IntelliSense
             // a completion, which can complete on the wrong value
             // So we only trigger on ' ' or '\t', and swallow that so it doesn't get 
             // inserted into the text buffer
-            if (_session != null && !_session.IsDismissed)
+            var session = _session;
+            if (session is not null && !session.IsDismissed)
             {
                 var text = line.Snapshot.GetText(start, end - start);
 
@@ -171,12 +174,12 @@ namespace AvaloniaVS.IntelliSense
                 {
                     if (char.IsWhiteSpace(c))
                     {
-                        _session.Commit();
+                        session.Commit();
                         return true;
                     }
                     else if (c == ':')
                     {
-                        _session.Dismiss();
+                        session.Dismiss();
                     }
 
                     return false;
@@ -199,14 +202,14 @@ namespace AvaloniaVS.IntelliSense
                 || c == '\'' || c == '"' || c == '=' || c == '>' || c == '.'
                 || c == '#' || c == ')' || c == ']')
             {
-                if (_session != null && !_session.IsDismissed &&
-                    _session.SelectedCompletionSet.SelectionStatus.IsSelected)
+                if (session != null && !session.IsDismissed &&
+                    session.SelectedCompletionSet.SelectionStatus.IsSelected)
                 {
-                    var selected = _session.SelectedCompletionSet.SelectionStatus.Completion as XamlCompletion;
+                    var selected = session.SelectedCompletionSet.SelectionStatus.Completion as XamlCompletion;
 
                     var bufferPos = _textView.Caret.Position.BufferPosition;
 
-                    _session.Commit();
+                    session.Commit();
 
                     if (selected.DeleteTextOffset is int rof)
                     {
@@ -254,7 +257,8 @@ namespace AvaloniaVS.IntelliSense
                         var type = _engine.Helper.LookupType(parser.TagName);
                         if (type != null && type.Events.FirstOrDefault(x => x.Name == parser.AttributeName) != null)
                         {
-                            GenerateEventHandler(type.FullName, parser.AttributeName, selected.InsertionText);
+                            GenerateEventHandlerAsync(type.FullName, parser.AttributeName, selected.InsertionText)
+                                .FireAndForget();
                         }
                         var isSelector = parser.AttributeName?.Equals("Selector") == true;
                         if (char.IsWhiteSpace(c))
@@ -355,11 +359,11 @@ namespace AvaloniaVS.IntelliSense
                 }
                 else
                 {
-                    _session?.Dismiss();
+                    session?.Dismiss();
                     return false;
                 }
             }
-            else if (c == ':' && (_session != null && !_session.IsDismissed))
+            else if (c == ':' && (session != null && !session.IsDismissed))
             {
                 var parser = XmlParser.Parse(_textView.TextSnapshot.GetText().AsMemory(), 0, end);
                 var state = parser.State;
@@ -368,22 +372,22 @@ namespace AvaloniaVS.IntelliSense
                     parser.AttributeName?.Equals("Selector") == true)
                 {
                     // Force new session to start to suggest pseudoclasses
-                    _session.Dismiss();
+                    session.Dismiss();
                     return false;
                 }
             }
-            else if (c == '(' && _session?.IsDismissed == false)
+            else if (c == '(' && session?.IsDismissed == false)
             {
                 var parser = XmlParser.Parse(_textView.TextSnapshot.GetText().AsMemory(), 0, end);
                 var state = parser.State;
                 if ((state == XmlParser.ParserState.AttributeValue || state == XmlParser.ParserState.AfterAttributeValue)
                     && parser.AttributeName?.Equals("Selector") == true)
                 {
-                    _session.Dismiss();
+                    session.Dismiss();
                     return false;
                 }
             }
-            else if (c == '{' && (_session != null && !_session.IsDismissed))
+            else if (c == '{' && (session != null && !session.IsDismissed))
             {
                 var parser = XmlParser.Parse(_textView.TextSnapshot.GetText().AsMemory(), 0, end);
                 var state = parser.State;
@@ -392,11 +396,11 @@ namespace AvaloniaVS.IntelliSense
                 {
                     // For something like Brushes, restart the completion session if we want
                     // a markup extension
-                    _session.Dismiss();
+                    session.Dismiss();
                     return false;
                 }
             }
-            else if (c == ',' && (_session != null && !_session.IsDismissed))
+            else if (c == ',' && (session != null && !session.IsDismissed))
             {
                 // Typing the comma in a markup extension should trigger a new completion session
                 var text = line.Snapshot.GetText(start, end - start);
@@ -404,7 +408,7 @@ namespace AvaloniaVS.IntelliSense
                 {
                     if (text[i] == '{')
                     {
-                        _session.Dismiss();
+                        session.Dismiss();
                         return false;
                     }
                 }
@@ -455,22 +459,23 @@ namespace AvaloniaVS.IntelliSense
                 }
             }
 
-            _session = existingSession ?? _completionBroker.CreateCompletionSession(
+            var session = existingSession ?? _completionBroker.CreateCompletionSession(
                 _textView,
                 caretPoint?.Snapshot.CreateTrackingPoint(caretPoint.Value.Position, PointTrackingMode.Positive),
                 true);
 
             // Subscribe to the Dismissed event on the session.
-            _session.Dismissed += SessionDismissed;
-            _session.Start();
-
+            session.Dismissed += SessionDismissed;
+            _session = session;
+            session.Start();
             return true;
         }
 
         private void SessionDismissed(object sender, EventArgs e)
         {
-            _session.Dismissed -= SessionDismissed;
+            var session = _session;
             _session = null;
+            session.Dismissed -= SessionDismissed;
         }
 
         private IEnumerable<ParameterSyntax> GetParametersList(string[] parameterTypes, string[] parameterNames)
@@ -485,83 +490,112 @@ namespace AvaloniaVS.IntelliSense
             }
         }
 
-        private void GenerateEventHandler(string controlType, string eventName, string generatedMethodName)
+        private async System.Threading.Tasks.Task GenerateEventHandlerAsync(string controlType, string eventName, string generatedMethodName)
         {
-            var componentModel = (IComponentModel)Package.GetGlobalService(typeof(SComponentModel));
-            var dte = Package.GetGlobalService(typeof(DTE)) as DTE2;
-            var workspace = componentModel.GetService<VisualStudioWorkspace>();
-            ThreadHelper.ThrowIfNotOnUIThread();
-            var currentDocumentCodeBehind = workspace.CurrentSolution.Projects.FirstOrDefault(x => x.FilePath.EndsWith(dte.ActiveDocument.ProjectItem.ContainingProject.UniqueName)).Documents.FirstOrDefault(x => x.Name == dte.ActiveDocument.Name + ".cs");
-            var compilation = ThreadHelper.JoinableTaskFactory.Run(() => currentDocumentCodeBehind.Project.GetCompilationAsync());
-            var root = ThreadHelper.JoinableTaskFactory.Run(() => currentDocumentCodeBehind.GetSyntaxRootAsync());
-            var codeBehindClass = root.DescendantNodes().FirstOrDefault(x => x.IsKind(SyntaxKind.ClassDeclaration)) as ClassDeclarationSyntax;
+            var currentScheduler = TaskScheduler.FromCurrentSynchronizationContext();
+            try
+            {
+                var componentModel = (IComponentModel)Package.GetGlobalService(typeof(SComponentModel));
+                var dte = Package.GetGlobalService(typeof(DTE)) as DTE2;
+                var workspace = componentModel.GetService<VisualStudioWorkspace>();
 
-            var currentEvent = GetAllEvents(compilation.References.Select(compilation.GetAssemblyOrModuleSymbol)
-                .OfType<IAssemblySymbol>().Select(a => a.GetTypeByMetadataName(controlType))
-                .FirstOrDefault(x => x != null))
-                .FirstOrDefault(x => x.Name == eventName) as IEventSymbol;
-            var parameters = (currentEvent.Type as INamedTypeSymbol).DelegateInvokeMethod.Parameters;
-            string[] parameterNames = new string[parameters.Length];
-            string[] parameterTypes = new string[parameters.Length];
-            for (int i = 0; i < parameters.Length; i++)
-            {
-                parameterNames[i] = parameters[i].MetadataName;
-                parameterTypes[i] = parameters[i].Type.ToString();
-            }
-            var methodToInsert = GetMethodDeclarationSyntax("void", generatedMethodName, parameterTypes, parameterNames);
-            var duplicatingMethodIds = new List<int>();
-            foreach (MethodDeclarationSyntax item in codeBehindClass.DescendantNodes().Where(x => x.IsKind(SyntaxKind.MethodDeclaration)))
-            {
-                if (item.ReturnType is PredefinedTypeSyntax predefinedTypeSyntax &&
-                    predefinedTypeSyntax.Keyword.IsKind(SyntaxKind.VoidKeyword))
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                var activeDocument = dte.ActiveDocument;
+                if (activeDocument.ProjectItem?.ContainingProject?.UniqueName is { } uniqueName)
                 {
-                    var itemParameters = item.ParameterList.Parameters.Select(x => x.Type.ToString()).ToList();
-                    var methodToInsertParameters = methodToInsert.ParameterList.Parameters.Select(x => x.Type.ToString()).ToList();
-                    if (itemParameters.Count == methodToInsertParameters.Count)
-                    {
-                        var sameMethods = true;
-                        for (int i = 0; i < itemParameters.Count; i++)
-                        {
-                            if (itemParameters[i] != methodToInsertParameters[i])
-                            {
-                                sameMethods = false;
-                                break;
-                            }
-                        }
+                    var currentDocumentCodeBehind = workspace.CurrentSolution.Projects
+                         .FirstOrDefault((x, a) => x.FilePath?.EndsWith(a) == true, uniqueName)
+                         .Documents
+                         .FirstOrDefault((x, a) => string.Equals(x.Name, a, StringComparison.OrdinalIgnoreCase), $"{activeDocument.Name}.cs");
 
-                        if (sameMethods)
+                    if (currentDocumentCodeBehind is null)
+                    {
+                        return;
+                    }
+
+                    var compilation = await currentDocumentCodeBehind.Project.GetCompilationAsync();
+                    var root = await currentDocumentCodeBehind.GetSyntaxRootAsync();
+                    var codeBehindClass = root.DescendantNodes()
+                        .FirstOrDefault(x => x.IsKind(SyntaxKind.ClassDeclaration)) as ClassDeclarationSyntax;
+
+                    await TaskScheduler.Default;
+
+                    var currentEvent = GetAllEvents(compilation.References.Select(compilation.GetAssemblyOrModuleSymbol)
+                        .OfType<IAssemblySymbol>().Select(a => a.GetTypeByMetadataName(controlType))
+                        .FirstOrDefault(x => x != null))
+                        .FirstOrDefault(x => x.Name == eventName) as IEventSymbol;
+                    var parameters = (currentEvent.Type as INamedTypeSymbol).DelegateInvokeMethod.Parameters;
+                    string[] parameterNames = new string[parameters.Length];
+                    string[] parameterTypes = new string[parameters.Length];
+                    for (int i = 0; i < parameters.Length; i++)
+                    {
+                        parameterNames[i] = parameters[i].MetadataName;
+                        parameterTypes[i] = parameters[i].Type.ToString();
+                    }
+                    var methodToInsert = GetMethodDeclarationSyntax("void", generatedMethodName, parameterTypes, parameterNames);
+                    var duplicatingMethodIds = new List<int>();
+                    foreach (MethodDeclarationSyntax item in codeBehindClass.DescendantNodes().Where(x => x.IsKind(SyntaxKind.MethodDeclaration)))
+                    {
+                        if (item.ReturnType is PredefinedTypeSyntax predefinedTypeSyntax &&
+                            predefinedTypeSyntax.Keyword.IsKind(SyntaxKind.VoidKeyword))
                         {
-                            var methodNameParts = item.Identifier.Text.Split('_');
-                            if (methodNameParts.Length == 3 && int.TryParse(methodNameParts.Last(), out var methodId))
+                            var itemParameters = item.ParameterList.Parameters.Select(x => x.Type.ToString()).ToArray();
+                            var methodToInsertParameters = methodToInsert.ParameterList.Parameters.Select(x => x.Type.ToString()).ToArray();
+                            if (itemParameters.Length == methodToInsertParameters.Length)
                             {
-                                duplicatingMethodIds.Add(methodId);
-                            }
-                            else
-                            {
-                                duplicatingMethodIds.Add(0);
+                                var sameMethods = true;
+                                for (int i = 0; i < itemParameters.Length; i++)
+                                {
+                                    if (itemParameters[i] != methodToInsertParameters[i])
+                                    {
+                                        sameMethods = false;
+                                        break;
+                                    }
+                                }
+
+                                if (sameMethods)
+                                {
+                                    var methodNameParts = item.Identifier.Text.Split('_');
+                                    if (methodNameParts.Length == 3 && int.TryParse(methodNameParts.Last(), out var methodId))
+                                    {
+                                        duplicatingMethodIds.Add(methodId);
+                                    }
+                                    else
+                                    {
+                                        duplicatingMethodIds.Add(0);
+                                    }
+                                }
                             }
                         }
                     }
+
+                    if (duplicatingMethodIds.Count > 0)
+                    {
+                        methodToInsert = methodToInsert.WithIdentifier(SyntaxFactory.Identifier(generatedMethodName + $"_{duplicatingMethodIds.Max() + 1}"));
+                    }
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    var newMethodDeclaration = codeBehindClass.AddMembers(methodToInsert);
+                    var newRoot = root.ReplaceNode(codeBehindClass, newMethodDeclaration);
+                    newRoot = Formatter.Format(newRoot, Formatter.Annotation, workspace);
+                    workspace.TryApplyChanges(currentDocumentCodeBehind.WithSyntaxRoot(newRoot).Project.Solution);
+
+                    // Hack to add method id to xaml file because i can't find a way to generate it from completions
+                    // Apply these changes after adding method because otherwise workspace will fail to add method
+                    if (duplicatingMethodIds.Count > 0)
+                    {
+                        var textDocument = dte.ActiveDocument.Object() as EnvDTE.TextDocument;
+                        var editPoint = textDocument.CreateEditPoint();
+                        editPoint.MoveToAbsoluteOffset(textDocument.Selection.ActivePoint.AbsoluteCharOffset);
+                        editPoint.Insert($"_{duplicatingMethodIds.Max() + 1}");
+                    }
                 }
             }
-
-            if (duplicatingMethodIds.Count > 0)
+            finally
             {
-                methodToInsert = methodToInsert.WithIdentifier(SyntaxFactory.Identifier(generatedMethodName + $"_{duplicatingMethodIds.Max() + 1}"));
-            }
-            var newMethodDeclaration = codeBehindClass.AddMembers(methodToInsert);
-            var newRoot = root.ReplaceNode(codeBehindClass, newMethodDeclaration);
-            newRoot = Formatter.Format(newRoot, Formatter.Annotation, workspace);
-            workspace.TryApplyChanges(currentDocumentCodeBehind.WithSyntaxRoot(newRoot).Project.Solution);
-
-            // Hack to add method id to xaml file because i can't find a way to generate it from completions
-            // Apply these changes after adding method because otherwise workspace will fail to add method
-            if (duplicatingMethodIds.Count > 0)
-            {
-                var textDocument = dte.ActiveDocument.Object() as EnvDTE.TextDocument;
-                var editPoint = textDocument.CreateEditPoint();
-                editPoint.MoveToAbsoluteOffset(textDocument.Selection.ActivePoint.AbsoluteCharOffset);
-                editPoint.Insert($"_{duplicatingMethodIds.Max() + 1}");
+                if (currentScheduler is not null && currentScheduler.Id != TaskScheduler.FromCurrentSynchronizationContext()?.Id)
+                {
+                    await currentScheduler;
+                }
             }
         }
 
