@@ -299,7 +299,7 @@ public class CompletionEngine
                     }
 
                 }
-                if(isTagEmpty)
+                if (isTagEmpty)
                 {
                     completions.Add(new Completion("!--", "!---->", CompletionKind.Comment) { RecommendedCursorOffset = 3 });
                 }
@@ -574,10 +574,9 @@ public class CompletionEngine
     {
         // Group the completions based on Kind, and sort the completions for each group
         return completions
-            .GroupBy(i => i.Kind, (kind, compl) =>
-                (Kind: kind, Completions: compl
-                .OrderBy(j => j.Priority).ThenBy(j => j.DisplayText)))
-            .OrderBy(i => GetCompletionPriority(i.Kind))
+            .GroupBy(i => (i.Priority, i.Kind), (key, compl) => (Key: key, Completions: compl.OrderBy(j => j.DisplayText)))
+            .OrderBy(i => i.Key.Priority)
+            .ThenBy(i => GetCompletionPriority(i.Key.Kind))
             .SelectMany(i => i.Completions)
             .ToList();
     }

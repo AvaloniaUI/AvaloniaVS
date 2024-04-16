@@ -566,8 +566,8 @@ namespace CompletionEngineTests
                         "<ItemsControl><ItemsControl.DataTemplates><",
                         new string[]
                         {
-                            "!--",
                             "/ItemsControl.DataTemplates>",
+                            "!--",
                             "DataTemplate",
                             "FuncDataTemplate",
                             "FuncDataTemplate<T>",
@@ -581,8 +581,8 @@ namespace CompletionEngineTests
                         "<UserControl><UserControl.Styles><",
                         new string[]
                         {
-                            "!--",
                             "/UserControl.Styles>",
+                            "!--",
                             "ControlTheme",
                             "Style",
                             "StyleInclude",
@@ -594,8 +594,8 @@ namespace CompletionEngineTests
                         "<TextBlock><TextBlock.Inlines><",
                         new string[]
                         {
-                            "!--",
                             "/TextBlock.Inlines>",
+                            "!--",
                             "Bold",
                             "InlineUIContainer",
                             "Italic",
@@ -610,9 +610,9 @@ namespace CompletionEngineTests
                         "<UserControl xmlns:local=\"clr-namespace:CompletionEngineTests.Models\"><local:MyListBox><",
                         new string[]
                         {
-                            "!--",
                             "/local:MyListBox>",
                             "local:MyListBox",
+                            "!--",
                             "local:MyListBoxItem",
                         },
             };

@@ -124,7 +124,11 @@ public static class MetadataConverter
         bool skipRes(string res) => ignoredResExt.Any(r => res.EndsWith(r, StringComparison.OrdinalIgnoreCase));
 
         PreProcessTypes(types, metadata);
-        var targetAssembly = provider.Assemblies.First();
+        var targetAssembly = provider.Assemblies.FirstOrDefault();
+        if (targetAssembly == null)
+        {
+            return metadata;
+        }
         foreach (var asm in provider.Assemblies)
         {
             var aliases = new Dictionary<string, string[]>();

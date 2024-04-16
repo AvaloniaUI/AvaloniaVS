@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.Threading;
 using Serilog;
 using Task = System.Threading.Tasks.Task;
 
+
 namespace AvaloniaVS.Views
 {
     public enum AvaloniaDesignerView
@@ -443,7 +444,7 @@ namespace AvaloniaVS.Views
                     Dispatcher.BeginInvoke(() =>
                         ZoomLevel = string.Format(CultureInfo.InvariantCulture, "{0}%", Math.Round(Math.Min(x, y), 2, MidpointRounding.ToEven) * 100),
                         System.Windows.Threading.DispatcherPriority.Background);
-                    
+
                 }
                 else
                 {
@@ -559,7 +560,8 @@ namespace AvaloniaVS.Views
                 string intermediateOutputPath = GetIntermediateOutputPath(storage);
                 if (metadata.CompletionMetadata == null || metadata.NeedInvalidation)
                 {
-                    CreateCompletionMetadataAsync(intermediateOutputPath, assemblyPath, metadata).FireAndForget();
+                    CreateCompletionMetadataAsync(intermediateOutputPath, assemblyPath, metadata)
+                       .FireAndForget();
                 }
             }
         }
@@ -572,40 +574,35 @@ namespace AvaloniaVS.Views
             string xamlAssemblyPath,
             XamlBufferMetadata target)
         {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            var sw = new Stopwatch();
+            sw.Start();
+            Log.Logger.Information("Started AvaloniaDesigner.CreateCompletionMetadataAsync() for {ExecutablePath}", intermediateOutputPath);
 
             if (_metadataCache == null)
             {
                 _metadataCache = new Dictionary<string, Task<Metadata>>();
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 var dte = (DTE)Package.GetGlobalService(typeof(DTE));
 
                 dte.Events.BuildEvents.OnBuildBegin += (s, e) => _metadataCache.Clear();
             }
-
-            Log.Logger.Information("Started AvaloniaDesigner.CreateCompletionMetadataAsync() for {ExecutablePath}", intermediateOutputPath);
-
             try
             {
-                var sw = Stopwatch.StartNew();
+                await TaskScheduler.Default;
 
                 Task<Metadata> metadataLoad;
 
                 if (!_metadataCache.TryGetValue(intermediateOutputPath, out metadataLoad))
                 {
-                    metadataLoad = Task.Run(() =>
-                                    {
-                                        return _metadataReader.GetForTargetAssembly(new AvaloniaCompilationAssemblyProvider(intermediateOutputPath, xamlAssemblyPath));
-                                    });
+                    metadataLoad?.Dispose();
+                    metadataLoad = Task.Run(() => _metadataReader.GetForTargetAssembly(new AvaloniaCompilationAssemblyProvider(intermediateOutputPath, xamlAssemblyPath)));
                     _metadataCache[intermediateOutputPath] = metadataLoad;
                 }
+                target.CompletionMetadata?.Dispose();
 
                 target.CompletionMetadata = await metadataLoad;
 
                 target.NeedInvalidation = false;
-
-                sw.Stop();
-
-                Log.Logger.Verbose("Finished AvaloniaDesigner.CreateCompletionMetadataAsync() took {Time} for {ExecutablePath}", sw.Elapsed, intermediateOutputPath);
             }
             catch (Exception ex)
             {
@@ -613,7 +610,8 @@ namespace AvaloniaVS.Views
             }
             finally
             {
-                Log.Logger.Verbose("Finished AvaloniaDesigner.CreateCompletionMetadataAsync()");
+                sw?.Stop();
+                Log.Logger.Verbose("Finished AvaloniaDesigner.CreateCompletionMetadataAsync() {0}", sw?.Elapsed);
             }
         }
 

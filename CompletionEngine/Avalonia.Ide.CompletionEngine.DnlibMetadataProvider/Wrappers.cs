@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,45 +9,91 @@ namespace Avalonia.Ide.CompletionEngine.DnlibMetadataProvider;
 
 internal class AssemblyWrapper : IAssemblyInformation
 {
-    private readonly AssemblyDef _asm;
-    private readonly DnlibMetadataProviderSession _session;
+    private readonly WeakReference<AssemblyDef> _asm;
+    private readonly WeakReference<DnlibMetadataProviderSession> _session;
 
     public AssemblyWrapper(AssemblyDef asm, DnlibMetadataProviderSession session)
     {
-        _asm = asm;
-        _session = session;
+        _asm = new(asm);
+        _session = new(session);
+        Name = asm.Name;
+        AssemblyName = asm.GetFullNameWithPublicKeyToken();
+        PublicKey = asm.PublicKey.ToString();
     }
 
-    public string Name => _asm.Name;
+    public string Name { get; }
 
-    public string AssemblyName
-        => _asm.GetFullNameWithPublicKeyToken();
+    public string AssemblyName { get; }
 
     public IEnumerable<ITypeInformation> Types
-        => _asm.Modules.SelectMany(m => m.Types).Select(x => TypeWrapper.FromDef(x, _session)).Where(t => t is not null)!;
+    {
+        get
+        {
+            if (_session.TryGetTarget(out var session))
+            {
+                if (_asm.TryGetTarget(out var asm))
+                {
+                    return asm.Modules.SelectMany(m => m.Types).Select(x => TypeWrapper.FromDef(x, session)).Where(t => t is not null)!;
+                }
+            }
+            throw new ObjectDisposedException("session");
+        }
+    }
 
     public IEnumerable<ICustomAttributeInformation> CustomAttributes
-        => _asm.CustomAttributes.Select(a => new CustomAttributeWrapper(a));
+    {
+        get
+        {
+            if (_asm.TryGetTarget(out var asm))
+            {
+                return asm.CustomAttributes.Select(a => new CustomAttributeWrapper(a));
+            }
+            throw new ObjectDisposedException("session");
+        }
+    }
 
     public IEnumerable<string> ManifestResourceNames
-        => _asm.ManifestModule.Resources.Select(r => r.Name.ToString());
+    {
+        get
+        {
+            if (_asm.TryGetTarget(out var asm))
+            {
+                return asm.ManifestModule.Resources.Select(r => r.Name.ToString());
+            }
+            throw new ObjectDisposedException("session");
+        }
+    }
 
     public IEnumerable<string> InternalsVisibleTo
-        => _asm.GetVisibleTo();
+    {
+        get
+        {
+            if (_asm.TryGetTarget(out var asm))
+            {
+                return asm.GetVisibleTo();
+            }
+            throw new ObjectDisposedException("session");
+        }
+    }
 
     public Stream GetManifestResourceStream(string name)
-        => _asm.ManifestModule.Resources.FindEmbeddedResource(name).CreateReader().AsStream();
+    {
+        if (_asm.TryGetTarget(out var asm))
+        {
+            return asm.ManifestModule.Resources.FindEmbeddedResource(name).CreateReader().AsStream();
+        }
+        throw new ObjectDisposedException("session");
+    }
 
-    public string PublicKey
-        => _asm.PublicKey.ToString();
+    public string PublicKey { get; }
 
     public override string ToString() => Name;
 }
 
 internal class TypeWrapper : ITypeInformation
 {
-    private readonly TypeDef _type;
-    private readonly DnlibMetadataProviderSession _session;
+    private readonly WeakReference<TypeDef> _type;
+    private readonly WeakReference<DnlibMetadataProviderSession> _session;
 
     public static TypeWrapper? FromDef(TypeDef? def, DnlibMetadataProviderSession session) => def == null ? null : new TypeWrapper(def, session);
 
@@ -56,44 +101,106 @@ internal class TypeWrapper : ITypeInformation
     {
         if (type == null)
             throw new ArgumentNullException();
-        _type = type;
-        _session = session;
-        AssemblyQualifiedName = _type.AssemblyQualifiedName;
+        _type = new(type);
+        _session = new(session);
+        AssemblyQualifiedName = type.AssemblyQualifiedName;
+        FullName = type.FullName;
+        Name = type.Name;
+        Namespace = type.Namespace;
+        IsEnum = type.IsEnum;
+        IsStatic = type.IsAbstract && type.IsSealed;
+        IsInterface = type.IsInterface;
+        IsPublic = type.IsPublic;
+        IsGeneric = type.HasGenericParameters;
+        IsAbstract = type.IsAbstract && !type.IsSealed;
+        IsInternal = type.IsNotPublic && !type.IsNestedPrivate;
     }
 
-    public string FullName => _type.FullName;
-    public string Name => _type.Name;
+    public string FullName { get; }
+    public string Name { get; }
     public string AssemblyQualifiedName { get; }
-    public string Namespace => _type.Namespace;
-    public ITypeInformation? GetBaseType() => FromDef(_session.GetTypeDef(_session.GetBaseType(_type)), _session);
+    public string Namespace { get; }
+    public ITypeInformation? GetBaseType()
+    {
+        if (_session.TryGetTarget(out var session) && _type.TryGetTarget(out var type))
+        {
+            return FromDef(session.GetTypeDef(session.GetBaseType(type)), session);
+        }
+        throw new ObjectDisposedException("session");
+    }
 
-    public IEnumerable<IEventInformation> Events => _type.Events.Select(EventWrapper.FromDef);
+    public IEnumerable<IEventInformation> Events
+    {
+        get
+        {
+            if (_session.TryGetTarget(out var session) && _type.TryGetTarget(out var type))
+            {
+                return type.Events.Select(e => EventWrapper.FromDef(e, session));
+            }
+            throw new ObjectDisposedException("session");
+        }
+    }
 
-    public IEnumerable<IMethodInformation> Methods => _type.GetMethodsHierarchy().Select(m => MethodWrapper.FromDef(m, _session));
+    public IEnumerable<IMethodInformation> Methods
+    {
+        get
+        {
+            if (_session.TryGetTarget(out var session) && _type.TryGetTarget(out var type))
+            {
+                return type.GetMethodsHierarchy().Select(m => MethodWrapper.FromDef(m, session));
+            }
+            throw new ObjectDisposedException("session");
+        }
+    }
 
-    public IEnumerable<IFieldInformation> Fields => _type.Fields.Select(f => new FieldWrapper(f, _session));
+    public IEnumerable<IFieldInformation> Fields
+    {
+        get
+        {
+            if (_session.TryGetTarget(out var session) && _type.TryGetTarget(out var type))
+            {
+                return type.Fields.Select(f => new FieldWrapper(f, session));
+            }
+            throw new ObjectDisposedException("session");
+        }
+    }
 
-    public IEnumerable<IPropertyInformation> Properties => _type.Properties
-        //Filter indexer properties
-        .Where(p =>
-            (p.GetMethod?.IsPublicOrInternal() == true && p.GetMethod.Parameters.Count == (p.GetMethod.IsStatic ? 0 : 1))
-            || (p.SetMethod?.IsPublicOrInternal() == true && p.SetMethod.Parameters.Count == (p.SetMethod.IsStatic ? 1 : 2)))
-        // Filter property overrides
-        .Where(p => !p.Name.Contains("."))
-        .Select(PropertyWrapper.FromDef);
-    public bool IsEnum => _type.IsEnum;
-    public bool IsStatic => _type.IsAbstract && _type.IsSealed;
-    public bool IsInterface => _type.IsInterface;
-    public bool IsPublic => _type.IsPublic;
-    public bool IsGeneric => _type.HasGenericParameters;
-    public bool IsAbstract => _type.IsAbstract && !_type.IsSealed;
-    public bool IsInternal => _type.IsNotPublic && !_type.IsNestedPrivate;
+    public IEnumerable<IPropertyInformation> Properties
+    {
+        get
+        {
+            if (_session.TryGetTarget(out var session) && _type.TryGetTarget(out var type))
+            {
+                return type.Properties
+                    //Filter indexer properties
+                    .Where(p =>
+                        (p.GetMethod?.IsPublicOrInternal() == true && p.GetMethod.Parameters.Count == (p.GetMethod.IsStatic ? 0 : 1))
+                        || (p.SetMethod?.IsPublicOrInternal() == true && p.SetMethod.Parameters.Count == (p.SetMethod.IsStatic ? 1 : 2)))
+                     // Filter property overrides
+                     .Where(p => !p.Name.Contains("."))
+                    .Select(p => PropertyWrapper.FromDef(p, session));
+            }
+            throw new ObjectDisposedException("session");
+        }
+    }
+
+    public bool IsEnum { get; }
+    public bool IsStatic { get; }
+    public bool IsInterface { get; }
+    public bool IsPublic { get; }
+    public bool IsGeneric { get; }
+    public bool IsAbstract { get; }
+    public bool IsInternal { get; }
 
     public IEnumerable<string> EnumValues
     {
         get
         {
-            return _type.Fields.Where(f => f.IsStatic).Select(f => f.Name.String).ToArray();
+            if (_type.TryGetTarget(out var type))
+            {
+                return type.Fields.Where(f => f.IsStatic).Select(f => f.Name.String).ToArray();
+            }
+            throw new ObjectDisposedException("session");
         }
     }
     public IEnumerable<string> Pseudoclasses
@@ -103,7 +210,11 @@ internal class TypeWrapper : ITypeInformation
             // There is probably a much nicer way to do this, but it works
             // Would be nice if we had a ref to the PseudoClassesAttribute to just pull
             // the values from though...
-            var attr = _type.CustomAttributes
+            if (!_type.TryGetTarget(out var type))
+            {
+                throw new ObjectDisposedException("session");
+            }
+            var attr = type.CustomAttributes
                 .Where(x => x.TypeFullName.Contains("PseudoClassesAttribute"));
 
             var selector = attr.Select(x =>
@@ -127,30 +238,55 @@ internal class TypeWrapper : ITypeInformation
 
     public bool IsSubclassOf(ITypeInformation? type)
     {
-        if (type is TypeWrapper wrapper)
+        if (!_type.TryGetTarget(out var thisType))
         {
-            return wrapper._type.IsAssignableFrom(_type);
+            throw new ObjectDisposedException("session");
+        }
+        if (type is TypeWrapper wrapper && wrapper._type.TryGetTarget(out var otherType))
+        {
+            return otherType.IsAssignableFrom(thisType);
         }
         return false;
     }
 
-    public IEnumerable<ITypeInformation> NestedTypes =>
-        _type.HasNestedTypes ? _type.NestedTypes.Select(t => new TypeWrapper(t, _session)) : Array.Empty<TypeWrapper>();
+    public IEnumerable<ITypeInformation> NestedTypes
+    {
+        get
+        {
+            if (_session.TryGetTarget(out var session) && _type.TryGetTarget(out var type))
+            {
+                return type.HasNestedTypes ? type.NestedTypes.Select(t => new TypeWrapper(t, session)) : Array.Empty<TypeWrapper>();
+            }
+            throw new ObjectDisposedException("session");
+        }
+    }
 
     public IEnumerable<(ITypeInformation Type, string Name)> TemplateParts
     {
         get
         {
-            var attributes = _type.CustomAttributes
+            if (!_type.TryGetTarget(out var type))
+            {
+                throw new ObjectDisposedException("session");
+            }
+            var attributes = type.CustomAttributes
                 .Where(a => a.TypeFullName.EndsWith("TemplatePartAttribute", StringComparison.OrdinalIgnoreCase)
                     && a.HasConstructorArguments);
             foreach (var attr in attributes)
             {
-                var name = attr.ConstructorArguments[0].Value.ToString()!;
-                var def = _session.GetTypeDef(((ClassSig)attr.ConstructorArguments[1].Value).TypeDefOrRef);
-                ITypeInformation type = FromDef(def, _session)!;
-                yield return (type, name);
+                if (_session.TryGetTarget(out var session))
+                {
+                    var name = attr.ConstructorArguments[0].Value.ToString()!;
+                    var def = session.GetTypeDef(((ClassSig)attr.ConstructorArguments[1].Value).TypeDefOrRef);
+                    ITypeInformation t = FromDef(def, session)!;
+                    yield return (t, name);
+                }
+                else
+                {
+                    throw new ObjectDisposedException("session");
+                }
             }
+
         }
     }
     IReadOnlyList<ICustomAttributeInformation>? _customAttributes;
@@ -158,9 +294,13 @@ internal class TypeWrapper : ITypeInformation
     {
         get
         {
+            if (!_type.TryGetTarget(out var type))
+            {
+                throw new ObjectDisposedException("session");
+            }
             if (_customAttributes is null)
             {
-                _customAttributes = _type.CustomAttributes
+                _customAttributes = type.CustomAttributes
                     .Select(a => new CustomAttributeWrapper(a))
                     .ToArray();
             }
@@ -171,18 +311,16 @@ internal class TypeWrapper : ITypeInformation
 
 internal class CustomAttributeWrapper : ICustomAttributeInformation
 {
-    private readonly Lazy<IList<IAttributeConstructorArgumentInformation>> _args;
+    private readonly IList<IAttributeConstructorArgumentInformation> _args;
     public CustomAttributeWrapper(CustomAttribute attr)
     {
         TypeFullName = attr.TypeFullName;
-        _args = new Lazy<IList<IAttributeConstructorArgumentInformation>>(() =>
-            attr.ConstructorArguments.Select(
-                ca => (IAttributeConstructorArgumentInformation)
-                    new ConstructorArgumentWrapper(ca)).ToList());
+        _args = attr.ConstructorArguments
+            .Select(ca => (IAttributeConstructorArgumentInformation)new ConstructorArgumentWrapper(ca)).ToList();
     }
 
     public string TypeFullName { get; }
-    public IList<IAttributeConstructorArgumentInformation> ConstructorArguments => _args.Value;
+    public IList<IAttributeConstructorArgumentInformation> ConstructorArguments => _args;
 }
 
 internal class ConstructorArgumentWrapper : IAttributeConstructorArgumentInformation
@@ -206,10 +344,9 @@ internal class PropertyWrapper : IPropertyInformation
 {
     private readonly PropertyDef _prop;
     private readonly Func<PropertyDef, IAssemblyInformation, bool> _isVisbleTo;
-    private readonly static ConcurrentDictionary<PropertyDef, PropertyWrapper> _propertiesCache = new();
 
-    public static PropertyWrapper FromDef(PropertyDef def) =>
-        _propertiesCache.GetOrAdd(def, new PropertyWrapper(def));
+    public static PropertyWrapper FromDef(PropertyDef def, DnlibMetadataProviderSession session) =>
+        session._propertiesCache.GetOrAdd(def, new PropertyWrapper(def));
 
     private PropertyWrapper(PropertyDef prop)
     {
@@ -358,10 +495,8 @@ internal class FieldWrapper : IFieldInformation
 
 internal class EventWrapper : IEventInformation
 {
-    readonly static ConcurrentDictionary<EventDef, EventWrapper> _eventsCache = new();
-
-    public static EventWrapper FromDef(EventDef def) =>
-             _eventsCache.GetOrAdd(def, new EventWrapper(def));
+    public static EventWrapper FromDef(EventDef def, DnlibMetadataProviderSession session) =>
+             session._eventsCache.GetOrAdd(def, new EventWrapper(def));
 
     private EventWrapper(EventDef @event)
     {
@@ -382,77 +517,59 @@ internal class EventWrapper : IEventInformation
 
 internal class MethodWrapper : IMethodInformation
 {
-    private readonly MethodDef _method;
-    private readonly DnlibMetadataProviderSession _session;
-    private readonly Lazy<IList<IParameterInformation>> _parameters;
-    private static readonly ConcurrentDictionary<MethodDef, MethodWrapper> _methodsCache = new();
+    private readonly IList<IParameterInformation> _parameters;
 
     public static MethodWrapper FromDef(MethodDef def, DnlibMetadataProviderSession session) =>
-            _methodsCache.GetOrAdd(def, new MethodWrapper(def, session));
+            session._methodsCache.GetOrAdd(def, new MethodWrapper(def, session));
 
     private MethodWrapper(MethodDef method, DnlibMetadataProviderSession session)
     {
-        _method = method;
-        _session = session;
-        _parameters = new Lazy<IList<IParameterInformation>>(() =>
-            _method.Parameters.Skip(_method.IsStatic ? 0 : 1).Select(p => (IParameterInformation)new ParameterWrapper(p, _session!)).ToList());
-        if (_method.ReturnType is not null)
+        _parameters = method.Parameters.Skip(method.IsStatic ? 0 : 1)
+                    .Select(p => (IParameterInformation)new ParameterWrapper(p, session))
+                    .ToList();
+
+        if (method.ReturnType is not null)
         {
-            QualifiedReturnTypeFullName = _method.ReturnType.AssemblyQualifiedName;
-            ReturnTypeFullName = _method.ReturnType.FullName;
+            QualifiedReturnTypeFullName = method.ReturnType.AssemblyQualifiedName;
+            ReturnTypeFullName = method.ReturnType.FullName;
         }
         else
         {
             QualifiedReturnTypeFullName = typeof(void).AssemblyQualifiedName!;
             ReturnTypeFullName = typeof(void).FullName!;
         }
+        IsStatic = method.IsStatic;
+        IsPublic = method.IsPublic;
+        Name = method.Name;
+        CustomAttributes = method.CustomAttributes
+                    .Select(a => new CustomAttributeWrapper(a))
+                    .ToArray();
     }
 
-    public bool IsStatic => _method.IsStatic;
-    public bool IsPublic => _method.IsPublic;
-    public string Name => _method.Name;
-    public IList<IParameterInformation> Parameters => _parameters.Value;
+    public bool IsStatic { get; }
+    public bool IsPublic { get; }
+    public string Name { get; }
+    public IList<IParameterInformation> Parameters => _parameters;
     public string ReturnTypeFullName { get; }
     public string QualifiedReturnTypeFullName { get; }
 
-    private IReadOnlyList<ICustomAttributeInformation>? _customAttributes;
-    public IReadOnlyList<ICustomAttributeInformation> CustomAttributes
-    {
-        get
-        {
-            if (_customAttributes == null)
-            {
-                _customAttributes = _method.CustomAttributes
-                    .Select(a => new CustomAttributeWrapper(a))
-                    .ToArray();
-            }
-            return _customAttributes;
-        }
-    }
+    public IReadOnlyList<ICustomAttributeInformation> CustomAttributes { get; }
 
     public override string ToString() => Name;
 }
 
 internal class ParameterWrapper : IParameterInformation
 {
-    private readonly Lazy<ITypeInformation?> _type;
-    private readonly DnlibMetadataProviderSession _session;
-
+    private readonly ITypeInformation? _type;
     public ParameterWrapper(Parameter param, DnlibMetadataProviderSession session)
     {
         TypeFullName = param.Type.FullName;
         QualifiedTypeFullName = param.Type.AssemblyQualifiedName;
-        _type = new Lazy<ITypeInformation?>(() =>
-        {
-            if (param.Type?.TryGetTypeDefOrRef()?.ResolveTypeDef() is { } td)
-            {
-                return TypeWrapper.FromDef(td, _session!);
-            }
-            return null;
-        });
-        _session = session;
+        _type = param.Type?.TryGetTypeDefOrRef()?.ResolveTypeDef() is { } td
+            ? TypeWrapper.FromDef(td, session)
+            : default;
     }
     public string TypeFullName { get; }
     public string QualifiedTypeFullName { get; }
-    public ITypeInformation? Type => _type.Value;
+    public ITypeInformation? Type => _type;
 }
