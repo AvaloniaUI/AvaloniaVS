@@ -501,12 +501,13 @@ namespace AvaloniaVS.IntelliSense
 
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 var activeDocument = dte.ActiveDocument;
+                var activeDocumentName = $"{activeDocument.Name}.cs";
                 if (activeDocument.ProjectItem?.ContainingProject?.UniqueName is { } uniqueName)
                 {
                     var currentDocumentCodeBehind = workspace.CurrentSolution.Projects
-                         .FirstOrDefault((x, a) => x.FilePath?.EndsWith(a) == true, uniqueName)
+                         .FirstOrDefault(x => x.FilePath?.EndsWith(uniqueName) == true)
                          .Documents
-                         .FirstOrDefault((x, a) => string.Equals(x.Name, a, StringComparison.OrdinalIgnoreCase), $"{activeDocument.Name}.cs");
+                         .FirstOrDefault(x => string.Equals(x.Name, activeDocumentName, StringComparison.OrdinalIgnoreCase));
 
                     if (currentDocumentCodeBehind is null)
                     {
