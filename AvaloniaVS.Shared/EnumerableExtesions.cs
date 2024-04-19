@@ -12,10 +12,8 @@ namespace AvaloniaVS
             if (predicate is null)
                 throw new ArgumentNullException(nameof(predicate));
 
-            var enumerator = source.GetEnumerator();
-            while (enumerator.MoveNext())
+            foreach (var item in source)
             {
-                TSource item = enumerator.Current;
                 if (predicate(item, arg))
                 {
                     return item;
