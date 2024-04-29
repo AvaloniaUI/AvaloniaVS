@@ -60,7 +60,6 @@ namespace AvaloniaVS.IntelliSense
                 textView.Properties.GetOrCreateSingletonProperty(
                     () => new XamlPasteCommandHandler(
                         _serviceProvider,
-                        _completionBroker,
                         textView,
                         textViewAdapter,
                         _textUndoHistoryRegistry,

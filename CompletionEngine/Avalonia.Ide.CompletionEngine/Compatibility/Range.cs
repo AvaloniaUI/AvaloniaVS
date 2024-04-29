@@ -1,6 +1,8 @@
 // https://github.com/dotnet/runtime/blob/419e949d258ecee4c40a460fb09c66d974229623/src/libraries/System.Private.CoreLib/src/System/Index.cs
 // https://github.com/dotnet/runtime/blob/419e949d258ecee4c40a460fb09c66d974229623/src/libraries/System.Private.CoreLib/src/System/Range.cs
 
+#if NETSTANDARD2_0
+
 using System.Runtime.CompilerServices;
 
 namespace System
@@ -13,7 +15,7 @@ namespace System
     /// int lastElement = someArray[^1]; // lastElement = 5
     /// </code>
     /// </remarks>
-    internal readonly struct Index : IEquatable<Index>
+    public readonly struct Index : IEquatable<Index>
     {
         private readonly int _value;
 
@@ -150,7 +152,7 @@ namespace System
     /// int[] subArray2 = someArray[1..^0]; // { 2, 3, 4, 5 }
     /// </code>
     /// </remarks>
-    internal readonly struct Range : IEquatable<Range>
+    public readonly struct Range : IEquatable<Range>
     {
         /// <summary>Represent the inclusive start index of the Range.</summary>
         public Index Start { get; }
@@ -272,3 +274,5 @@ namespace System.Runtime.CompilerServices
         }
     }
 }
+
+#endif

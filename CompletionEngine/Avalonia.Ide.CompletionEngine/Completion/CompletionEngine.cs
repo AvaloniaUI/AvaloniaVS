@@ -1378,17 +1378,13 @@ public class CompletionEngine
 
     string GetXmlnsFullName(MetadataType type, char namespaceSeparator = '|')
     {
-        if (Helper.Metadata?.InverseNamespace.TryGetValue(type.FullName, out var namespaces) == true
-            && namespaces.Count > 0)
+        if (Helper.Metadata?.InverseNamespace.TryGetValue(type.FullName, out var ns) == true
+            && !string.IsNullOrEmpty(ns))
         {
-            foreach (var ns in namespaces)
+            var alias = Helper.Aliases?.FirstOrDefault(a => Equals(a.Value, ns));
+            if (alias is not null && !string.IsNullOrEmpty(alias.Value.Key))
             {
-                var alias = Helper.Aliases?.FirstOrDefault(a => string.Equals(a.Value, ns, StringComparison.OrdinalIgnoreCase));
-                if (alias is not null && !string.IsNullOrEmpty(alias.Value.Key))
-                {
-                    return $"{alias.Value.Key}{namespaceSeparator}{type.Name}";
-                }
-
+                return $"{alias.Value.Key}{namespaceSeparator}{type.Name}";
             }
         }
         return type.Name!;

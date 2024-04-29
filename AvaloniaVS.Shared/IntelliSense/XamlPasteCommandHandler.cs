@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using Avalonia.Ide.CompletionEngine;
+using Avalonia.Ide.CompletionEngine.Parsing;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
@@ -33,43 +34,16 @@ namespace AvaloniaVS.IntelliSense
     internal class XamlPasteCommandHandler : IOleCommandTarget
     {
         private readonly IServiceProvider _serviceProvider;
-        private readonly ICompletionBroker _completionBroker;
         private readonly IOleCommandTarget _nextCommandHandler;
         private readonly IWpfTextView _textView;
         private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry;
         private readonly CompletionEngine _engine;
-        private ICompletionSession _session;
         private readonly uint _pasteCommandId = (uint)VSConstants.VSStd97CmdID.Paste;
         public const string Avalonia_DevTools_Selector = nameof(Avalonia_DevTools_Selector);
 
 
-        record struct SelectorInfo(Range ElementType, Range Namespace, Range AssemblyName = default)
-        {
-            public static string GetFullName(char[] buffer, SelectorInfo info)
-            {
-                var sb = new StringBuilder();
-                if (info.Namespace.Start.Value < info.Namespace.End.Value)
-                {
-                    sb.Append(buffer[info.Namespace]);
-                    sb.Append('.');
-                }
-                sb.Append(buffer[info.ElementType]);
-                return sb.ToString();
-            }
-        }
-
-
-        private enum SelectorInfoPart
-        {
-            AssemblyName = 0,
-            Namespace = 1,
-            Element = 2,
-        }
-
-
         public XamlPasteCommandHandler(
             IServiceProvider serviceProvider,
-            ICompletionBroker completionBroker,
             IWpfTextView textView,
             IVsTextView textViewAdapter,
             ITextUndoHistoryRegistry textUndoHistoryRegistry,
@@ -77,7 +51,6 @@ namespace AvaloniaVS.IntelliSense
             )
         {
             _serviceProvider = serviceProvider;
-            _completionBroker = completionBroker;
             _textView = textView;
             _textUndoHistoryRegistry = textUndoHistoryRegistry;
             _engine = completionEngine;
@@ -158,57 +131,7 @@ namespace AvaloniaVS.IntelliSense
 
         private async Task TranslateSelectorAsync(ITextView textView, ITextSnapshot snapshot, int postion, char[] seletcorChars)
         {
-            Range[] parts = new Range[3];
-            List<SelectorInfo> selectorsInfo = new();
-            var partStartIndex = -1;
-            var partName = SelectorInfoPart.Namespace;
-
-            for (int i = 0; i < seletcorChars.Length; i++)
-            {
-                var c = seletcorChars[i];
-                switch (c)
-                {
-                    case '{':
-                        partName = SelectorInfoPart.AssemblyName;
-                        partStartIndex = i + 1;
-                        break;
-                    case '}' when partName == SelectorInfoPart.AssemblyName:
-                        parts[(int)SelectorInfoPart.AssemblyName] = new(partStartIndex, i);
-                        partStartIndex = -1;
-                        partName = SelectorInfoPart.Namespace;
-                        break;
-                    case '|' when partName == SelectorInfoPart.Namespace && partStartIndex > -1:
-                        parts[(int)SelectorInfoPart.Namespace] = new(partStartIndex, i);
-                        partName = SelectorInfoPart.Element;
-                        partStartIndex = -1;
-                        break;
-                    case '.' or '#' or ':' or ' ' when partName == SelectorInfoPart.Element:
-                        parts[(int)SelectorInfoPart.Element] = new(partStartIndex, i);
-                        selectorsInfo.Add(new(parts[2], parts[1], parts[0]));
-                        parts[0] = default;
-                        parts[1] = default;
-                        parts[2] = default;
-                        partName = SelectorInfoPart.Namespace;
-                        break;
-                    default:
-                        if (partName is SelectorInfoPart.Namespace or SelectorInfoPart.Element
-                            && partStartIndex == -1
-                            && !char.IsWhiteSpace(c))
-                        {
-                            partStartIndex = i;
-                        }
-                        break;
-                }
-            }
-            if (partStartIndex > -1 && partName == SelectorInfoPart.Element)
-            {
-                parts[(int)SelectorInfoPart.Element] = new(partStartIndex, seletcorChars.Length);
-                selectorsInfo.Add(new(parts[2], parts[1], parts[0]));
-                parts[0] = default;
-                parts[1] = default;
-                parts[2] = default;
-            }
-
+            var selectorsInfo = DevToolsSelectorParser.Parse(seletcorChars);
 
             if (_engine.Helper.Metadata is { } metadata && selectorsInfo.Count > 0)
             {
@@ -229,7 +152,7 @@ namespace AvaloniaVS.IntelliSense
                         index = si.AssemblyName.End.Value + 1;
                     }
                     sb.Append(seletcorChars[index..si.Namespace.Start]);
-                    var fn = SelectorInfo.GetFullName(seletcorChars, si);
+                    var fn = DevToolsSelectorInfo.GetFullName(seletcorChars, si);
                     if (metadata.InverseNamespace.TryGetValue(fn, out var namespaces) && namespaces.Length > 0)
                     {
                         aliasFounded = false;
