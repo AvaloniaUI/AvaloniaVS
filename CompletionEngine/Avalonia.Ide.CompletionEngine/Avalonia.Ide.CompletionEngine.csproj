@@ -21,7 +21,7 @@
   <Import Project="../../Props/NetAnalyzers.props" />
 
   <ItemGroup>
-    <InternalsVisibleTo Include="CompletionEngineTests"/>
+    <InternalsVisibleTo Include="CompletionEngineTests" />
   </ItemGroup>
  
 </Project>

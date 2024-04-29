@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using System.Windows;
 using Avalonia.Ide.CompletionEngine;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
@@ -150,8 +149,6 @@ namespace AvaloniaVS.IntelliSense
                     _ = TranslateSelectorAsync(_textView, _textView.TextSnapshot, p, seletcorText)
                         .ConfigureAwait(false);
 
-                    //_textView.TextSnapshot
-                    //_textView.TextBuffer.Insert(p, seletcorText);
                     return true;
                 }
 
@@ -252,13 +249,7 @@ namespace AvaloniaVS.IntelliSense
                         if (aliasFounded == false)
                         {
                             var @namespace = string.Concat(seletcorChars[si.Namespace]);
-                            var xmlsns = string.Concat(seletcorChars[si.Namespace]
-                                .Select(c => c switch
-                                {
-                                    '.' => '_',
-                                    char a => char.ToLower(a),
-                                }
-                                ));
+                            var xmlsns = CompletionEngine.GetXmlnsFromNamespace(seletcorChars[si.Namespace]);
                             aliasesToAdd.Add(xmlsns, @namespace);
                             sb.Append(xmlsns);
                             sb.Append('|');
@@ -327,7 +318,6 @@ namespace AvaloniaVS.IntelliSense
 
             await Task.CompletedTask;
         }
-
 
         private static int CalculateLeftOfFirstChar(ITextSnapshotLine line, IFormattedLineSource fls)
         {
