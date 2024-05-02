@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -18,10 +19,14 @@ public class DnlibMetadataProvider : IMetadataProvider
 internal class DnlibMetadataProviderSession : IMetadataReaderSession
 {
     private readonly ModuleContext _modCtx;
-    private readonly Dictionary<ITypeDefOrRef, ITypeDefOrRef> _baseTypes = new Dictionary<ITypeDefOrRef, ITypeDefOrRef>();
-    private readonly Dictionary<ITypeDefOrRef, TypeDef> _baseTypeDefs = new Dictionary<ITypeDefOrRef, TypeDef>();
+    private readonly Dictionary<ITypeDefOrRef, ITypeDefOrRef> _baseTypes = new();
+    private readonly Dictionary<ITypeDefOrRef, TypeDef> _baseTypeDefs = new();
+    private readonly List<IAssemblyInformation> _assemblies = new(200);
+    internal readonly ConcurrentDictionary<MethodDef, MethodWrapper> _methodsCache = new();
+    internal readonly ConcurrentDictionary<EventDef, EventWrapper> _eventsCache = new();
+    internal readonly ConcurrentDictionary<PropertyDef, PropertyWrapper> _propertiesCache = new();
     public string? TargetAssemblyName { get; private set; }
-    public IReadOnlyCollection<IAssemblyInformation> Assemblies { get; }
+    public IReadOnlyCollection<IAssemblyInformation> Assemblies => _assemblies;
     public DnlibMetadataProviderSession(string[] directoryPath)
     {
         var asmResolver = new AssemblyResolver()
@@ -39,12 +44,11 @@ internal class DnlibMetadataProviderSession : IMetadataReaderSession
         if (directoryPath == null || directoryPath.Length == 0)
         {
             TargetAssemblyName = null;
-            Assemblies = Array.Empty<IAssemblyInformation>();
         }
         else
         {
             TargetAssemblyName = System.Reflection.AssemblyName.GetAssemblyName(directoryPath[0]).ToString();
-            Assemblies = LoadAssemblies(_modCtx, directoryPath).Select(a => new AssemblyWrapper(a, this)).ToList();
+            _assemblies.AddRange(LoadAssemblies(_modCtx, directoryPath).Select(a => new AssemblyWrapper(a, this)));
         }
     }
 
@@ -80,7 +84,6 @@ internal class DnlibMetadataProviderSession : IMetadataReaderSession
         {
             return _baseTypes[type] = type.GetBaseType();
         }
-
     }
 
     private static List<AssemblyDef> LoadAssemblies(ModuleContext context, string[] lst)
@@ -104,9 +107,10 @@ internal class DnlibMetadataProviderSession : IMetadataReaderSession
                 asmResovler.AddToCache(def);
                 assemblies.Add(def);
             }
-            catch
+            catch (Exception ex)
             {
                 //Ignore
+                System.Diagnostics.Debug.WriteLine(ex);
             }
         }
 
@@ -117,6 +121,12 @@ internal class DnlibMetadataProviderSession : IMetadataReaderSession
     {
         _baseTypes.Clear();
         _baseTypeDefs.Clear();
+        _methodsCache.Clear();
+        _eventsCache.Clear();
+        _propertiesCache.Clear();
+        _assemblies.Clear();
         ((AssemblyResolver)_modCtx.AssemblyResolver).Clear();
+        _modCtx.AssemblyResolver = null;
+        _modCtx.Resolver = null;
     }
 }

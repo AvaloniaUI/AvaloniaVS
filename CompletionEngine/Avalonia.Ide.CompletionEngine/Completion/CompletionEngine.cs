@@ -262,26 +262,58 @@ public class CompletionEngine
             }
             else
             {
-                if (tagName.Length == 0)
+                MetadataType? parentType = null;
+                var isTagEmpty = tagName.Length == 0;
+                if (state.GetParentTagName(1) is string parentTag)
                 {
-                    if (state.GetParentTagName(1) is string parentTag)
+                    var propertySeparatorIndex = parentTag.IndexOf('.');
+                    if (!state.IsInClosingTag && isTagEmpty)
                     {
-                        if (!state.IsInClosingTag)
-                        {
-                            completions.Add(new Completion("/" + parentTag + ">", CompletionKind.Class, priority: 0));
-                        }
-                        if (parentTag.IndexOf('.') == -1)
+                        completions.Add(new Completion("/" + parentTag + ">", CompletionKind.Class, priority: 0));
+                    }
+                    if (propertySeparatorIndex == -1)
+                    {
+                        parentType = Helper.LookupType(parentTag);
+                        if (isTagEmpty)
                         {
                             completions.Add(new Completion(parentTag, $"{parentTag}.", CompletionKind.Class, priority: 1)
                             {
                                 TriggerCompletionAfterInsert = true,
                             });
                         }
+                        if (parentType?.ItemsType is null && parentType?.Properties?.FirstOrDefault(p => p.IsContent) is { } contentProperty)
+                        {
+                            parentType = contentProperty.Type;
+                        }
                     }
+                    else
+                    {
+                        var typeName = parentTag.Substring(0, propertySeparatorIndex);
+                        var propertyName = parentTag.Substring(propertySeparatorIndex + 1);
+                        if (Helper.LookupType(typeName) is { } t)
+                        {
+                            parentType = t.Properties
+                                .FirstOrDefault(p => string.Equals(p.Name, propertyName, StringComparison.OrdinalIgnoreCase))
+                                ?.Type;
+                        }
+                    }
+
+                }
+                if (isTagEmpty)
+                {
                     completions.Add(new Completion("!--", "!---->", CompletionKind.Comment) { RecommendedCursorOffset = 3 });
                 }
-                completions.AddRange(Helper.FilterTypes(tagName)
-                    .Where(kvp => !kvp.Value.IsAbstract)
+
+                var candidateTypes = Helper.FilterTypes(tagName);
+
+                if ((parentType?.ItemsType ?? parentType) is { FullName: not "System.Object" } itemType)
+                {
+                    candidateTypes = candidateTypes.Where(kv => kv.Value.IsSubclassOf(itemType));
+                }
+
+                candidateTypes = candidateTypes!.Where(kv => !kv.Value.IsAbstract);
+
+                completions.AddRange(candidateTypes
                     .Select(kvp =>
                         {
                             var ci = GetElementCompletionInfo(kvp.Key, kvp.Value);
@@ -542,10 +574,9 @@ public class CompletionEngine
     {
         // Group the completions based on Kind, and sort the completions for each group
         return completions
-            .GroupBy(i => i.Kind, (kind, compl) =>
-                (Kind: kind, Completions: compl
-                .OrderBy(j => j.Priority).ThenBy(j => j.DisplayText)))
-            .OrderBy(i => GetCompletionPriority(i.Kind))
+            .GroupBy(i => (i.Priority, i.Kind), (key, compl) => (Key: key, Completions: compl.OrderBy(j => j.DisplayText)))
+            .OrderBy(i => i.Key.Priority)
+            .ThenBy(i => GetCompletionPriority(i.Key.Kind))
             .SelectMany(i => i.Completions)
             .ToList();
     }
@@ -1349,20 +1380,6 @@ public class CompletionEngine
             return typeFullName ?? string.Empty;
         }
 
-        string GetXmlnsFullName(MetadataType type, char namespaceSeparator = '|')
-        {
-            if (Helper.Metadata?.InverseNamespace.TryGetValue(type.FullName, out var ns) == true
-                && !string.IsNullOrEmpty(ns))
-            {
-                var alias = Helper.Aliases?.FirstOrDefault(a => Equals(a.Value, ns));
-                if (alias is not null && !string.IsNullOrEmpty(alias.Value.Key))
-                {
-                    return $"{alias.Value.Key}{namespaceSeparator}{type.Name}";
-                }
-            }
-            return type.Name!;
-        }
-
         string? GetTypeFromControlTheme()
         {
             if (state.GetParentTagName(1)?.Equals("ControlTheme") == true)
@@ -1374,5 +1391,23 @@ public class CompletionEngine
             }
             return default;
         }
+    }
+
+    string GetXmlnsFullName(MetadataType type, char namespaceSeparator = '|')
+    {
+        if (Helper.Metadata?.InverseNamespace.TryGetValue(type.FullName, out var namespaces) == true
+            && namespaces.Count > 0)
+        {
+            foreach (var ns in namespaces)
+            {
+                var alias = Helper.Aliases?.FirstOrDefault(a => string.Equals(a.Value, ns, StringComparison.OrdinalIgnoreCase));
+                if (alias is not null && !string.IsNullOrEmpty(alias.Value.Key))
+                {
+                    return $"{alias.Value.Key}{namespaceSeparator}{type.Name}";
+                }
+
+            }
+        }
+        return type.Name!;
     }
 }

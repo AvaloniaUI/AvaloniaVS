@@ -26,8 +26,12 @@ namespace AvaloniaVS.Shared.SuggestedActions
         private readonly ITextEditorFactoryService _textEditorFactoryService;
         private readonly ITextView _textView;
 
-        public SuggestedActionsSource(SuggestedActionsSourceProvider testSuggestedActionsSourceProvider, ITextView textView, ITextBuffer textBuffer,
-            IWpfDifferenceViewerFactoryService diffFactory, IDifferenceBufferFactoryService diffBufferFactory, ITextBufferFactoryService bufferFactory,
+        public SuggestedActionsSource(SuggestedActionsSourceProvider testSuggestedActionsSourceProvider,
+            ITextView textView,
+            ITextBuffer textBuffer,
+            IWpfDifferenceViewerFactoryService diffFactory,
+            IDifferenceBufferFactoryService diffBufferFactory,
+            ITextBufferFactoryService bufferFactory,
             ITextEditorFactoryService textEditorFactoryService)
         {
             _factory = testSuggestedActionsSourceProvider;
@@ -56,19 +60,34 @@ namespace AvaloniaVS.Shared.SuggestedActions
                 ISuggestedAction suggestedAction = null;
                 if (availableSuggestedActions.Item1)
                 {
-                    suggestedAction = new MissingNamespaceAndAliasSuggestedAction(trackingSpan, _diffFactory, _diffBufferFactory, _bufferFactory, _textEditorFactoryService,
-    metadata.CompletionMetadata.InverseNamespace, CompletionEngine.GetNamespaceAliases(extent.Span.Snapshot.TextBuffer.CurrentSnapshot.GetText()));
+                    suggestedAction = new MissingNamespaceAndAliasSuggestedAction(trackingSpan,
+                        _diffFactory,
+                        _diffBufferFactory,
+                        _bufferFactory,
+                        _textEditorFactoryService,
+                        metadata.CompletionMetadata.InverseNamespace,
+                        CompletionEngine.GetNamespaceAliases(extent.Span.Snapshot.TextBuffer.CurrentSnapshot.GetText()));
                 }
                 else if (availableSuggestedActions.Item2)
                 {
-                    suggestedAction = new MissingAliasSuggestedAction(trackingSpan, _diffFactory, _diffBufferFactory, _bufferFactory, _textEditorFactoryService,
-    metadata.CompletionMetadata.InverseNamespace);
+                    suggestedAction = new MissingAliasSuggestedAction(trackingSpan,
+                        _diffFactory,
+                        _diffBufferFactory,
+                        _bufferFactory,
+                        _textEditorFactoryService,
+                        metadata.CompletionMetadata.InverseNamespace);
                 }
                 else if (availableSuggestedActions.Item3)
                 {
                     HasAlias(out var alias);
-                    suggestedAction = new MissingNamespaceSuggestedAction(trackingSpan, _diffFactory, _diffBufferFactory, _bufferFactory, _textEditorFactoryService,
-    metadata.CompletionMetadata.InverseNamespace, CompletionEngine.GetNamespaceAliases(extent.Span.Snapshot.TextBuffer.CurrentSnapshot.GetText()), alias);
+                    suggestedAction = new MissingNamespaceSuggestedAction(trackingSpan,
+                        _diffFactory,
+                        _diffBufferFactory,
+                        _bufferFactory,
+                        _textEditorFactoryService,
+                        metadata.CompletionMetadata.InverseNamespace,
+                        CompletionEngine.GetNamespaceAliases(extent.Span.Snapshot.TextBuffer.CurrentSnapshot.GetText())
+                        , alias);
                 }
                 return new SuggestedActionSet[] { new SuggestedActionSet(new ISuggestedAction[] { suggestedAction }) };
             }
@@ -131,10 +150,15 @@ namespace AvaloniaVS.Shared.SuggestedActions
                 {
                     return (false, false, false);
                 }
-                var targetClassMetadata = metadata.CompletionMetadata.InverseNamespace.FirstOrDefault(x => x.Key.Split('.').Last() == targetClassName);
+                var targetClassMetadata = metadata.CompletionMetadata
+                    .InverseNamespace
+                    .Where(x => x.Key.Split('.').Last() == targetClassName)
+                    .Select(x => new { x.Key, Value = x.Value.FirstOrDefault() })
+                    .FirstOrDefault();
 
                 // Exclude all classes from avaloniaui namespace because controls from this namespace are included by default.
-                if (targetClassMetadata.Value != null && targetClassMetadata.Key != null && !metadata.CompletionMetadata.Namespaces.First(x => x.Key == "https://github.com/avaloniaui").Value.ContainsKey(targetClassName))
+                if (targetClassMetadata is not null && targetClassMetadata.Value != null && targetClassMetadata.Key != null 
+                    && !metadata.CompletionMetadata.Namespaces.First(x => x.Key == "https://github.com/avaloniaui").Value.ContainsKey(targetClassName))
                 {
                     if (!CompletionEngine.GetNamespaceAliases(span.TextBuffer.CurrentSnapshot.GetText()).ContainsValue(targetClassMetadata.Value))
                     {

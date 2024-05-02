@@ -3,6 +3,7 @@
 public class MetadataReader
 {
     private readonly IMetadataProvider _provider;
+    private IMetadataReaderSession? _lastSession;
 
     public MetadataReader(IMetadataProvider provider)
     {
@@ -11,7 +12,9 @@ public class MetadataReader
 
     public Metadata? GetForTargetAssembly(IAssemblyProvider assemblyProvider)
     {
-        using var session = _provider.GetMetadata(assemblyProvider.GetAssemblies());
+        _lastSession?.Dispose();
+        var session = _provider.GetMetadata(assemblyProvider.GetAssemblies());
+        _lastSession = session;
         return MetadataConverter.ConvertMetadata(session);
     }
 }

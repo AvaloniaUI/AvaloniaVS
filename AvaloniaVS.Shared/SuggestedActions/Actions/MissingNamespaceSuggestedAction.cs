@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AvaloniaVS.Shared.SuggestedActions.Actions.Base;
 using AvaloniaVS.Shared.SuggestedActions.Helpers;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Differencing;
 using Microsoft.VisualStudio.Text.Editor;
@@ -22,12 +23,20 @@ namespace AvaloniaVS.Shared.SuggestedActions.Actions
         private readonly string _alias;
         private readonly ITextViewRoleSet _previewRoleSet;
 
-        public MissingNamespaceSuggestedAction(ITrackingSpan span, IWpfDifferenceViewerFactoryService diffFactory, IDifferenceBufferFactoryService diffBufferFactory,
-            ITextBufferFactoryService bufferFactory, ITextEditorFactoryService textEditorFactoryService, IReadOnlyDictionary<string, string> inverseNamespaces,
+        public MissingNamespaceSuggestedAction(ITrackingSpan span,
+            IWpfDifferenceViewerFactoryService diffFactory,
+            IDifferenceBufferFactoryService diffBufferFactory,
+            ITextBufferFactoryService bufferFactory,
+            ITextEditorFactoryService textEditorFactoryService,
+            IReadOnlyDictionary<string, ISet<string>> inverseNamespaces,
             Dictionary<string, string> aliases, string alias)
         {
             _span = span;
-            _targetClassMetadata = inverseNamespaces.FirstOrDefault(x => x.Key.Split('.').Last() == _span.GetText(_span.TextBuffer.CurrentSnapshot));
+            _targetClassMetadata = inverseNamespaces
+                .Where(x => x.Key.Split('.').Last() == _span.GetText(_span.TextBuffer.CurrentSnapshot))
+                .Select(x => new KeyValuePair<string, string>(x.Key, x.Value.First()))
+                .FirstOrDefault();
+
             DisplayText = $"Add xmlns {alias}";
             _diffFactory = diffFactory;
             _diffBufferFactory = diffBufferFactory;

@@ -22,13 +22,18 @@ namespace AvaloniaVS.Shared.SuggestedActions.Actions
         private readonly ITextBufferFactoryService _bufferFactory;
         private readonly ITextViewRoleSet _previewRoleSet;
 
-        public MissingAliasSuggestedAction(ITrackingSpan span, IWpfDifferenceViewerFactoryService diffFactory, IDifferenceBufferFactoryService diffBufferFactory, ITextBufferFactoryService bufferFactory, ITextEditorFactoryService textEditorFactoryService, IReadOnlyDictionary<string, string> inverseNamespaces)
+        public MissingAliasSuggestedAction(ITrackingSpan span,
+            IWpfDifferenceViewerFactoryService diffFactory,
+            IDifferenceBufferFactoryService diffBufferFactory,
+            ITextBufferFactoryService bufferFactory, 
+            ITextEditorFactoryService textEditorFactoryService,
+            IReadOnlyDictionary<string, ISet<string>> inverseNamespaces)
         {
             _span = span;
             _snapshot = _span.TextBuffer.CurrentSnapshot;
             _targetClassName = _span.GetText(_snapshot);
             var targetClassMetadata = inverseNamespaces.FirstOrDefault(x => x.Key.Split('.').Last() == _targetClassName);
-            _namespaceAlias = targetClassMetadata.Value.Split(':').Last().Split('.').Last();
+            _namespaceAlias = targetClassMetadata.Value.First().Split(':').Last().Split('.').Last();
             _diffFactory = diffFactory;
             _diffBufferFactory = diffBufferFactory;
             _bufferFactory = bufferFactory;
