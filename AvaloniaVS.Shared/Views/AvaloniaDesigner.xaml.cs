@@ -341,8 +341,7 @@ namespace AvaloniaVS.Views
 
                 bool IsValidTarget(ProjectInfo project)
                 {
-                    return project.IsExecutable &&
-                        project.References.Contains("Avalonia.DesignerSupport") &&
+                    return project.References.Contains("Avalonia.DesignerSupport") &&
                         (project.Project == _project || project.ProjectReferences.Contains(_project));
                 }
 
