@@ -648,7 +648,7 @@ public class CompletionEngine
         {
             if (state.FindParentAttributeValue("Selector", 1, maxLevels: 0)?.Trim() is { Length: > 0 } selector)
             {
-                if (selector[0]=='^')
+                if (selector[0] == '^')
                 {
                     selectorTypeName = state.FindParentAttributeValue("TargetType", 2, maxLevels: 0);
                 }
@@ -1342,7 +1342,7 @@ public class CompletionEngine
             if (string.IsNullOrEmpty(typename))
             {
                 typename = GetTypeFromControlTheme();
-            }                 
+            }
             var typeFullName = string.IsNullOrEmpty(ns)
                 ? typename
                 : $"{ns}:{typename}";
@@ -1374,5 +1374,41 @@ public class CompletionEngine
             }
             return default;
         }
+    }
+
+    string GetXmlnsFullName(MetadataType type, char namespaceSeparator = '|')
+    {
+        if (Helper.Metadata?.InverseNamespace.TryGetValue(type.FullName, out var ns) == true
+            && !string.IsNullOrEmpty(ns))
+        {
+            var alias = Helper.Aliases?.FirstOrDefault(a => Equals(a.Value, ns));
+            if (alias is not null && !string.IsNullOrEmpty(alias.Value.Key))
+            {
+                return $"{alias.Value.Key}{namespaceSeparator}{type.Name}";
+            }
+        }
+        return type.Name!;
+    }
+
+    public static readonly IEnumerable<INamespaceTrasformation> Default = new INamespaceTrasformation[]
+    {
+        new NamespaceTrasformations.ToLowerTrasformation(),
+        new NamespaceTrasformations.ReplaceDot('_'),
+    };
+
+    public static string GetXmlnsFromNamespace(string @namespace) =>
+        GetXmlnsFromNamespace(@namespace.ToCharArray(), Default);
+
+    public static string GetXmlnsFromNamespace(char[] @namespace) =>
+        GetXmlnsFromNamespace(@namespace, Default);
+
+    public static string GetXmlnsFromNamespace(char[] @namespace, IEnumerable<INamespaceTrasformation> trasformations)
+    {
+        IEnumerable<char> source = @namespace;
+        foreach (var trasformation in trasformations)
+        {
+            source = trasformation.Apply(source);
+        }
+        return string.Concat(source);
     }
 }

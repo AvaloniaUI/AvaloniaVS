@@ -1,13 +1,13 @@
-﻿using Microsoft.VisualStudio.Text.Editor;
+﻿using System.Linq;
 using Microsoft.VisualStudio.Text;
-using System.Linq;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace AvaloniaVS;
 
 internal static class TextViewExtensions
 {
     public static NormalizedSnapshotSpanCollection GetSpanInView(this ITextView textView, SnapshotSpan span)
-=> textView.BufferGraph.MapUpToSnapshot(span, SpanTrackingMode.EdgeInclusive, textView.TextSnapshot);
+        => textView.BufferGraph.MapUpToSnapshot(span, SpanTrackingMode.EdgeInclusive, textView.TextSnapshot);
 
     public static void SetSelection(
         this ITextView textView, VirtualSnapshotPoint anchorPoint, VirtualSnapshotPoint activePoint)

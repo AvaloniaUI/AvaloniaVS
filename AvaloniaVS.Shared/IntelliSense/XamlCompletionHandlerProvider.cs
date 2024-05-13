@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 
@@ -23,6 +24,7 @@ namespace AvaloniaVS.IntelliSense
         private readonly IServiceProvider _serviceProvider;
         private readonly IVsEditorAdaptersFactoryService _adapterService;
         private readonly ICompletionBroker _completionBroker;
+        private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry;
         private readonly CompletionEngineSource _completionEngineSource;
 
         [ImportingConstructor]
@@ -30,11 +32,13 @@ namespace AvaloniaVS.IntelliSense
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             IVsEditorAdaptersFactoryService adapterService,
             ICompletionBroker completionBroker,
+            ITextUndoHistoryRegistry textUndoHistoryRegistry,
             CompletionEngineSource completionEngineSource)
         {
             _serviceProvider = serviceProvider;
             _adapterService = adapterService;
             _completionBroker = completionBroker;
+            _textUndoHistoryRegistry = textUndoHistoryRegistry;
             _completionEngineSource = completionEngineSource;
         }
 
@@ -51,6 +55,14 @@ namespace AvaloniaVS.IntelliSense
                         _completionBroker,
                         textView,
                         textViewAdapter,
+                        _completionEngineSource.CompletionEngine));
+
+                textView.Properties.GetOrCreateSingletonProperty(
+                    () => new XamlPasteCommandHandler(
+                        _serviceProvider,
+                        textView,
+                        textViewAdapter,
+                        _textUndoHistoryRegistry,
                         _completionEngineSource.CompletionEngine));
             }
         }
