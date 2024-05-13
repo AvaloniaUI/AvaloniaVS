@@ -10,7 +10,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)AvaloniaPackage.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)compatibilty\RuntimeHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Converters\EnumToIntConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Converters\EnumValuesConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Converters\NotNullOrEmptyToVisibilityConverter.cs" />
@@ -146,7 +145,6 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="$(MSBuildThisFileDirectory)Compatibilty\" />
     <Folder Include="$(MSBuildThisFileDirectory)SuggestedActions\Actions\Base\" />
   </ItemGroup>
 </Project>
