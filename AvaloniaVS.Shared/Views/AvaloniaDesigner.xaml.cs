@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using Avalonia.Ide.CompletionEngine;
 using Avalonia.Ide.CompletionEngine.AssemblyMetadata;
 using Avalonia.Ide.CompletionEngine.DnlibMetadataProvider;
@@ -81,7 +82,8 @@ namespace AvaloniaVS.Views
         {
             FmtZoomLevel(800), FmtZoomLevel(400), FmtZoomLevel(200), FmtZoomLevel(150), FmtZoomLevel(100),
             FmtZoomLevel(66.67), FmtZoomLevel(50), FmtZoomLevel(33.33), FmtZoomLevel(25), FmtZoomLevel(12.5),
-            "Fit All"
+            "Fit to Width",
+            "Fit All",
         };
 
 
@@ -427,30 +429,38 @@ namespace AvaloniaVS.Views
         public bool TryProcessZoomLevelValue(out double scaling)
         {
             scaling = 1;
-
-            if (string.IsNullOrEmpty(ZoomLevel))
+            var zoomLevel = ZoomLevel;
+            if (string.IsNullOrEmpty(zoomLevel))
                 return false;
 
-            if (ZoomLevel.Equals("Fit All", StringComparison.OrdinalIgnoreCase))
+            BitmapSource bitmap = default;
+
+            if (Process.IsReady)
             {
-                if (Process.IsReady && Process.Bitmap != null)
-                {
-                    var size = previewer.GetViewportSize(10);
-                    double x = size.Width / (Process.Bitmap.Width / Process.Scaling);
-                    double y = size.Height / (Process.Bitmap.Height / Process.Scaling);
+                bitmap = Process.Bitmap;
+            }
 
-                    ZoomLevel = null;
-                    Dispatcher.BeginInvoke(() =>
-                        ZoomLevel = string.Format(CultureInfo.InvariantCulture, "{0}%", Math.Round(Math.Min(x, y), 2, MidpointRounding.ToEven) * 100),
-                        System.Windows.Threading.DispatcherPriority.Background);
-                    
-                }
-                else
-                {
-                    ZoomLevel = "100%";
-                }
+            if (bitmap is not null && zoomLevel.StartsWith("Fit All", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                var processScaling = Process.Scaling;
+                var viewportSize = previewer.GetViewportSize(10);
+                double x = viewportSize.Width / (bitmap.Width / processScaling);
+                double y = viewportSize.Height / (bitmap.Height / processScaling);
 
-                return false;
+                scaling = Math.Round(Math.Min(x, y), 2, MidpointRounding.ToEven);
+
+                return true;
+            }
+            else if (bitmap is not null && zoomLevel.StartsWith("Fit to Width", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                var processScaling = Process.Scaling;
+                var viewportSize = previewer.GetViewportSize(10);
+                double x = viewportSize.Width / (bitmap.Width / processScaling);
+                //double y = viewportSize.Height / (bitmap.Height / processScaling);
+
+                scaling = Math.Round(x, 2, MidpointRounding.ToEven);
+
+                return true;
             }
             else if (double.TryParse(ZoomLevel.TrimEnd('%'), NumberStyles.Number, CultureInfo.InvariantCulture, out double zoomPercent)
                      && zoomPercent > 0 && zoomPercent <= 1000)
