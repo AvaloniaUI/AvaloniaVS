@@ -193,12 +193,22 @@ namespace AvaloniaVS.Views
 
         private void PreviewScroller_ScrollChanged(object sender, ScrollChangedEventArgs e)
         {
+            // We can't do this in Update because the Scroll info may not be updated 
+            // yet and the scrollable size may still be old
             if (_centerPreviewer)
             {
-                // We can't do this in Update because the Scroll info may not be updated 
-                // yet and the scrollable size may still be old
+                if (_lastBitmapSize is { } size && size.Width < e.ViewportWidth && size.Height < e.ViewportHeight)
+                {
+                    previewScroller.ScrollToVerticalOffset(previewScroller.ScrollableHeight / 2);
+                }
+                else
+                {
+                    var transform = preview.TransformToVisual(previewScroller);
+                    var positionInScrollViewer = transform.TransformBounds(new Rect(0, 0, preview.ActualHeight, preview.ActualHeight));
+                    var offset = positionInScrollViewer.Top + e.VerticalOffset;
+                    previewScroller.ScrollToVerticalOffset(offset);
+                }
                 previewScroller.ScrollToHorizontalOffset(previewScroller.ScrollableWidth / 2);
-                previewScroller.ScrollToVerticalOffset(previewScroller.ScrollableHeight / 2);
                 _centerPreviewer = false;
             }
         }
