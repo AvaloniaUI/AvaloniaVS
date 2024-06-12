@@ -198,6 +198,7 @@ namespace AvaloniaVS.Shared.Views
             xamlEditorView.IsPaused = _isPaused;
             xamlEditorView.SplitOrientation = settings.DesignerSplitOrientation;
             xamlEditorView.View = settings.DesignerView;
+            xamlEditorView.ZoomLevel = settings.ZoomLevel;
             xamlEditorView.Start(_project, _textEditorHost.FileName, _textEditorHost.WpfTextViewHost);
         }
 

@@ -10,6 +10,7 @@ namespace AvaloniaVS.Services
         Orientation DesignerSplitOrientation { get; set; }
         AvaloniaDesignerView DesignerView { get; set; }
         LogEventLevel MinimumLogVerbosity { get; set; }
+        string ZoomLevel { get; set; }
         void Save();
         void Load();
     }

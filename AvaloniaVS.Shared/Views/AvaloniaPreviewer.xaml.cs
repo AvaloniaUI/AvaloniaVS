@@ -112,7 +112,7 @@ namespace AvaloniaVS.Views
                         currentZoomLevel = 8;
                     }
 
-                    designer.ZoomLevel = AvaloniaDesigner.FmtZoomLevel(currentZoomLevel * 100);
+                    designer.ZoomLevel = ZoomLevels.FmtZoomLevel(currentZoomLevel * 100);
 
                     e.Handled = true;
                 }

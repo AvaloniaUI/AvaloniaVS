@@ -76,15 +76,9 @@ namespace AvaloniaVS.Views
                 typeof(AvaloniaDesigner),
                 new PropertyMetadata("100%", HandleZoomLevelChanged));
 
-        public static string FmtZoomLevel(double v) => $"{v.ToString(CultureInfo.InvariantCulture)}%";
+        
 
-        public static string[] ZoomLevels { get; } = new string[]
-        {
-            FmtZoomLevel(800), FmtZoomLevel(400), FmtZoomLevel(200), FmtZoomLevel(150), FmtZoomLevel(100),
-            FmtZoomLevel(66.67), FmtZoomLevel(50), FmtZoomLevel(33.33), FmtZoomLevel(25), FmtZoomLevel(12.5),
-            "Fit to Width",
-            "Fit All",
-        };
+        public static string[] ZoomLevels { get; } = AvaloniaVS.ZoomLevels.Levels;
 
 
         private static readonly GridLength ZeroStar = new GridLength(0, GridUnitType.Star);
@@ -103,6 +97,7 @@ namespace AvaloniaVS.Views
         private double _scaling = 1;
         private AvaloniaDesignerView _unPausedView;
         private bool _buildRequired;
+        private bool _firstFrame = true;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AvaloniaDesigner"/> class.
@@ -647,14 +642,22 @@ namespace AvaloniaVS.Views
         {
             if (Process.Bitmap != null && Process.Error == null)
             {
+                if (_firstFrame)
+                {
+                    _firstFrame = false;
+                    if (TryProcessZoomLevelValue(out var scaling))
+                    {
+                        UpdateScaling(scaling);
+                    }
+                }
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-
                 ShowPreview();
             }
         }
 
         private async void ProcessExited(object sender, EventArgs e)
         {
+            _firstFrame = true;
             if (!IsPaused)
             {
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
