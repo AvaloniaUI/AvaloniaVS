@@ -15,6 +15,18 @@ namespace CompletionEngineTests
     public class MetadataConverterTests
     {
         [Fact]
+        public void Should_Retrive_Type_When_Mixing_Assembly_Versions()
+        {
+            var clrType = typeof(Avalonia.Labs.Controls.Swipe);
+            var nsName = "clr-namespace:" + clrType.Namespace + ";assembly=" + typeof(Avalonia.Labs.Controls.Swipe).Assembly.GetName().Name;
+            var ns = Metadata.Namespaces[nsName];
+            var type = ns[clrType.Name];
+            var leftProperty = type.Properties.FirstOrDefault(p => p.Name == nameof(Avalonia.Labs.Controls.Swipe.Left));
+            Assert.NotNull(leftProperty);
+            Assert.NotNull(leftProperty.Type);
+        }
+
+        [Fact]
         public void DiscoverAttachedEvent_IfItIsDerivedFromRoutedEvent()
         {
             Type clrType = typeof(MetadataTestClass);

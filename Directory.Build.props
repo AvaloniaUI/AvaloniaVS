@@ -2,7 +2,7 @@
   <PropertyGroup>
     <AvaloniaTemplatesPackageName>Avalonia.Templates</AvaloniaTemplatesPackageName>
     <AvaloniaTemplatesPackageVersion>11.0.10</AvaloniaTemplatesPackageVersion>
-    <AvaloniaVersion>11.0.7</AvaloniaVersion>
+    <AvaloniaVersion>11.0.10</AvaloniaVersion>
     <LangVersion>11.0</LangVersion>
   </PropertyGroup>
 
