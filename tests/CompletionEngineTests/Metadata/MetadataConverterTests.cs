@@ -49,9 +49,7 @@ namespace CompletionEngineTests
             Assert.NotNull(ns);
             MetadataType type = ns[clrType.Name];
             Assert.NotNull(type);
-            Assert.Equal(clrType.AssemblyQualifiedName, type.AssemblyQualifiedName);
-
-
+            Assert.Equal(GetName(clrType), type.AssemblyQualifiedName);
 
             Type clrTypeA1 = typeof(A1::CompletionEngineTests.Models.AttachedBehavior);
             nsName = "clr-namespace:" + clrTypeA1.Namespace + ";assembly=" + clrTypeA1.Assembly.GetName().Name;
@@ -64,7 +62,7 @@ namespace CompletionEngineTests
 
             Assert.NotNull(typeA1);
 
-            Assert.Equal(clrTypeA1.AssemblyQualifiedName, typeA1.AssemblyQualifiedName);
+            Assert.Equal(GetName(clrTypeA1), typeA1.AssemblyQualifiedName);
 
 
             Type clrTypeA2 = typeof(A2::CompletionEngineTests.Models.AttachedBehavior);
@@ -78,7 +76,7 @@ namespace CompletionEngineTests
 
             Assert.NotNull(typeA2);
 
-            Assert.Equal(clrTypeA2.AssemblyQualifiedName, typeA2.AssemblyQualifiedName);
+            Assert.Equal(GetName(clrTypeA2), typeA2.AssemblyQualifiedName);
         }
 
         [Theory]
@@ -104,7 +102,7 @@ namespace CompletionEngineTests
             ns.TryGetValue(clrType.Name, out var type);
             Assert.NotNull(type);
 
-            var property = type.Properties.SingleOrDefault(p=> p.Name == "Column");
+            var property = type.Properties.SingleOrDefault(p => p.Name == "Column");
             Assert.NotNull(property);
             Assert.True(property.IsAttached);
             Assert.Equal("System.Int32", property.Type?.Name);
@@ -119,7 +117,7 @@ namespace CompletionEngineTests
                  typeof(Models.InternalAttachedBehavior),
                  new Action<Type,MetadataType>(static (clrType,mdType) =>
                  {
-                     Assert.Equal(clrType.AssemblyQualifiedName, mdType.AssemblyQualifiedName);
+                     Assert.Equal(GetName(clrType) , mdType.AssemblyQualifiedName);
                  })),
             };
             yield return new object[]
@@ -128,7 +126,7 @@ namespace CompletionEngineTests
                  typeof(Models.InternalClass),
                  new Action<Type,MetadataType>(static (clrType,mdType) =>
                  {
-                     Assert.Equal(clrType.AssemblyQualifiedName, mdType.AssemblyQualifiedName);
+                     Assert.Equal(GetName(clrType), mdType.AssemblyQualifiedName);
                      Assert.Equal(ExpectedPublicOrInternalProperties,mdType.Properties.Select(p=>p.Name));
                  })),
             };
@@ -138,7 +136,7 @@ namespace CompletionEngineTests
                  typeof(Models.PublicWithInternalPropertiesClass),
                  new Action<Type,MetadataType>(static (clrType,mdType) =>
                  {
-                     Assert.Equal(clrType.AssemblyQualifiedName, mdType.AssemblyQualifiedName);
+                     Assert.Equal(GetName(clrType), mdType.AssemblyQualifiedName);
                      Assert.Equal(ExpectedPublicOrInternalProperties,mdType.Properties.Select(p=>p.Name));
                  })),
             };
@@ -149,7 +147,7 @@ namespace CompletionEngineTests
                   typeof(A1::CompletionEngineTests.Models.InternalAttachedBehavior),
                  new Action<Type,MetadataType>(static (clrType,mdType) =>
                  {
-                     Assert.Equal(clrType.AssemblyQualifiedName, mdType?.AssemblyQualifiedName);
+                     Assert.Equal(GetName(clrType), mdType?.AssemblyQualifiedName);
                  })),
             };
             yield return new object[]
@@ -158,7 +156,7 @@ namespace CompletionEngineTests
                   typeof(A1::CompletionEngineTests.Models.InternalClass),
                  new Action<Type,MetadataType>(static (clrType,mdType) =>
                  {
-                     Assert.Equal(clrType.AssemblyQualifiedName, mdType.AssemblyQualifiedName);
+                     Assert.Equal(GetName(clrType), mdType.AssemblyQualifiedName);
                      Assert.Equal(ExpectedPublicOrInternalProperties,mdType.Properties.Select(p=>p.Name));
                  })),
             };
@@ -168,7 +166,7 @@ namespace CompletionEngineTests
                    typeof(A1::CompletionEngineTests.Models.PublicWithInternalPropertiesClass),
                  new Action<Type,MetadataType>(static (clrType,mdType) =>
                  {
-                     Assert.Equal(clrType.AssemblyQualifiedName, mdType.AssemblyQualifiedName);
+                     Assert.Equal(GetName(clrType), mdType.AssemblyQualifiedName);
                      Assert.Equal(ExpectedPublicOrInternalProperties,mdType.Properties.Select(p=>p.Name));
                  })),
             };
@@ -176,7 +174,7 @@ namespace CompletionEngineTests
             yield return new object[]
             {
                  new TestScenario("Not InternalsVisibleTo Internal Attached Behavior",
-                 Type.GetType("CompletionEngineTests.Models.InternalAttachedBehavior, TestAssembly2, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                 Type.GetType("CompletionEngineTests.Models.InternalAttachedBehavior, TestAssembly2"),
                  new Action<Type,MetadataType>(static (clrType,mdType) =>
                  {
                      Assert.Null(mdType);
@@ -185,7 +183,7 @@ namespace CompletionEngineTests
             yield return new object[]
             {
                  new TestScenario("Not InternalsVisibleTo Internal Class",
-                 Type.GetType("CompletionEngineTests.Models.InternalAttachedBehavior, TestAssembly2, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                 Type.GetType("CompletionEngineTests.Models.InternalAttachedBehavior, TestAssembly2"),
                  new Action<Type,MetadataType>(static (clrType,mdType) =>
                  {
                      Assert.Null(mdType);
@@ -194,10 +192,10 @@ namespace CompletionEngineTests
             yield return new object[]
             {
                  new TestScenario("InternalsVisibleTo Public Class with internal properties",
-                   Type.GetType("CompletionEngineTests.Models.PublicWithInternalPropertiesClass, TestAssembly2, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                   Type.GetType("CompletionEngineTests.Models.PublicWithInternalPropertiesClass, TestAssembly2"),
                  new Action<Type,MetadataType>(static (clrType,mdType) =>
                  {
-                     Assert.Equal(clrType.AssemblyQualifiedName, mdType.AssemblyQualifiedName);
+                     Assert.Equal(GetName(clrType), mdType.AssemblyQualifiedName);
                      Assert.Equal(ExpectedPublicProperties,mdType.Properties.Select(p=>p.Name));
                  })),
             };
@@ -225,5 +223,8 @@ namespace CompletionEngineTests
 
         private static Metadata Metadata = new MetadataReader(new DnlibMetadataProvider())
             .GetForTargetAssembly(new FolderAssemblyProvider(typeof(XamlCompletionTestBase).Assembly.GetModules()[0].FullyQualifiedName));
+
+        private static string GetName(Type clrType) =>
+            $"{clrType.FullName}, {clrType.Assembly.GetName().Name}";
     }
 }

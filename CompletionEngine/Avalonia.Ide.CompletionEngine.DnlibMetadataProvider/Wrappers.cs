@@ -57,7 +57,7 @@ internal class TypeWrapper : ITypeInformation
             throw new ArgumentNullException();
         _type = type;
         _session = session;
-        AssemblyQualifiedName = _type.AssemblyQualifiedName;
+        AssemblyQualifiedName = $"{type.FullName}, {type.DefinitionAssembly.Name}";
     }
 
     public string FullName => _type.FullName;
@@ -204,7 +204,9 @@ internal class PropertyWrapper : IPropertyInformation
         }
 
         TypeFullName = type.FullName;
-        QualifiedTypeFullName = type.AssemblyQualifiedName;
+        QualifiedTypeFullName = type.DefinitionAssembly is null
+            ? type.FullName
+            : $"{type.FullName}, {type.DefinitionAssembly.Name}";
 
         _prop = prop;
         if (HasPublicGetter || HasPublicSetter)
@@ -290,7 +292,9 @@ internal class FieldWrapper : IFieldInformation
         IsPublic = f.IsPublic || f.IsAssembly;
         Name = f.Name;
         ReturnTypeFullName = f.FieldType.FullName;
-        QualifiedTypeFullName = f.FieldType.AssemblyQualifiedName;
+        QualifiedTypeFullName = f.FieldType.DefinitionAssembly is null
+            ? f.FieldType.FullName
+            : $"{f.FieldType.FullName}, {f.FieldType.DefinitionAssembly.Name}";
         bool isRoutedEvent = false;
         ITypeDefOrRef t = f.FieldType.ToTypeDefOrRef();
         while (t != null)
@@ -324,7 +328,9 @@ internal class EventWrapper : IEventInformation
     {
         Name = @event.Name;
         TypeFullName = @event.EventType.FullName;
-        QualifiedTypeFullName = @event.EventType.AssemblyQualifiedName;
+        QualifiedTypeFullName = @event.EventType.DefinitionAssembly is null
+            ? @event.EventType.FullName 
+            : $"{@event.EventType.FullName}, {@event.EventType.DefinitionAssembly.Name}";
         IsPublic = @event.IsPublic();
         IsInternal = @event.IsInternal();
     }
@@ -350,12 +356,14 @@ internal class MethodWrapper : IMethodInformation
                 IList<IParameterInformation>);
         if (_method.ReturnType is not null)
         {
-            QualifiedReturnTypeFullName = _method.ReturnType.AssemblyQualifiedName;
+            QualifiedReturnTypeFullName = _method.ReturnType.DefinitionAssembly is null
+                ? _method.ReturnType.FullName
+                : $"{_method.ReturnType.FullName}, {_method.ReturnType.DefinitionAssembly.Name}";
             ReturnTypeFullName = _method.ReturnType.FullName;
         }
         else
         {
-            QualifiedReturnTypeFullName = typeof(void).AssemblyQualifiedName!;
+            QualifiedReturnTypeFullName = $"{typeof(void).FullName}, {typeof(void).Assembly.FullName}";
             ReturnTypeFullName = typeof(void).FullName!;
         }
     }
@@ -377,7 +385,9 @@ internal class ParameterWrapper : IParameterInformation
     public ParameterWrapper(Parameter param)
     {
         _param = param;
-        QualifiedTypeFullName = _param.Type.AssemblyQualifiedName;
+        QualifiedTypeFullName =  _param.Type.DefinitionAssembly is null 
+            ? _param.Type.FullName 
+            : $"{_param.Type.FullName}, {_param.Type.DefinitionAssembly.Name}";
     }
     public string TypeFullName => _param.Type.FullName;
     public string QualifiedTypeFullName { get; }
