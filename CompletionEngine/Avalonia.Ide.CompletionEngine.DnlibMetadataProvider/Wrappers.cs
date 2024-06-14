@@ -57,7 +57,9 @@ internal class TypeWrapper : ITypeInformation
             throw new ArgumentNullException();
         _type = type;
         _session = session;
-        AssemblyQualifiedName = $"{type.FullName}, {type.DefinitionAssembly.Name}";
+        AssemblyQualifiedName = type.DefinitionAssembly is null
+            ? type.FullName
+            : $"{type.FullName}, {type.DefinitionAssembly.Name}";
     }
 
     public string FullName => _type.FullName;
