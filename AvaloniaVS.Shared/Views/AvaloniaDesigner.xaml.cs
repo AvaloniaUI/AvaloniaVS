@@ -76,7 +76,7 @@ namespace AvaloniaVS.Views
                 typeof(AvaloniaDesigner),
                 new PropertyMetadata("100%", HandleZoomLevelChanged));
 
-        
+
 
         public static string[] ZoomLevels { get; } = AvaloniaVS.ZoomLevels.Levels;
 
@@ -98,6 +98,7 @@ namespace AvaloniaVS.Views
         private AvaloniaDesignerView _unPausedView;
         private bool _buildRequired;
         private bool _firstFrame = true;
+        private readonly Throttle<double> _previewResizethrottle;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AvaloniaDesigner"/> class.
@@ -107,6 +108,7 @@ namespace AvaloniaVS.Views
             InitializeComponent();
 
             _throttle = new Throttle<string>(TimeSpan.FromMilliseconds(300), UpdateXaml);
+            _previewResizethrottle = new(TimeSpan.FromMilliseconds(500), UpdateScaling);
             Process = new PreviewerProcess();
             Process.ErrorChanged += ErrorChanged;
             Process.FrameReceived += FrameReceived;
@@ -904,6 +906,14 @@ namespace AvaloniaVS.Views
             }
 
             return value;
+        }
+
+        private void Preview_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (TryProcessZoomLevelValue(out double scaling))
+            {
+                _previewResizethrottle.Queue(scaling);
+            }
         }
     }
 }
