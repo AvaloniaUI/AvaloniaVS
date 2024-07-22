@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using Avalonia.Ide.CompletionEngine;
 using Avalonia.Ide.CompletionEngine.AssemblyMetadata;
 using Avalonia.Ide.CompletionEngine.DnlibMetadataProvider;
@@ -21,16 +22,49 @@ namespace CompletionEngineTests
 
         public IEnumerable<string> GetAssemblies()
         {
-            if (Path.GetDirectoryName(_path) is not { } directory)
+            HashSet<string> result = new()
             {
-                return Array.Empty<string>();
-            }
+                _path
+            };
 
-            var depsPath = Path.Combine(directory,
-                Path.GetFileNameWithoutExtension(_path) + ".deps.json");
-            if (File.Exists(depsPath))
-                return DepsJsonAssemblyListLoader.ParseFile(depsPath);
-            return Directory.GetFiles(directory).Where(f => f.EndsWith(".dll") || f.EndsWith(".exe"));
+            if (Path.GetDirectoryName(_path) is { } directory)
+            {
+
+                // Calculate Referernce path
+                var segments = directory.Split('\\', '/');
+                var avaloniaPathBuilder = new StringBuilder(1024);
+                foreach (var segment in segments)
+                {
+                    if (string.Equals(segment, "bin", StringComparison.OrdinalIgnoreCase))
+                    {
+                        avaloniaPathBuilder.Append("obj");
+                    }
+                    else
+                    {
+                        avaloniaPathBuilder.Append(segment);
+                    }
+                    avaloniaPathBuilder.Append(Path.DirectorySeparatorChar);
+                }
+                avaloniaPathBuilder.Append("Avalonia");
+                avaloniaPathBuilder.Append(Path.DirectorySeparatorChar);
+
+                var referencePath = Path.Combine(avaloniaPathBuilder.ToString(), "references");
+                var depsPath = Path.Combine(directory,
+                    Path.GetFileNameWithoutExtension(_path) + ".deps.json");
+
+                var files = File.Exists(referencePath)
+                    ? File.ReadAllLines(referencePath)
+                    : (File.Exists(depsPath)
+                        ? DepsJsonAssemblyListLoader.ParseFile(depsPath)
+                        : Directory.GetFiles(directory).Where(f => f.EndsWith(".dll") || f.EndsWith(".exe"))
+                        );
+
+                foreach (var file in files)
+                {
+                    result.Add(file);
+                }
+            }
+            return result;
         }
     }
 
