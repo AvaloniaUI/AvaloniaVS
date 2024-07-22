@@ -13,9 +13,9 @@ variables:
 
 steps:
 - task: UseDotNet@2
-  displayName: 'Use .NET Core SDK 7.0'
+  displayName: 'Use .NET Core SDK 8.0'
   inputs:
-    version: 7.0.100
+    version: 8.0.303
 
 - task: DotNetCoreCLI@2
   displayName: Restore Packages
