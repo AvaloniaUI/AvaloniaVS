@@ -1,9 +1,9 @@
 <Project>
   <PropertyGroup>
     <AvaloniaTemplatesPackageName>Avalonia.Templates</AvaloniaTemplatesPackageName>
-    <AvaloniaTemplatesPackageVersion>11.0.10</AvaloniaTemplatesPackageVersion>
-    <AvaloniaVersion>11.0.10</AvaloniaVersion>
-    <LangVersion>11.0</LangVersion>
+    <AvaloniaTemplatesPackageVersion>11.1.0</AvaloniaTemplatesPackageVersion>
+    <AvaloniaVersion>11.1.0</AvaloniaVersion>
+    <LangVersion>12.0</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup>
