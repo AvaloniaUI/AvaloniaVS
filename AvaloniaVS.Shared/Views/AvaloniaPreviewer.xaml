@@ -80,7 +80,5 @@
           Content="Build" />
       </StackPanel>
     </Border>
-        
-
     </Grid>
 </UserControl>

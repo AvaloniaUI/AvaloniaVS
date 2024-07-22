@@ -6,6 +6,7 @@
              xmlns:local="clr-namespace:AvaloniaVS.Views"
              xmlns:conv="clr-namespace:AvaloniaVS.Converters"
              xmlns:serilog="clr-namespace:Serilog.Events;assembly=Serilog"
+             xmlns:a="clr-namespace:AvaloniaVS"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
@@ -19,7 +20,9 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="10" />
             <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
+            <RowDefinition Height="10" />
+            <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="150" />
             <ColumnDefinition Width="20" />
@@ -35,9 +38,14 @@
         <ComboBox Grid.Column="2" Grid.Row="2" VerticalAlignment="Center"
                   ItemsSource="{Binding Source={x:Type Orientation}, Converter={StaticResource EnumValues}}"
                   SelectedItem="{Binding DesignerSplitOrientation, Mode=TwoWay}"/>
-
-        <TextBlock Text="Minimum Log Verbosity:" Grid.Column="0" Grid.Row="4" VerticalAlignment="Center" />
+      
+        <TextBlock Text="Default Zoom Level:" Grid.Column="0" Grid.Row="4" VerticalAlignment="Center" />
         <ComboBox Grid.Column="2" Grid.Row="4" VerticalAlignment="Center"
+                  ItemsSource="{x:Static a:ZoomLevels.Levels}"
+                  SelectedItem="{Binding ZoomLevel, Mode=TwoWay}"/>
+
+        <TextBlock Text="Minimum Log Verbosity:" Grid.Column="0" Grid.Row="6" VerticalAlignment="Center" />
+        <ComboBox Grid.Column="2" Grid.Row="6" VerticalAlignment="Center"
                   ItemsSource="{Binding Source={x:Type serilog:LogEventLevel}, Converter={StaticResource EnumValues}}"
                   SelectedItem="{Binding MinimumLogVerbosity, Mode=TwoWay}"/>
     </Grid>

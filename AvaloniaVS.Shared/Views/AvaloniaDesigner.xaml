@@ -133,7 +133,7 @@
                              Grid.RowSpan="3"
                              Margin="0,0,0,5" />
 
-            <local:AvaloniaPreviewer x:Name="previewer" Grid.Column="2" />
+      <local:AvaloniaPreviewer x:Name="previewer" Grid.Column="2" SizeChanged="Preview_SizeChanged" />
 
             <GridSplitter x:Name="splitter"
                           Grid.Row="1"

@@ -20,6 +20,7 @@ namespace AvaloniaVS.Services
         private Orientation _designerSplitOrientation;
         private AvaloniaDesignerView _designerView = AvaloniaDesignerView.Split;
         private LogEventLevel _minimumLogVerbosity = LogEventLevel.Information;
+        private string _zoomLevel;
 
         [ImportingConstructor]
         public AvaloniaVSSettings(SVsServiceProvider vsServiceProvider)
@@ -29,7 +30,7 @@ namespace AvaloniaVS.Services
             Load();
         }
 
-        public Orientation DesignerSplitOrientation 
+        public Orientation DesignerSplitOrientation
         {
             get => _designerSplitOrientation;
             set
@@ -68,6 +69,20 @@ namespace AvaloniaVS.Services
             }
         }
 
+        public string ZoomLevel
+        {
+            get => _zoomLevel;
+            set
+            {
+                if (_zoomLevel != value)
+                {
+                    _zoomLevel = value;
+                    RaisePropertyChanged();
+                }
+            }
+        }
+
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         public void Load()
@@ -86,6 +101,10 @@ namespace AvaloniaVS.Services
                     SettingsKey,
                     nameof(MinimumLogVerbosity),
                     (int)LogEventLevel.Information);
+                ZoomLevel = _settings.GetString(
+                    SettingsKey,
+                    nameof(ZoomLevel),
+                  "100%");
             }
             catch (Exception ex)
             {
@@ -105,6 +124,7 @@ namespace AvaloniaVS.Services
                 _settings.SetInt32(SettingsKey, nameof(DesignerSplitOrientation), (int)DesignerSplitOrientation);
                 _settings.SetInt32(SettingsKey, nameof(DesignerView), (int)DesignerView);
                 _settings.SetInt32(SettingsKey, nameof(MinimumLogVerbosity), (int)MinimumLogVerbosity);
+                _settings.SetString(SettingsKey, nameof(ZoomLevel), ZoomLevel);
             }
             catch (Exception ex)
             {
@@ -112,7 +132,7 @@ namespace AvaloniaVS.Services
             }
         }
 
-        private void RaisePropertyChanged([CallerMemberName]string propName = null)
+        private void RaisePropertyChanged([CallerMemberName] string propName = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
     }
 }

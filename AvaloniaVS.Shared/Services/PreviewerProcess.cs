@@ -302,15 +302,18 @@ namespace AvaloniaVS.Services
         /// <returns>A task tracking the operation.</returns>
         public async Task SetScalingAsync(double scaling)
         {
-            _scaling = scaling;
-
-            if (IsReady)
+            if (_scaling != scaling)
             {
-                await SendAsync(new ClientRenderInfoMessage
+                _scaling = scaling;
+
+                if (IsReady)
                 {
-                    DpiX = 96 * _scaling,
-                    DpiY = 96 * _scaling,
-                });
+                    await SendAsync(new ClientRenderInfoMessage
+                    {
+                        DpiX = 96 * _scaling,
+                        DpiY = 96 * _scaling,
+                    });
+                }
             }
         }
 
