@@ -572,7 +572,11 @@ namespace AvaloniaVS.Views
                 {
                     Func<IAssemblyProvider> assemblyProviderFunc = () =>
                     {
-                        if (GetReferencesFilePath(GetMSBuildPropertyStorage(project)) is { } referencesPath
+                        if (VsProjectAssembliesProvider.TryCreate(project, assemblyPath) is { } vsProjectAsmProvider)
+                        {
+                            return vsProjectAsmProvider;
+                        }
+                        else if (GetReferencesFilePath(GetMSBuildPropertyStorage(project)) is { } referencesPath
                             && File.Exists(referencesPath))
                         {
                             return new ReferenceFileAssemblyProvider(referencesPath, assemblyPath);
