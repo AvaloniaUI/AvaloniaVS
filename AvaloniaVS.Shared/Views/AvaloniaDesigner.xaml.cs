@@ -15,13 +15,16 @@ using Avalonia.Ide.CompletionEngine.AssemblyMetadata;
 using Avalonia.Ide.CompletionEngine.DnlibMetadataProvider;
 using AvaloniaVS.Models;
 using AvaloniaVS.Services;
+using AvaloniaVS.Shared.Services;
 using EnvDTE;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Threading;
 using Serilog;
+using VSLangProj;
 using Task = System.Threading.Tasks.Task;
 
 namespace AvaloniaVS.Views
@@ -482,7 +485,7 @@ namespace AvaloniaVS.Views
 
             if (assemblyPath != null && executablePath != null && hostAppPath != null && isNetFx != null)
             {
-                RebuildMetadata(assemblyPath);
+                RebuildMetadata(assemblyPath, executablePath);
 
                 try
                 {
@@ -531,7 +534,7 @@ namespace AvaloniaVS.Views
             Log.Logger.Verbose("Finished AvaloniaDesigner.StartProcessAsync()");
         }
 
-        private string GetIntermediateOutputPath(IVsBuildPropertyStorage storage)
+        private string GetReferencesFilePath(IVsBuildPropertyStorage storage)
         {
             // .NET 8 SDK Artifacts output layout
             // https://learn.microsoft.com/en-us/dotnet/core/sdk/artifacts-output
@@ -551,22 +554,33 @@ namespace AvaloniaVS.Views
             }
         }
 
-        private void RebuildMetadata(string assemblyPath)
+        private void RebuildMetadata(string assemblyPath, string executablePath)
         {
+            
             assemblyPath ??= SelectedTarget?.XamlAssembly;
+            var project = SelectedTarget?.Project;
 
-            if (assemblyPath != null && SelectedTarget?.Project != null)
+            if (assemblyPath != null && project != null)
             {
                 var buffer = _editor.TextView.TextBuffer;
                 var metadata = buffer.Properties.GetOrCreateSingletonProperty(
                     typeof(XamlBufferMetadata),
                     () => new XamlBufferMetadata());
                 buffer.Properties["AssemblyName"] = Path.GetFileNameWithoutExtension(assemblyPath);
-                var storage = GetMSBuildPropertyStorage(SelectedTarget.Project);
-                string intermediateOutputPath = GetIntermediateOutputPath(storage);
+
                 if (metadata.CompletionMetadata == null || metadata.NeedInvalidation)
                 {
-                    CreateCompletionMetadataAsync(intermediateOutputPath, assemblyPath, metadata).FireAndForget();
+                    Func<IAssemblyProvider> assemblyProviderFunc = () =>
+                    {
+                        if (GetReferencesFilePath(GetMSBuildPropertyStorage(project)) is { } referencesPath
+                            && File.Exists(referencesPath))
+                        {
+                            return new ReferenceFileAssemblyProvider(referencesPath, assemblyPath);
+                        }
+                        return new DepsJsonFileAssemblyProvider(executablePath, assemblyPath);
+                    };
+
+                    CreateCompletionMetadataAsync(executablePath, assemblyProviderFunc, metadata).FireAndForget();
                 }
             }
         }
@@ -575,8 +589,8 @@ namespace AvaloniaVS.Views
         private static readonly MetadataReader _metadataReader = new(new DnlibMetadataProvider());
 
         private static async Task CreateCompletionMetadataAsync(
-            string intermediateOutputPath,
-            string xamlAssemblyPath,
+            string executablePath,
+            Func<IAssemblyProvider> assemblyProviderFunc,
             XamlBufferMetadata target)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -589,7 +603,7 @@ namespace AvaloniaVS.Views
                 dte.Events.BuildEvents.OnBuildBegin += (s, e) => _metadataCache.Clear();
             }
 
-            Log.Logger.Information("Started AvaloniaDesigner.CreateCompletionMetadataAsync() for {ExecutablePath}", intermediateOutputPath);
+            Log.Logger.Information("Started AvaloniaDesigner.CreateCompletionMetadataAsync() for {ExecutablePath}", executablePath);
 
             try
             {
@@ -597,13 +611,11 @@ namespace AvaloniaVS.Views
 
                 Task<Metadata> metadataLoad;
 
-                if (!_metadataCache.TryGetValue(intermediateOutputPath, out metadataLoad))
+                if (!_metadataCache.TryGetValue(executablePath, out metadataLoad))
                 {
-                    metadataLoad = Task.Run(() =>
-                                    {
-                                        return _metadataReader.GetForTargetAssembly(new AvaloniaCompilationAssemblyProvider(intermediateOutputPath, xamlAssemblyPath));
-                                    });
-                    _metadataCache[intermediateOutputPath] = metadataLoad;
+                    var assemblyProvider = assemblyProviderFunc();
+                    metadataLoad = Task.Run(() => _metadataReader.GetForTargetAssembly(assemblyProvider));
+                    _metadataCache[executablePath] = metadataLoad;
                 }
 
                 target.CompletionMetadata = await metadataLoad;
@@ -612,7 +624,7 @@ namespace AvaloniaVS.Views
 
                 sw.Stop();
 
-                Log.Logger.Verbose("Finished AvaloniaDesigner.CreateCompletionMetadataAsync() took {Time} for {ExecutablePath}", sw.Elapsed, intermediateOutputPath);
+                Log.Logger.Verbose("Finished AvaloniaDesigner.CreateCompletionMetadataAsync() took {Time} for {ExecutablePath}", sw.Elapsed, executablePath);
             }
             catch (Exception ex)
             {
