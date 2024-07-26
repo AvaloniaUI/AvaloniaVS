@@ -42,6 +42,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\PreviewerProcess.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SolutionService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Throttle.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\VsProjectAssembliesProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SuggestedActions\Actions\Base\BaseSuggestedAction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SuggestedActions\Actions\MissingAliasSuggestedAction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SuggestedActions\Actions\MissingNamespaceAndAliasSuggestedAction.cs" />

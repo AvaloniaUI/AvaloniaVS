@@ -4,13 +4,13 @@ using System.IO;
 
 namespace Avalonia.Ide.CompletionEngine.AssemblyMetadata
 {
-    public class AvaloniaCompilationAssemblyProvider : IAssemblyProvider
+    public class ReferenceFileAssemblyProvider : IAssemblyProvider
     {
         private readonly string _path;
         private readonly string _xamlPrimaryAssemblyPath;
 
         /// <summary>
-        /// Create a new instance of <see cref="AvaloniaCompilationAssemblyProvider"/>—an implementation of <see cref="IAssemblyProvider"/>.
+        /// Create a new instance of <see cref="ReferenceFileAssemblyProvider"/>—an implementation of <see cref="IAssemblyProvider"/>.
         /// </summary>
         /// <param name="path">
         /// <para>
@@ -25,7 +25,7 @@ namespace Avalonia.Ide.CompletionEngine.AssemblyMetadata
         /// </param>
         /// <param name="xamlPrimaryAssemblyPath">Promary XAML Assembly path</param>
         /// <exception cref="ArgumentNullException"><paramref name="path"/> is null or empty</exception>
-        public AvaloniaCompilationAssemblyProvider(string path, string xamlPrimaryAssemblyPath)
+        public ReferenceFileAssemblyProvider(string path, string xamlPrimaryAssemblyPath)
         {
             if (string.IsNullOrEmpty(path))
                 throw new ArgumentNullException(nameof(path));

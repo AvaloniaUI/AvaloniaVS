@@ -106,7 +106,7 @@ public static class MetadataConverter
         bool skipRes(string res) => ignoredResExt.Any(r => res.EndsWith(r, StringComparison.OrdinalIgnoreCase));
 
         PreProcessTypes(types, metadata);
-        var targetAssembly = provider.Assemblies.First();
+        var targetAssembly = provider.Assemblies.FirstOrDefault() ?? throw new InvalidOperationException("IMetadataReaderSession.Assemblies list is empty.");
         foreach (var asm in provider.Assemblies)
         {
             var aliases = new Dictionary<string, string[]>();
