@@ -37,11 +37,10 @@
     <Border Name="error"
             HorizontalAlignment="Stretch"
             VerticalAlignment="Stretch"
-            Background="Gray"
-            Opacity=".75"
+            Background="#80808080"
             Visibility="Collapsed">
 
-      <StackPanel Background="Black"
+      <StackPanel Background="{DynamicResource VsBrush.ToolWindowBackground}"
                   HorizontalAlignment="Center"
                   VerticalAlignment="Center">
         <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
@@ -55,7 +54,7 @@
                 VerticalAlignment="Center"
                 FontSize="16"
                 FontWeight="ExtraBold"
-                Foreground="White"
+                Foreground="{DynamicResource VsBrush.WindowText}"
                 Text="!" />
           </Grid>
 
