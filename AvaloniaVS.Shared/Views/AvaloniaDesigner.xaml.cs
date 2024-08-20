@@ -17,14 +17,12 @@ using AvaloniaVS.Models;
 using AvaloniaVS.Services;
 using AvaloniaVS.Shared.Services;
 using EnvDTE;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Threading;
 using Serilog;
-using VSLangProj;
 using Task = System.Threading.Tasks.Task;
 
 namespace AvaloniaVS.Views
@@ -455,8 +453,8 @@ namespace AvaloniaVS.Views
             {
                 var processScaling = Process.Scaling;
                 var viewportSize = previewer.GetViewportSize(10);
+
                 double x = viewportSize.Width / (bitmap.Width / processScaling);
-                //double y = viewportSize.Height / (bitmap.Height / processScaling);
 
                 scaling = Math.Round(x, 2, MidpointRounding.ToEven);
 
@@ -821,11 +819,10 @@ namespace AvaloniaVS.Views
 
         private void UpdateScaling(double scaling)
         {
-            _scaling = scaling;
 
             if (Process.IsReady)
             {
-                Process.SetScalingAsync(VisualTreeHelper.GetDpi(this).DpiScaleX * _scaling).FireAndForget();
+                Process.SetScalingAsync(scaling).FireAndForget();
             }
         }
 
