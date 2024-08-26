@@ -8,6 +8,7 @@ namespace AvaloniaVS.Services
     public interface IAvaloniaVSSettings : INotifyPropertyChanged
     {
         Orientation DesignerSplitOrientation { get; set; }
+        bool DesignerSplitSwapped { get; set; }
         AvaloniaDesignerView DesignerView { get; set; }
         LogEventLevel MinimumLogVerbosity { get; set; }
         string ZoomLevel { get; set; }
