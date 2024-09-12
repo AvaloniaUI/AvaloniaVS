@@ -189,6 +189,59 @@ namespace AvaloniaVS.Views
         }
 
         /// <summary>
+        /// Gets or sets whether the split view panes are swapped.
+        /// </summary>
+        public bool PreviewAndXamlPanesSwapped
+        {
+            get => SplitOrientation switch
+            {
+                Orientation.Horizontal => Grid.GetRow(editorHost) != 0,
+                Orientation.Vertical => Grid.GetColumn(editorHost) != 0,
+                _ => throw new NotSupportedException(),
+            };
+
+            set
+            {
+                if (value == PreviewAndXamlPanesSwapped)
+                {
+                    return;
+                }
+
+                switch (SplitOrientation)
+                {
+                    case Orientation.Horizontal:
+                        if (value)
+                        {
+                            Grid.SetRow(editorHost, 2);
+                            Grid.SetRow(previewer, 0);
+                        }
+                        else
+                        {
+                            Grid.SetRow(editorHost, 0);
+                            Grid.SetRow(previewer, 2);
+                        }
+                        break;
+
+                    case Orientation.Vertical:
+                        if (value)
+                        {
+                            Grid.SetColumn(editorHost, 2);
+                            Grid.SetColumn(previewer, 0);
+                        }
+                        else
+                        {
+                            Grid.SetColumn(editorHost, 0);
+                            Grid.SetColumn(previewer, 2);
+                        }
+                        break;
+
+                    default:
+                        throw new NotSupportedException();
+                }
+            }
+        }
+
+        /// <summary>
         /// Gets or sets the type of view to display.
         /// </summary>
         public AvaloniaDesignerView View
@@ -773,43 +826,7 @@ namespace AvaloniaVS.Views
             }
         }
 
-        private void SwapPreviewAndXamlPanes(object sender, RoutedEventArgs args)
-        {
-            switch (SplitOrientation)
-            {
-                case Orientation.Horizontal:
-                    var editorRow = Grid.GetRow(editorHost);
-
-                    if (editorRow == 0)
-                    {
-                        Grid.SetRow(editorHost, 2);
-                        Grid.SetRow(previewer, 0);
-                    }
-                    else
-                    {
-                        Grid.SetRow(editorHost, 0);
-                        Grid.SetRow(previewer, 2);
-                    }
-
-                    break;
-
-                case Orientation.Vertical:
-                    var editorCol = Grid.GetColumn(editorHost);
-
-                    if (editorCol == 0)
-                    {
-                        Grid.SetColumn(editorHost, 2);
-                        Grid.SetColumn(previewer, 0);
-                    }
-                    else
-                    {
-                        Grid.SetColumn(editorHost, 0);
-                        Grid.SetColumn(previewer, 2);
-                    }
-
-                    break;
-            }
-        }
+        private void SwapPreviewAndXamlPanes(object sender, RoutedEventArgs args) => PreviewAndXamlPanesSwapped = !PreviewAndXamlPanesSwapped;
 
         private void UpdateXaml(string xaml)
         {

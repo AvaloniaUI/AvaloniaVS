@@ -18,6 +18,7 @@ namespace AvaloniaVS.Services
         private const string SettingsKey = nameof(AvaloniaVSSettings);
         private readonly WritableSettingsStore _settings;
         private Orientation _designerSplitOrientation;
+        private bool _designerSplitSwapped = false;
         private AvaloniaDesignerView _designerView = AvaloniaDesignerView.Split;
         private LogEventLevel _minimumLogVerbosity = LogEventLevel.Information;
         private string _zoomLevel;
@@ -51,6 +52,19 @@ namespace AvaloniaVS.Services
                 if (_designerView != value)
                 {
                     _designerView = value;
+                    RaisePropertyChanged();
+                }
+            }
+        }
+
+        public bool DesignerSplitSwapped
+        {
+            get => _designerSplitSwapped;
+            set
+            {
+                if (_designerSplitSwapped != value)
+                {
+                    _designerSplitSwapped = value;
                     RaisePropertyChanged();
                 }
             }
@@ -93,6 +107,10 @@ namespace AvaloniaVS.Services
                     SettingsKey,
                     nameof(DesignerSplitOrientation),
                     (int)Orientation.Vertical);
+                DesignerSplitSwapped = _settings.GetBoolean(
+                    SettingsKey,
+                    nameof(DesignerSplitSwapped),
+                    false);
                 DesignerView = (AvaloniaDesignerView)_settings.GetInt32(
                     SettingsKey,
                     nameof(DesignerView),
@@ -122,6 +140,7 @@ namespace AvaloniaVS.Services
                 }
 
                 _settings.SetInt32(SettingsKey, nameof(DesignerSplitOrientation), (int)DesignerSplitOrientation);
+                _settings.SetBoolean(SettingsKey, nameof(DesignerSplitSwapped), DesignerSplitSwapped);
                 _settings.SetInt32(SettingsKey, nameof(DesignerView), (int)DesignerView);
                 _settings.SetInt32(SettingsKey, nameof(MinimumLogVerbosity), (int)MinimumLogVerbosity);
                 _settings.SetString(SettingsKey, nameof(ZoomLevel), ZoomLevel);
