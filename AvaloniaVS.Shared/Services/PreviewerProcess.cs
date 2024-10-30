@@ -463,6 +463,10 @@ namespace AvaloniaVS.Services
                         if (exception != null)
                         {
                             _log.Error(new XamlException(exception.Message, null, exception.LineNumber ?? 0, exception.LinePosition ?? 0), "UpdateXamlResult error");
+                            if (!string.IsNullOrWhiteSpace(update.Error))
+                            {
+                                _log.Error("UpdateXamlResult error details: {0}", update.Error);
+                            }
                         }
 
                         break;
