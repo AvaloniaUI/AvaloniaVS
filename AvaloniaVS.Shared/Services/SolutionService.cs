@@ -187,7 +187,7 @@ namespace AvaloniaVS.Services
         {
             return project.References
                 .OfType<Reference>()
-                .Where(x => x.SourceProject != null)
+                .Where(x => GetSourceProjectSafe(x) != null)
                 .Select(x => x.SourceProject)
                 .ToList();
         }
@@ -196,8 +196,28 @@ namespace AvaloniaVS.Services
         {
             return project.References
                 .OfType<Reference>()
-                .Where(x => x.SourceProject == null)
+                .Where(x => GetSourceProjectSafe(x) == null)
                 .Select(x => x.Name).ToList();
+        }
+
+        /// <summary>
+        /// Returns the Reference's SourceProject. Returns null if any exceptions occur while 
+        /// attempting to access the Reference's SourceProject property.
+        /// </summary>
+        /// <remarks>
+        /// COM Errors or NotImplementedException may be thrown when attempting to access the
+        /// Reference's SourceProject property.
+        /// </remarks>
+        private static Project GetSourceProjectSafe(Reference reference)
+        {
+            try
+            {
+                return reference.SourceProject;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         private static async Task<IReadOnlyList<ProjectOutputInfo>> GetOutputInfoAsync(Project project)
