@@ -59,6 +59,6 @@
     <TextBlock Text="Anonymouse Usage Analytis:" Grid.Column="0" Grid.Row="8" VerticalAlignment="Top" />
     <CheckBox VerticalAlignment="Center" Grid.Column="2" Grid.Row="8"
            IsChecked="{Binding UsageTracking, Mode=TwoWay}">Enabled</CheckBox>
-    <TextBlock Text="Support the improvement of the Avalonia Visual Studio extension by consenting to the collection of anonymous usage data. This data never includes personal information, source code, or any sensitive material." TextWrapping="Wrap" FontSize="13" Grid.ColumnSpan="3" Grid.Row="9" VerticalAlignment="Center" />
+    <TextBlock Text="Support the improvement of the Avalonia Visual Studio extension by sharing anonymous usage data. No PII, source code, or any sensitive material is ever collected." TextWrapping="Wrap" FontSize="13" Grid.ColumnSpan="3" Grid.Row="9" VerticalAlignment="Center" />
   </Grid>
 </UserControl>
