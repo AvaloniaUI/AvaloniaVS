@@ -22,6 +22,7 @@ namespace AvaloniaVS.Services
         private AvaloniaDesignerView _designerView = AvaloniaDesignerView.Split;
         private LogEventLevel _minimumLogVerbosity = LogEventLevel.Information;
         private string _zoomLevel;
+        private bool _usageTracking;
 
         [ImportingConstructor]
         public AvaloniaVSSettings(SVsServiceProvider vsServiceProvider)
@@ -96,6 +97,19 @@ namespace AvaloniaVS.Services
             }
         }
 
+        public bool UsageTracking
+        {
+            get => _usageTracking;
+            set
+            {
+                if (_usageTracking != value)
+                {
+                    _usageTracking = value;
+                    RaisePropertyChanged();
+                }
+            }
+        }
+
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -123,6 +137,10 @@ namespace AvaloniaVS.Services
                     SettingsKey,
                     nameof(ZoomLevel),
                   "100%");
+                UsageTracking = _settings.GetBoolean(
+                    SettingsKey,
+                    nameof(UsageTracking),
+                    true);
             }
             catch (Exception ex)
             {
@@ -144,6 +162,7 @@ namespace AvaloniaVS.Services
                 _settings.SetInt32(SettingsKey, nameof(DesignerView), (int)DesignerView);
                 _settings.SetInt32(SettingsKey, nameof(MinimumLogVerbosity), (int)MinimumLogVerbosity);
                 _settings.SetString(SettingsKey, nameof(ZoomLevel), ZoomLevel);
+                _settings.SetBoolean(SettingsKey, nameof(UsageTracking), UsageTracking);
             }
             catch (Exception ex)
             {
