@@ -142,9 +142,9 @@ public class CompletionEngine
             propName ??= "";
             if (t == null)
                 return Array.Empty<MetadataProperty>();
-
-            var e = t.Properties.Where(p => p.Name.StartsWith(propName, StringComparison.OrdinalIgnoreCase) && (hasSetter ? p.HasSetter : p.HasGetter));
-
+            
+            var e = t.Properties.Where(p => p.Name.Contains(propName, StringComparison.OrdinalIgnoreCase) && (hasSetter ? p.HasSetter : p.HasGetter));
+            
             if (attached.HasValue)
                 e = e.Where(p => p.IsAttached == attached);
             if (staticGetter)
