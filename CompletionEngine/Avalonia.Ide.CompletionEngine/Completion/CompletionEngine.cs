@@ -1334,7 +1334,10 @@ public class CompletionEngine
             case SelectorStatement.Class:
                 if (fullText is not null)
                 {
-                    var selectorElementName = text.Slice(0, text.IndexOf('.'));
+                    var selectorElementName = ReadOnlySpan<char>.Empty;
+
+                    if (!text.StartsWith("^ ".AsSpan()) && !text.StartsWith("^".AsSpan()))
+                        selectorElementName = text.Slice(0, text.IndexOf('.'));
 
                     var matches = MetadataHelper
                         .FindClassesRegex
