@@ -24,6 +24,10 @@ public class CompletionEngine
         internal static Regex FindElementByNameRegex => _findElementByNameRegex ??=
              new($"\\s(?:(x\\:)?Name)=\"(?<AttribValue>[\\w\\:\\s\\|\\.]+)\"", RegexOptions.Compiled);
 
+        private static Regex? _findClassesRegex;
+        internal static Regex FindClassesRegex => _findClassesRegex ??=
+            new("<(?<ElementName>\\w+)[^>]*?\\s+Classes=\"(?<ClassesAttrib>[^\"]*)\"[^>]*\\/?>", RegexOptions.Compiled);
+
         public void SetMetadata(Metadata metadata, string xml, string? currentAssemblyName = null)
         {
             var aliases = GetNamespaceAliases(xml);
@@ -1328,6 +1332,34 @@ public class CompletionEngine
                 break;
             case SelectorStatement.Function:
             case SelectorStatement.Class:
+                if (fullText is not null)
+                {
+                    var selectorElementName = text.Slice(0, text.IndexOf('.'));
+
+                    var matches = MetadataHelper
+                        .FindClassesRegex
+                        .Matches(fullText);
+
+                    if (matches is { Count: > 0 })
+                    {
+                        var completionsClasses = new HashSet<Completion>();
+
+                        foreach (Match item in matches)
+                        {
+                            var elementName = item.Groups["ElementName"].Value;
+
+                            if (item.Success && elementName.AsSpan().StartsWith(selectorElementName))
+                            {
+                                var classes = item.Groups["ClassesAttrib"].Value.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                                parsed = (parser.LastParsedPosition ?? 0);
+                                completionsClasses.UnionWith(classes.Select(c => new Completion(c, CompletionKind.Class, elementName)));
+                            }
+                        }
+
+                        completions.AddRange(completionsClasses);
+                    }
+                }
+                break;
             case SelectorStatement.Middle:
             case SelectorStatement.End:
             default:

@@ -24,6 +24,32 @@ namespace CompletionEngineTests
         }
 
         [Fact]
+        public void Classes_Should_Be_Completed_On_New_Line()
+        {
+            var compl = GetCompletionsFor("<Button\n\tClasses=\"class\"></Button><Style Selector=\".");
+            Assert.NotNull(compl.Completions.Single(x => x.InsertText == "class"));
+        }
+
+        [Fact]
+        public void Multiple_Classes_Should_Be_Completed()
+        {
+            var compl = GetCompletionsFor("<Button Classes=\"class class2\"></Button><Style Selector=\".");
+            Assert.Equal("class", compl.Completions[0].InsertText);
+            Assert.Equal("class2", compl.Completions[1].InsertText);
+        }
+
+        [Fact]
+        public void Multiple_Classes_Should_Be_Completed_Unique()
+        {
+            var compl = GetCompletionsFor("<Button Classes=\"class class2\"><Button Classes=\"class class2\"/><Style Selector=\".");
+            var classCount = compl.Completions.Count(x => x.InsertText == "class");
+            Assert.Equal(1, classCount);
+
+            var class2Count = compl.Completions.Count(x => x.InsertText == "class2");
+            Assert.Equal(1, class2Count);
+        }
+
+        [Fact]
         public void Property_Completions_Should_Be_Unique()
         {
             var compl = GetCompletionsFor("<UserControl P");
