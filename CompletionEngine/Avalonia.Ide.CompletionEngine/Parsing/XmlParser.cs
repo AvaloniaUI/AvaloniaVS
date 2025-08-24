@@ -64,6 +64,9 @@ public class XmlParser
 
     public bool IsInClosingTag => _isClosingTag;
 
+    // Minimal public exposure for external outline enumeration
+    public int ElementNameStart => _elementNameStart;
+
     public XmlParser(ReadOnlyMemory<char> data, int start = 0)
     {
         _containingTagStart = new Stack<int>();
@@ -94,7 +97,7 @@ public class XmlParser
         return true;
     }
 
-    private bool ParseChar()
+    public bool ParseChar()
     {
         if (_parserPos >= _data.Length)
         {
