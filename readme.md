@@ -1,3 +1,10 @@
+> [!IMPORTANT]  
+> This branch contains an archive of the old version of the Avalonia Extension for Visual Studio.  
+> The code here is no longer supported or maintained. The repository remains as a public location for issues and discussions.  
+> A new and improved version of the extension is available as part of [Avalonia Accelerate](https://avaloniaui.net/accelerate)
+
+---
+
 [![2022 marketplace](https://img.shields.io/visual-studio-marketplace/v/AvaloniaTeam.AvaloniaVS.svg?label=2022-Marketplace)](https://marketplace.visualstudio.com/items?itemName=AvaloniaTeam.AvaloniaVS)
 # Avalonia for Visual Studio
 This repository is used to generate Avalonia Visual Studio extensions.
