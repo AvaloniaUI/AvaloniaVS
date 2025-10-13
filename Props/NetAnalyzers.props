@@ -1,5 +1,0 @@
-<Project>
-  <PropertyGroup>
-    <EnableNETAnalyzers>true</EnableNETAnalyzers>
-  </PropertyGroup>
-</Project>
