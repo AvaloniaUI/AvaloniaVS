@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Accelerate Customer Support
+    url: https://support.avaloniaui.net/support
+    about: You can create issue on the customer support portal
+  - name: Avalonia Community chat on Telegram
+    url: https://t.me/Avalonia
+    about: Please ask and answer questions here.
