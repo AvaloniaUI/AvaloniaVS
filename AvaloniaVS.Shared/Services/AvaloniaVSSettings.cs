@@ -110,7 +110,6 @@ namespace AvaloniaVS.Services
             }
         }
 
-
         public event PropertyChangedEventHandler PropertyChanged;
 
         public void Load()

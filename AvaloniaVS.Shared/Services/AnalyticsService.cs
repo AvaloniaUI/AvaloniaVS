@@ -10,7 +10,6 @@ using EnvDTE;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Threading;
 
 namespace AvaloniaVS.Shared.Services
 {
@@ -183,8 +182,7 @@ namespace AvaloniaVS.Shared.Services
 
                 File.WriteAllBytes(dataPath, data);
             }
-        }
-    
+        }    
     }
 
     public class AvaloniaExtentionLoadedAnalyticsPayload
@@ -281,6 +279,7 @@ namespace AvaloniaVS.Shared.Services
                 result.Version = reader.ReadString();
                 result.Edition = reader.ReadString();
             }
+
             return result;
         }        
     }
@@ -317,7 +316,7 @@ namespace AvaloniaVS.Shared.Services
             File.WriteAllBytes(idFilePath, freshId.ToByteArray());
             return freshId;
         }
-               
+
         private static bool TryReadGuidFromFile(string path, out Guid result)
         {
             result = Guid.Empty;
@@ -348,6 +347,4 @@ namespace AvaloniaVS.Shared.Services
             return true;
         }
     }
-
-    
 }

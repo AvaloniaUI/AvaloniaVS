@@ -43,6 +43,7 @@ internal class DnlibMetadataProviderSession : IMetadataReaderSession
         }
         else
         {
+            // Reflection will throw error if project's DLL not found
             TargetAssemblyName = System.Reflection.AssemblyName.GetAssemblyName(directoryPath[0]).ToString();
             Assemblies = LoadAssemblies(_modCtx, directoryPath).Select(a => new AssemblyWrapper(a, this)).ToList();
         }
