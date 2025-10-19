@@ -1,4 +1,4 @@
-# Legacy Avalonia Visual Studio Extension
+# Lite Avalonia Visual Studio Extension
 
 This fork preserves the legacy Avalonia Visual Studio Extension, forked at 7bf4941.
 
